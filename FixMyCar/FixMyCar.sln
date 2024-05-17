@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FixMyCar", "FixMyCar\FixMyCar.csproj", "{ED74C16D-FC78-428F-8636-F61AD88694D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixMyCar", "FixMyCar\FixMyCar.csproj", "{ED74C16D-FC78-428F-8636-F61AD88694D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FixMyCar.Model", "FixMyCar.Model\FixMyCar.Model.csproj", "{A5953B3E-05EE-417C-8EFE-E5C8B3B02F94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixMyCar.Model", "FixMyCar.Model\FixMyCar.Model.csproj", "{A5953B3E-05EE-417C-8EFE-E5C8B3B02F94}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FixMyCar.Services", "FixMyCar.Services\FixMyCar.Services.csproj", "{2A1B2316-6B42-4BAB-AED5-2317CF01938C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FixMyCar.Services", "FixMyCar.Services\FixMyCar.Services.csproj", "{2A1B2316-6B42-4BAB-AED5-2317CF01938C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

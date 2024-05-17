@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model
+namespace FixMyCar.Model.Entities
 {
     public partial class Product
     {
         public int Id { get; set; }
-        public string Name { get; set; } 
+        public string Name { get; set; }
     }
 }
