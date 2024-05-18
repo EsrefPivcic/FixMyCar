@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Model.DTOs.Product
 {
-    public partial class ProductInsertDTO
+    public partial class ProductGetDTO
     {
         public string Name { get; set; }
     }
