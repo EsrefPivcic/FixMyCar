@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using FixMyCar.Model.DTOs;
 using FixMyCar.Model.Entities;
+using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services
 {
-    public class BaseService<T, TDb> : IBaseService<T> where TDb : class where T : class
+    public class BaseService<T, TDb, TSearch> : IBaseService<T, TDb, TSearch> where TDb : class where T : class where TSearch: BaseSearchObject
     {
         FixMyCarContext _context;
         IMapper _mapper;
@@ -20,13 +22,29 @@ namespace FixMyCar.Services
             _mapper = mapper;
         }
 
-        public async Task<List<T>> Get()
+        public async Task<PagedResult<T>> Get(TSearch? search = null)
         {
             var query = _context.Set<TDb>().AsQueryable();
+            query = AddFilter(query, search);
+
+            PagedResult<T> pagedResult = new PagedResult<T>();
+            pagedResult.Count = await query.CountAsync();
+
+            if(search?.PageNumber.HasValue == true && search?.PageSize.HasValue == true)
+            {
+                query = query.Take(search.PageSize.Value).Skip(search.PageNumber.Value * search.PageSize.Value);
+            }
 
             var list = await query.ToListAsync();
 
-            return _mapper.Map<List<T>>(list);
+            pagedResult.Result = _mapper.Map<List<T>>(list);
+
+            return pagedResult;
+        }
+
+        public virtual IQueryable<TDb> AddFilter(IQueryable<TDb> query, TSearch? search = null)
+        {
+            return query;
         }
 
         public async Task <T> Insert(T request)

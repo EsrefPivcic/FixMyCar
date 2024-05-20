@@ -1,25 +1,27 @@
-﻿using FixMyCar.Model.DTOs.Product;
+﻿using FixMyCar.Model.DTOs;
+using FixMyCar.Model.DTOs.Product;
+using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FixMyCar.Controllers
 {
     [Route("[controller]")]
-    public class BaseController<T> : ControllerBase where T : class
+    public class BaseController<T, TDb, TSearch> : ControllerBase where T : class where TDb: class where TSearch : BaseSearchObject
     {
-        private readonly IBaseService<T> _service;
-        private readonly ILogger<BaseController<T>> _logger;
-
-        public BaseController(IBaseService<T> service, ILogger<BaseController<T>> logger)
+        private readonly IBaseService<T, TDb, TSearch> _service;
+        private readonly ILogger<BaseController<T, TDb, TSearch>> _logger;
+        
+        public BaseController(IBaseService<T, TDb, TSearch> service, ILogger<BaseController<T, TDb, TSearch>> logger)
         {
             _service = service;
             _logger = logger;
         }
 
         [HttpGet()]
-        public async Task<List<T>> Get()
+        public async Task<PagedResult<T>> Get([FromQuery]TSearch? search = null)
         {
-            return await _service.Get();
+            return await _service.Get(search);
         }
 
         [HttpPost()]
