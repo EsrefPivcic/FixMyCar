@@ -10,5 +10,6 @@ namespace FixMyCar.Model.SearchObjects
     {
         public string? Starts { get; set; }
         public string? Contains { get; set; }
+        public bool? WithDiscount { get; set; }
     }
 }

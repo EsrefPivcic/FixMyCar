@@ -1,16 +1,16 @@
 using FixMyCar.Model.DTOs.Product;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
-using FixMyCar.Services;
+using FixMyCar.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.CompilerServices;
 
 namespace FixMyCar.Controllers
 {
     [ApiController]
-    public class ProductController : BaseController<ProductGetDTO, Product, ProductSearchObject>
+    public class ProductController : BaseController<Product, ProductGetDTO, ProductInsertDTO, ProductUpdateDTO, ProductSearchObject>
     {
-        public ProductController(IProductService service, ILogger<BaseController<ProductGetDTO, Product, ProductSearchObject>> logger) : base(service, logger)
+        public ProductController(IProductService service, ILogger<BaseController<Product, ProductGetDTO, ProductInsertDTO, ProductUpdateDTO, ProductSearchObject>> logger) : base(service, logger)
         {
         }
     }

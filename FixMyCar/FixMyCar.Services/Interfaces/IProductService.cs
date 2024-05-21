@@ -7,9 +7,9 @@ using FixMyCar.Model.DTOs.Product;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 
-namespace FixMyCar.Services
+namespace FixMyCar.Services.Interfaces
 {
-    public interface IProductService : IBaseService<ProductGetDTO, Product, ProductSearchObject>
-    {       
+    public interface IProductService : IBaseService<Product, ProductGetDTO, ProductInsertDTO, ProductUpdateDTO, ProductSearchObject>
+    {
     }
 }

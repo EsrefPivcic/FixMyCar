@@ -9,5 +9,6 @@ namespace FixMyCar.Model.DTOs.Product
     public partial class ProductUpdateDTO
     {
         public string Name { get; set; }
+        public int? DicountId { get; set; }
     }
 }

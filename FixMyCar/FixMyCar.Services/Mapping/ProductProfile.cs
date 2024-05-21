@@ -15,10 +15,10 @@ namespace FixMyCar.Services.Mapping
         {
             CreateMap<ProductInsertDTO, Product>();
             CreateMap<ProductUpdateDTO, Product>();
+            CreateMap<ProductGetDTO, Product>();
             CreateMap<Product, ProductInsertDTO>();
             CreateMap<Product, ProductUpdateDTO>();
             CreateMap<Product, ProductGetDTO>();
-            CreateMap<ProductGetDTO, Product>();
         }
     }
 }

@@ -1,6 +1,7 @@
-using FixMyCar.Services;
 using FixMyCar.Services.Database;
+using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Mapping;
+using FixMyCar.Services.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IDiscontService, DiscountService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
