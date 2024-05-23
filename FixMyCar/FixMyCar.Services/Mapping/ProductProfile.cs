@@ -14,7 +14,7 @@ namespace FixMyCar.Services.Mapping
         public ProductProfile() 
         {
             CreateMap<ProductInsertDTO, Product>();
-            CreateMap<ProductUpdateDTO, Product>();
+            CreateMap<ProductUpdateDTO, Product>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ProductGetDTO, Product>();
             CreateMap<Product, ProductInsertDTO>();
             CreateMap<Product, ProductUpdateDTO>();

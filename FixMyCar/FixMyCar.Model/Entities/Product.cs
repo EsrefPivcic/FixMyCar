@@ -14,5 +14,6 @@ namespace FixMyCar.Model.Entities
         [ForeignKey(nameof(Discount))]
         public int? DicountId { get; set; }
         public Discount? Discount { get; set; }
+        public string State { get; set; }
     }
 }

@@ -43,6 +43,13 @@ namespace FixMyCar.Services.Services
             return pagedResult;
         }
 
+        public virtual async Task<TGet> GetById(int id)
+        {
+            var entity = await _context.Set<TDb>().FindAsync(id);
+
+            return _mapper.Map<TGet>(entity);
+        }
+
         public virtual IQueryable<TDb> AddFilter(IQueryable<TDb> query, TSearch? search = null)
         {
             return query;

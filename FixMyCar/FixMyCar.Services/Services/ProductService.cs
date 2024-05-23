@@ -4,6 +4,7 @@ using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
+using FixMyCar.Services.StateMachineServices.ProductStateMachine;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,8 +16,11 @@ namespace FixMyCar.Services.Services
 {
     public class ProductService : BaseService<Product, ProductGetDTO, ProductInsertDTO, ProductUpdateDTO, ProductSearchObject>, IProductService
     {
-        public ProductService(FixMyCarContext context, IMapper mapper) : base(context, mapper)
+        public BaseProductState _baseProductState { get; set; }
+
+        public ProductService(FixMyCarContext context, IMapper mapper, BaseProductState baseProductState) : base(context, mapper)
         {
+            _baseProductState = baseProductState;
         }
 
         public override IQueryable<Product> AddFilter(IQueryable<Product> query, ProductSearchObject? search = null)
@@ -41,6 +45,31 @@ namespace FixMyCar.Services.Services
                 query = query.Include("Discount");
             }
             return base.AddInclude(query, search);
+        }
+
+        public override async Task<ProductGetDTO> Insert (ProductInsertDTO request)
+        {
+            var state = _baseProductState.CreateState("initial");
+
+            return await state.Insert(request);
+        }
+
+        public override async Task<ProductGetDTO> Update (int id, ProductUpdateDTO request)
+        {
+            var entity = await _context.Products.FindAsync(id);
+
+            var state = _baseProductState.CreateState(entity.State);
+
+            return await state.Update(entity, request);
+        }
+
+        public async Task<ProductGetDTO> Activate (int id)
+        {
+            var entity = await _context.Products.FindAsync(id);
+
+            var state = _baseProductState.CreateState(entity.State);
+
+            return await state.Activate(entity);
         }
     }
 }

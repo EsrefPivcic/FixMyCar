@@ -7,21 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace FixMyCar.Controllers
 {
     [Route("[controller]")]
-    public class BaseController<TDb, TGet, TInsert, TUpdate, TSearch> : ControllerBase where TGet : class where TDb : class where TUpdate : class where TInsert : class where TSearch : BaseSearchObject
+    public class BaseController<TDb, TGet, TInsert, TUpdate, TSearch> : BaseReadOnlyController<TDb, TGet, TSearch> where TGet : class where TDb : class where TUpdate : class where TInsert : class where TSearch : BaseSearchObject
     {
-        private readonly IBaseService<TDb, TGet, TInsert, TUpdate, TSearch> _service;
-        private readonly ILogger<BaseController<TDb, TGet, TInsert, TUpdate, TSearch>> _logger;
+        protected new readonly IBaseService<TDb, TGet, TInsert, TUpdate, TSearch> _service;
+        protected new readonly ILogger<BaseController<TDb, TGet, TInsert, TUpdate, TSearch>> _logger;
         
-        public BaseController(IBaseService<TDb, TGet, TInsert, TUpdate, TSearch> service, ILogger<BaseController<TDb, TGet, TInsert, TUpdate, TSearch>> logger)
+        public BaseController(IBaseService<TDb, TGet, TInsert, TUpdate, TSearch> service, ILogger<BaseController<TDb, TGet, TInsert, TUpdate, TSearch>> logger) : base(logger, service)
         {
             _service = service;
             _logger = logger;
-        }
-
-        [HttpGet()]
-        public async Task<PagedResult<TGet>> Get([FromQuery]TSearch? search = null)
-        {
-            return await _service.Get(search);
         }
 
         [HttpPost()]

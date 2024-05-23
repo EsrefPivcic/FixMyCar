@@ -13,5 +13,11 @@ namespace FixMyCar.Controllers
         public ProductController(IProductService service, ILogger<BaseController<Product, ProductGetDTO, ProductInsertDTO, ProductUpdateDTO, ProductSearchObject>> logger) : base(service, logger)
         {
         }
+
+        [HttpPut("{id}/activate")]
+        public virtual async Task<ProductGetDTO> Activate(int id)
+        {
+            return await (_service as IProductService).Activate(id);
+        }
     }
 }

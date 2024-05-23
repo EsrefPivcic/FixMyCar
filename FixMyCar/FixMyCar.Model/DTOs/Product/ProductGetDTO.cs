@@ -9,6 +9,7 @@ namespace FixMyCar.Model.DTOs.Product
     public partial class ProductGetDTO
     {
         public string Name { get; set; }
+        public string State { get; set; }
         public Entities.Discount? Discount { get; set; }
     }
 }

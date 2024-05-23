@@ -11,5 +11,6 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface IProductService : IBaseService<Product, ProductGetDTO, ProductInsertDTO, ProductUpdateDTO, ProductSearchObject>
     {
+        Task<ProductGetDTO> Activate(int id);
     }
 }

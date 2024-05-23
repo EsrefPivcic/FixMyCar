@@ -18,7 +18,7 @@ namespace FixMyCar.Services.Services
         {
         }
 
-        public async Task<TGet> Insert(TInsert request)
+        public virtual async Task<TGet> Insert(TInsert request)
         {
             var set = _context.Set<TDb>();
 
@@ -31,7 +31,7 @@ namespace FixMyCar.Services.Services
             return _mapper.Map<TGet>(entity);
         }
 
-        public async Task<TGet> Update(int id, TUpdate request)
+        public virtual async Task<TGet> Update(int id, TUpdate request)
         {
             var set = _context.Set<TDb>();
 

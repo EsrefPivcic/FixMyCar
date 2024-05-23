@@ -19,5 +19,6 @@ namespace FixMyCar.Services.Database
         }
 
         public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<Discount> Discounts { get; set; }
     }
 }
