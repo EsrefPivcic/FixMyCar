@@ -1,11 +1,13 @@
 ﻿
-using FixMyCar.Model.DTOs;
+using FixMyCar.Model.Common;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FixMyCar.Controllers
 {
+    //[Authorize]
     [Route("[controller]")]
     public class BaseReadOnlyController<TDb, TGet, TSearch> : ControllerBase where TGet : class where TDb : class where TSearch: BaseSearchObject
     {

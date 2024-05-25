@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FixMyCar.Model.Common;
 using FixMyCar.Model.DTOs.Product;
 using FixMyCar.Model.Entities;
 using FixMyCar.Services.Database;
@@ -26,27 +27,32 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
 
         public virtual async Task<ProductGetDTO> Insert(ProductInsertDTO request)
         {
-            throw new Exception("Not allowed");
+            throw new UserException("Action not allowed.");
         }
 
         public virtual async Task<ProductGetDTO> Update(Product entity, ProductUpdateDTO request)
         {
-            throw new Exception("Not allowed");
+            throw new UserException("Action not allowed.");
         }
 
         public virtual async Task<ProductGetDTO> Activate(Product entity)
         {
-            throw new Exception("Not allowed");
+            throw new UserException("Action not allowed.");
         }
 
         public virtual async Task<ProductGetDTO> Hide(Product entity)
         {
-            throw new Exception("Not allowed");
+            throw new UserException("Action not allowed.");
         }
 
         public virtual async Task<ProductGetDTO> Delete(Product entity)
         {
-            throw new Exception("Not allowed");
+            throw new UserException("Action not allowed.");
+        }
+
+        public virtual async Task<List<string>> AllowedActions()
+        {
+            return new List<string>();
         }
 
         public BaseProductState CreateState(string state)
@@ -54,6 +60,7 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
             switch(state)
             {
                 case "initial":
+                    case null:
                     return _serviceProvider.GetService<InitialProductState>();
                     break;
                 case "draft":
@@ -64,7 +71,7 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
                     break;
 
                 default:
-                    throw new Exception("Not allowed");
+                    throw new UserException("Action not allowed.");
             }
         }
     }

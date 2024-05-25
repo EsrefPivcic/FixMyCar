@@ -30,5 +30,14 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
 
             return _mapper.Map<ProductGetDTO>(entity);
         }
+
+        public override async Task<List<string>> AllowedActions()
+        {
+            var list = await base.AllowedActions();
+
+            list.Add("Insert");
+
+            return list;
+        }
     }
 }

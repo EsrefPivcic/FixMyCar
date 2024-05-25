@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model.DTOs.Product
+namespace FixMyCar.Model.DTOs.Role
 {
-    public partial class ProductInsertDTO
+    public class RoleGetDTO
     {
-        [Required(AllowEmptyStrings = false)]
         public string Name { get; set; }
     }
 }

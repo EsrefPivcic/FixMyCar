@@ -71,5 +71,21 @@ namespace FixMyCar.Services.Services
 
             return await state.Activate(entity);
         }
+        
+        public async Task<ProductGetDTO> Hide (int id)
+        {
+            var entity = await _context.Products.FindAsync(id);
+
+            var state = _baseProductState.CreateState(entity.State);
+
+            return await state.Hide(entity);
+        }
+
+        public async Task<List<string>> AllowedActions(int id)
+        {
+            var entity = await _context.Products.FindAsync(id);
+            var state = _baseProductState.CreateState(entity?.State ?? "initial");
+            return await state.AllowedActions();
+        }
     }
 }

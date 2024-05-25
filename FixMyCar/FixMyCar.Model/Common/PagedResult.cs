@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model.DTOs
+namespace FixMyCar.Model.Common
 {
     public class PagedResult<T>
     {

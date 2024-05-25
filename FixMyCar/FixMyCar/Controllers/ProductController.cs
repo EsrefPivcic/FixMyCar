@@ -19,5 +19,17 @@ namespace FixMyCar.Controllers
         {
             return await (_service as IProductService).Activate(id);
         }
+
+        [HttpPut("{id}/hide")]
+        public virtual async Task<ProductGetDTO> Hide(int id)
+        {
+            return await (_service as IProductService).Hide(id);
+        }
+
+        [HttpGet("{id}/allowedActions")]
+        public virtual async Task<List<string>> AllowedActions(int id)
+        {
+            return await (_service as IProductService).AllowedActions(id);
+        }
     }
 }
