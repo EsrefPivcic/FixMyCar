@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using FixMyCar.Model.DTOs.User;
+using FixMyCar.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -9,8 +11,10 @@ namespace FixMyCar.Authentication
 {
     public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+        IUserService _userService;
+        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IUserService userService) : base(options, logger, encoder, clock)
         {
+            _userService = userService;
         }
 
         protected async override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -22,19 +26,30 @@ namespace FixMyCar.Authentication
 
             var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
             var credentialsBytes = Convert.FromBase64String(authHeader.Parameter);
-            var credentials = Encoding.UTF8.GetString(credentialsBytes);
+            var credentials = Encoding.UTF8.GetString(credentialsBytes).Split(':');
 
             var username = credentials[0];
             var password = credentials[1];
 
-            if (username == null || password == null)
+            UserGetDTO user = await _userService.Login(username, password);
+
+            if (user == null)
             {
                 return AuthenticateResult.Fail("Incorrect username or password.");
             }
             else
             {
-                var identity = new ClaimsIdentity();
+                var claims = new List<Claim>()
+                {
+                    new Claim(ClaimTypes.Name, user.Name),
+                    new Claim(ClaimTypes.NameIdentifier, user.Username),
+                    new Claim(ClaimTypes.Role, user.Role.Name)
+                };
+
+                var identity = new ClaimsIdentity(claims, Scheme.Name);
+
                 var principal = new ClaimsPrincipal(identity);
+
                 var ticket = new AuthenticationTicket(principal, Scheme.Name);
                 return AuthenticateResult.Success(ticket);
             }

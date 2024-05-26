@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FixMyCar.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("[controller]")]
     public class BaseReadOnlyController<TDb, TGet, TSearch> : ControllerBase where TGet : class where TDb : class where TSearch: BaseSearchObject
     {
