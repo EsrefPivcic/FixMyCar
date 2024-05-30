@@ -1,0 +1,36 @@
+version: '3'
+services:
+#mssql docker
+  fixmycar-sql:
+    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=.
+      - MSSQL_PID=Developer
+    ports:
+      - 1401:1433
+    expose:
+      - 1433
+    networks:
+      - fixmycar2023
+
+  fixmycar-api:
+    restart: unless-stopped
+    build:
+      context: .
+    environment:
+      - ConnectionStrings:DefaultConnection=Server=fixmycar-sql,1433;Database=fixmycar;User=sa;Password=.;ConnectRetryCount=0; TrustServerCertificate=True
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - 7114:7114
+    networks:
+      - fixmycar2023
+    links:
+      - fixmycar-sql
+    depends_on:
+      - fixmycar-sql
+      
+networks:
+  fixmycar2023:
+    driver: bridge      
