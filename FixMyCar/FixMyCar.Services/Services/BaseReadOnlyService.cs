@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using FixMyCar.Model.Common;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;

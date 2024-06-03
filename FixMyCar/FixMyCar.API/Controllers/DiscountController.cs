@@ -11,7 +11,7 @@ namespace FixMyCar.Controllers
     [ApiController]
     public class DiscountController : BaseController<Discount, DiscountGetDTO, DiscountInsertDTO, DiscountUpdateDTO, DiscountSearchObject>
     {
-        public DiscountController(IDiscontService service, ILogger<BaseController<Discount, DiscountGetDTO, DiscountInsertDTO, DiscountUpdateDTO, DiscountSearchObject>> logger) : base(service, logger)
+        public DiscountController(IDiscountService service, ILogger<BaseController<Discount, DiscountGetDTO, DiscountInsertDTO, DiscountUpdateDTO, DiscountSearchObject>> logger) : base(service, logger)
         {
         }
     }

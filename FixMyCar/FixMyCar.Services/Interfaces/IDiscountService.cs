@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Interfaces
 {
-    public interface IDiscontService : IBaseService<Discount, DiscountGetDTO, DiscountInsertDTO, DiscountUpdateDTO, DiscountSearchObject>
+    public interface IDiscountService : IBaseService<Discount, DiscountGetDTO, DiscountInsertDTO, DiscountUpdateDTO, DiscountSearchObject>
     {
     }
 }

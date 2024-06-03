@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Services
 {
-    public class DiscountService : BaseService<Discount, DiscountGetDTO, DiscountInsertDTO, DiscountUpdateDTO, DiscountSearchObject>, IDiscontService
+    public class DiscountService : BaseService<Discount, DiscountGetDTO, DiscountInsertDTO, DiscountUpdateDTO, DiscountSearchObject>, IDiscountService
     {
         public DiscountService(FixMyCarContext context, IMapper mapper) : base(context, mapper)
         {
