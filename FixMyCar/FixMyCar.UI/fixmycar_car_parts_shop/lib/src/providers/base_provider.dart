@@ -4,8 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 abstract class BaseProvider<T> with ChangeNotifier {
-  static const String _baseUrl = 'https://TODO:localhost:7055';
+  static const String _baseUrl = 'https://localhost:7055';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
+  static bool isLoggedIn = false;
 
   Future<void> get() async {
     final response = await http.get(Uri.parse('$_baseUrl/get'));
@@ -57,7 +58,8 @@ abstract class BaseProvider<T> with ChangeNotifier {
       final responseBody = json.decode(response.body);
       final token = responseBody['token'];
       await storage.write(key: 'jwt_token', value: token);
-      print("Login successful.");
+      isLoggedIn = true;
+      print("Login successful!");
       notifyListeners();
     } else {
       final responseBody = json.decode(response.body);
