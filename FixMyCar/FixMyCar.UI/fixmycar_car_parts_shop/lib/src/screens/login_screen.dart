@@ -6,7 +6,7 @@ import 'home_screen.dart'; // Import the HomeScreen
 import 'master_screen.dart'; // Import MasterScreen
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -116,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       const SizedBox(height: 8.0),
                       _isLoading
-                          ? CircularProgressIndicator()
+                          ? const CircularProgressIndicator()
                           : ElevatedButton(
                               onPressed: _login,
                               style: ElevatedButton.styleFrom(

@@ -4,7 +4,7 @@ class MasterScreen extends StatelessWidget {
   final Widget child;
   final bool showNavigation;
 
-  const MasterScreen({Key? key, required this.child, this.showNavigation = true}) : super(key: key);
+  const MasterScreen({super.key, required this.child, this.showNavigation = true});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class MasterScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            SizedBox(width: 56),
+            const SizedBox(width: 56),
           ],
         ),
       ),
@@ -43,7 +43,7 @@ class MasterScreen extends StatelessWidget {
         // TODO: Add navigation logic
         print('$label button pressed');
       },
-      child: Text(label, style: TextStyle(color: Colors.white)),
+      child: Text(label, style: const TextStyle(color: Colors.white)),
     );
   }
 }
