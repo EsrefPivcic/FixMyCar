@@ -16,7 +16,9 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'FixMyCar',
             theme: ThemeData.dark().copyWith(),
-            home: authProvider.isLoggedIn ? const HomeScreen() : const LoginScreen(),
+            home: authProvider.isLoggedIn
+                ? const HomeScreen()
+                : const LoginScreen(),
           );
         },
       ),

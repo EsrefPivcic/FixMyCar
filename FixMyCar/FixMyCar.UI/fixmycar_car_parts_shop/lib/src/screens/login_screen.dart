@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_parts_shop/constants.dart';
-import 'home_screen.dart'; // Import the HomeScreen
-import 'master_screen.dart'; // Import MasterScreen
+import 'home_screen.dart';
+import 'master_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -80,7 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: InputDecoration(
                           labelText: AppConstants.usernameLabel,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+                            borderRadius: BorderRadius.circular(
+                                AppRadius.textFieldRadius),
                           ),
                         ),
                         keyboardType: TextInputType.name,
@@ -97,7 +98,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         decoration: InputDecoration(
                           labelText: AppConstants.passwordLabel,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+                            borderRadius: BorderRadius.circular(
+                                AppRadius.textFieldRadius),
                           ),
                         ),
                         obscureText: true,
@@ -112,7 +114,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (_errorMessage != null)
                         Text(
                           _errorMessage!,
-                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.error),
                         ),
                       const SizedBox(height: 8.0),
                       _isLoading
@@ -120,10 +123,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           : ElevatedButton(
                               onPressed: _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHigh,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 40, vertical: 16),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppRadius.buttonRadius),
+                                  borderRadius: BorderRadius.circular(
+                                      AppRadius.buttonRadius),
                                 ),
                               ),
                               child: const Text(AppConstants.loginButtonLabel),

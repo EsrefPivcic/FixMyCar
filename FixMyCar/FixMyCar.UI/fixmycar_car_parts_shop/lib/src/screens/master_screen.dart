@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'items_screen.dart';
 
 class MasterScreen extends StatelessWidget {
   final Widget child;
   final bool showNavigation;
 
-  const MasterScreen({super.key, required this.child, this.showNavigation = true});
+  const MasterScreen(
+      {super.key, required this.child, this.showNavigation = true});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
         flexibleSpace: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -40,8 +43,14 @@ class MasterScreen extends StatelessWidget {
   Widget _buildNavButton(BuildContext context, String label) {
     return TextButton(
       onPressed: () {
-        // TODO: Add navigation logic
-        print('$label button pressed');
+        if (label == 'Items') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ItemsScreen()),
+          );
+        } else {
+          print('$label button pressed');
+        }
       },
       child: Text(label, style: const TextStyle(color: Colors.white)),
     );

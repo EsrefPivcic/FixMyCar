@@ -15,5 +15,7 @@ namespace FixMyCar.Model.Entities
         public int? DicountId { get; set; }
         public Discount? Discount { get; set; }
         public string State { get; set; }
+        public byte[]? ImageData { get; set; }
+        public string? ImageMimeType { get; set; }
     }
 }
