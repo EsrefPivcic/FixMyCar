@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'items_screen.dart';
+import 'home_screen.dart';
 
 class MasterScreen extends StatelessWidget {
   final Widget child;
@@ -12,6 +13,7 @@ class MasterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
         flexibleSpace: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -47,6 +49,11 @@ class MasterScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ItemsScreen()),
+          );
+        } else if (label == 'Home') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
         } else {
           print('$label button pressed');
