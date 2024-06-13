@@ -35,14 +35,25 @@ namespace FixMyCar.Services.Services
                 query = query.Where(x => x.Name.Contains(search.Contains));
             }
 
+            if (!string.IsNullOrWhiteSpace(search?.State))
+            {
+                query = query.Where(x => x.State.Contains(search.State));
+            }
+
             return base.AddFilter(query, search);
         }
 
         public override IQueryable<Product> AddInclude(IQueryable<Product> query, ProductSearchObject? search = null)
         {
+            if (search?.WithDiscount == false)
+            {
+                query = query.Where(x => x.DiscountId == null);
+                return base.AddInclude(query, search);
+            }
+            query = query.Include("Discount");
             if (search?.WithDiscount == true)
             {
-                query = query.Include("Discount");
+                query = query.Where(x => x.DiscountId != null);
             }
             return base.AddInclude(query, search);
         }

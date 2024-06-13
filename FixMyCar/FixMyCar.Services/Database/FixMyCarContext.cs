@@ -59,6 +59,29 @@ namespace FixMyCar.Services.Database
                     State = "draft"
                 }
             );
+
+            modelBuilder.Entity<Role>().HasData(
+                new Role
+                {
+                    Id = 1,
+                    Name = "Admin"
+                }
+            );
+
+            var salt = Hashing.GenerateSalt();
+
+            modelBuilder.Entity<User>().HasData(
+                new User
+                {
+                    Id = 1,
+                    Name = "Esref",
+                    Surname = "Pivcic",
+                    Username = "eshi",
+                    PasswordSalt = salt,
+                    PasswordHash = Hashing.GenerateHash(salt, "eshi"),
+                    RoleId = 1
+                }
+            );
         }
     }
 }

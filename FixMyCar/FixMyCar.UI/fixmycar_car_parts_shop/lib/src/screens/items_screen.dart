@@ -15,39 +15,52 @@ class _ItemsScreenState extends State<ItemsScreen> {
   String _selectedStatusFilter = 'all';
   String _selectedDiscountFilter = 'all';
   String _filterName = '';
+  bool _isFilterApplied = false;
+  TextEditingController _nameFilterController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProductProvider>(context, listen: false).getProducts();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
       child: Consumer<ProductProvider>(
         builder: (context, provider, child) {
-          if (provider.products.isEmpty) {
-            provider.getProducts();
-            return const Center(child: CircularProgressIndicator());
-          } else {
-            return Column(
-              children: [
-                // Filter button
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: IconButton(
-                      icon: Icon(Icons.filter_list,
-                          color: Theme.of(context).primaryColorLight),
-                      onPressed: () => _showFilterDialog(context),
-                    ),
+          return Column(
+            children: [
+              // Filter button
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                    icon: Icon(Icons.filter_list, color: Theme.of(context).primaryColorLight),
+                    onPressed: () => _showFilterDialog(context),
                   ),
                 ),
+              ),
+              if (provider.isLoading)
+                const Expanded(child: Center(child: CircularProgressIndicator()))
+              else if (provider.products.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Text(_isFilterApplied ? 'No results found for your search.' : 'No products available.'),
+                  ),
+                )
+              else
                 Expanded(
                   child: GridView.builder(
                     padding: const EdgeInsets.all(8.0),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 5,
                       crossAxisSpacing: 8.0,
                       mainAxisSpacing: 8.0,
-                      childAspectRatio: 1, // Adjust ratio for card height
+                      childAspectRatio: 1,
                     ),
                     itemCount: provider.products.length,
                     itemBuilder: (context, index) {
@@ -68,8 +81,8 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                       ? Image.memory(
                                           base64Decode(product['imageData']),
                                           fit: BoxFit.contain,
-                                          width: 200, // Limit image width
-                                          height: 200, // Limit image height
+                                          width: 200,
+                                          height: 200,
                                         )
                                       : const SizedBox(
                                           width: 80,
@@ -92,22 +105,17 @@ class _ItemsScreenState extends State<ItemsScreen> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
                                   'Discount: ${(product['discount']['value'] * 100).toInt()}%',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: Colors.red,
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).primaryColorLight,
                                         fontWeight: FontWeight.bold,
                                       ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                            // Buttons for each card based on state
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: _buildActionButtons(product['state']),
                               ),
                             ),
@@ -117,111 +125,143 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     },
                   ),
                 ),
-              ],
-            );
-          }
+            ],
+          );
         },
       ),
     );
   }
 
   void _showFilterDialog(BuildContext context) {
+    _nameFilterController.text = _filterName;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Filters'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Filter by Name'),
-                TextField(
-                  decoration: const InputDecoration(hintText: 'Enter name'),
-                  onChanged: (value) {
-                    setState(() {
-                      _filterName = value;
-                    });
-                  },
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Filters'),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Filter by Name'),
+                    TextField(
+                      decoration: const InputDecoration(hintText: 'Enter name'),
+                      controller: _nameFilterController,
+                      onChanged: (value) {
+                        setState(() {
+                          _filterName = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Product Status'),
+                    RadioListTile<String>(
+                      title: const Text('Active'),
+                      value: 'active',
+                      groupValue: _selectedStatusFilter,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedStatusFilter = value!;
+                        });
+                      },
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('Draft'),
+                      value: 'draft',
+                      groupValue: _selectedStatusFilter,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedStatusFilter = value!;
+                        });
+                      },
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('All'),
+                      value: 'all',
+                      groupValue: _selectedStatusFilter,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedStatusFilter = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    const Text('Discount Status'),
+                    RadioListTile<String>(
+                      title: const Text('Discounted'),
+                      value: 'discounted',
+                      groupValue: _selectedDiscountFilter,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDiscountFilter = value!;
+                        });
+                      },
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('Non-Discounted'),
+                      value: 'non-discounted',
+                      groupValue: _selectedDiscountFilter,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDiscountFilter = value!;
+                        });
+                      },
+                    ),
+                    RadioListTile<String>(
+                      title: const Text('All'),
+                      value: 'all',
+                      groupValue: _selectedDiscountFilter,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDiscountFilter = value!;
+                        });
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                const Text('Product Status'),
-                RadioListTile<String>(
-                  title: const Text('Active'),
-                  value: 'active',
-                  groupValue: _selectedStatusFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStatusFilter = value!;
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Draft'),
-                  value: 'draft',
-                  groupValue: _selectedStatusFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStatusFilter = value!;
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('All'),
-                  value: 'all',
-                  groupValue: _selectedStatusFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStatusFilter = value!;
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
-                const Text('Discount Status'),
-                RadioListTile<String>(
-                  title: const Text('Discounted'),
-                  value: 'discounted',
-                  groupValue: _selectedDiscountFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedDiscountFilter = value!;
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('Non-Discounted'),
-                  value: 'non-discounted',
-                  groupValue: _selectedDiscountFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedDiscountFilter = value!;
-                    });
-                  },
-                ),
-                RadioListTile<String>(
-                  title: const Text('All'),
-                  value: 'all',
-                  groupValue: _selectedDiscountFilter,
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedDiscountFilter = value!;
-                    });
+              ),
+              actions: [
+                TextButton(
+                  child: const Text('Apply Filters'),
+                  onPressed: () {
+                    _applyFilters();
+                    Navigator.of(context).pop();
                   },
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Apply Filters'),
-              onPressed: () {
-                // Logic to apply filters will be implemented here
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+            );
+          },
         );
       },
+    );
+  }
+
+  void _applyFilters() {
+    final provider = Provider.of<ProductProvider>(context, listen: false);
+    String? stateFilter;
+    bool? discountFilter;
+
+    if (_selectedStatusFilter != 'all') {
+      stateFilter = _selectedStatusFilter;
+    }
+
+    if (_selectedDiscountFilter == 'discounted') {
+      discountFilter = true;
+    } else if (_selectedDiscountFilter == 'non-discounted') {
+      discountFilter = false;
+    }
+
+    setState(() {
+      _isFilterApplied = true;
+    });
+
+    provider.getProducts(
+      nameFilter: _filterName.isNotEmpty ? _filterName : null,
+      withDiscount: discountFilter,
+      state: stateFilter,
     );
   }
 
@@ -230,7 +270,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       return [
         ElevatedButton(
           onPressed: () {
-            // Logic for deactivating the product
+            //TODO: Logic for deactivating the product
           },
           child: const Text('Deactivate'),
           style: ElevatedButton.styleFrom(
@@ -242,7 +282,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       return [
         ElevatedButton(
           onPressed: () {
-            // Logic for editing the product
+            //TODO: Logic for editing the product
           },
           child: const Text('Edit'),
           style: ElevatedButton.styleFrom(
@@ -251,7 +291,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         ),
         ElevatedButton(
           onPressed: () {
-            // Logic for deleting the product
+            //TODO: Logic for deleting the product
           },
           child: const Text('Delete'),
           style: ElevatedButton.styleFrom(
@@ -260,7 +300,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         ),
         ElevatedButton(
           onPressed: () {
-            // Logic for activating the product
+            //TODO: Logic for activating the product
           },
           child: const Text('Activate'),
           style: ElevatedButton.styleFrom(
@@ -270,5 +310,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
       ];
     }
     return [];
+  }
+
+  @override
+  void dispose() {
+    _nameFilterController.dispose();
+    super.dispose();
   }
 }

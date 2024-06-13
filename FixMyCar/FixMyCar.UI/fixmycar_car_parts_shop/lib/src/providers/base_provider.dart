@@ -11,7 +11,6 @@ abstract class BaseProvider<T> with ChangeNotifier {
     final Map<String, String> headers = {
       'Content-Type': 'application/json; charset=UTF-8',
     };
-    // Add JWT token to headers if available
     final String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
       headers['Authorization'] = 'Bearer $token';
@@ -19,7 +18,11 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return headers;
   }
 
-  Future<void> get(String endpoint, Function(dynamic) processData) async {
+  Future<void> get(
+    String endpoint,
+    Function(dynamic) processData, {
+    Function()? onError,
+  }) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/$endpoint'),
@@ -30,11 +33,17 @@ abstract class BaseProvider<T> with ChangeNotifier {
         processData(data);
         notifyListeners();
       } else {
-        // Handle error response
-        throw Exception('Failed to load data');
+        if (onError != null) {
+          onError();
+        } else {
+          throw Exception('Failed to load data');
+        }
       }
     } catch (e) {
       print('Error fetching data: $e');
+      if (onError != null) {
+        onError();
+      }
     }
   }
 
