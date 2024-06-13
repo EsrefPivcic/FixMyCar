@@ -33,7 +33,6 @@ class _ItemsScreenState extends State<ItemsScreen> {
         builder: (context, provider, child) {
           return Column(
             children: [
-              // Filter button
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Align(
