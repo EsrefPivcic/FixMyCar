@@ -2,10 +2,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 
 abstract class BaseProvider<T> with ChangeNotifier {
   static const String baseUrl = 'https://localhost:7055';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
+  final String endpoint;
+
+  BaseProvider(this.endpoint);
 
   Future<Map<String, String>> _createHeaders() async {
     final Map<String, String> headers = {
@@ -18,32 +22,36 @@ abstract class BaseProvider<T> with ChangeNotifier {
     return headers;
   }
 
-  Future<void> get(
-    String endpoint,
-    Function(dynamic) processData, {
-    Function()? onError,
+  Future<SearchResult<T>> get({
+    Map<String, dynamic>? filter,
+    required T Function(Map<String, dynamic>) fromJson,
   }) async {
     try {
+      String queryString =
+          filter != null ? Uri(queryParameters: filter).query : '';
+      String url =
+          '$baseUrl/$endpoint${queryString.isNotEmpty ? '?$queryString' : ''}';
+
       final response = await http.get(
-        Uri.parse('$baseUrl/$endpoint'),
+        Uri.parse(url),
         headers: await _createHeaders(),
       );
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        processData(data);
-        notifyListeners();
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        List<T> results =
+            (data['result'] as List).map((item) => fromJson(item)).toList();
+
+        return SearchResult<T>(
+          count: data['count'],
+          result: results,
+        );
       } else {
-        if (onError != null) {
-          onError();
-        } else {
-          throw Exception('Failed to load data');
-        }
+        throw Exception('Failed to load data');
       }
     } catch (e) {
       print('Error fetching data: $e');
-      if (onError != null) {
-        onError();
-      }
+      rethrow;
     }
   }
 

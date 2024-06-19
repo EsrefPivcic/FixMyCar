@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 
 class AuthProvider extends BaseProvider<void> {
-  AuthProvider() : super();
+  AuthProvider() : super('login');
 
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;

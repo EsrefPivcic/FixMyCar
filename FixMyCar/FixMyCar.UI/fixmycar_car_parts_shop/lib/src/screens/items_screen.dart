@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fixmycar_car_parts_shop/src/providers/product_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/models/item/item.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/item_provider.dart';
 import 'master_screen.dart';
 import 'dart:convert';
 
@@ -22,14 +23,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ProductProvider>(context, listen: false).getProducts();
+      Provider.of<ItemProvider>(context, listen: false).getItems();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
-      child: Consumer<ProductProvider>(
+      child: Consumer<ItemProvider>(
         builder: (context, provider, child) {
           return Column(
             children: [
@@ -38,32 +39,37 @@ class _ItemsScreenState extends State<ItemsScreen> {
                 child: Align(
                   alignment: Alignment.topLeft,
                   child: IconButton(
-                    icon: Icon(Icons.filter_list, color: Theme.of(context).primaryColorLight),
+                    icon: Icon(Icons.filter_list,
+                        color: Theme.of(context).primaryColorLight),
                     onPressed: () => _showFilterDialog(context),
                   ),
                 ),
               ),
               if (provider.isLoading)
-                const Expanded(child: Center(child: CircularProgressIndicator()))
-              else if (provider.products.isEmpty)
+                const Expanded(
+                    child: Center(child: CircularProgressIndicator()))
+              else if (provider.items.isEmpty)
                 Expanded(
                   child: Center(
-                    child: Text(_isFilterApplied ? 'No results found for your search.' : 'No products available.'),
+                    child: Text(_isFilterApplied
+                        ? 'No results found for your search.'
+                        : 'No items available.'),
                   ),
                 )
               else
                 Expanded(
                   child: GridView.builder(
                     padding: const EdgeInsets.all(8.0),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 5,
                       crossAxisSpacing: 8.0,
                       mainAxisSpacing: 8.0,
                       childAspectRatio: 1,
                     ),
-                    itemCount: provider.products.length,
+                    itemCount: provider.items.length,
                     itemBuilder: (context, index) {
-                      final product = provider.products[index];
+                      final Item item = provider.items[index];
                       return Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
@@ -76,9 +82,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                               child: Center(
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: product['imageData'] != null
+                                  child: item.imageData != null
                                       ? Image.memory(
-                                          base64Decode(product['imageData']),
+                                          base64Decode(item.imageData!),
                                           fit: BoxFit.contain,
                                           width: 200,
                                           height: 200,
@@ -94,18 +100,22 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                product['name'] ?? 'Unknown Product',
+                                item.name ?? 'Unknown item',
                                 style: Theme.of(context).textTheme.bodyLarge,
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            if (product['discount'] != null)
+                            if (item.discount != null)
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                  'Discount: ${(product['discount']['value'] * 100).toInt()}%',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Theme.of(context).primaryColorLight,
+                                  'Discount: ${(item.discount!.value * 100).toInt()}%',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color:
+                                            Theme.of(context).primaryColorLight,
                                         fontWeight: FontWeight.bold,
                                       ),
                                   textAlign: TextAlign.center,
@@ -114,8 +124,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: _buildActionButtons(product['state']),
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: _buildActionButtons(item.state),
                               ),
                             ),
                           ],
@@ -156,7 +167,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    const Text('Product Status'),
+                    const Text('Item Status'),
                     RadioListTile<String>(
                       title: const Text('Active'),
                       value: 'active',
@@ -239,7 +250,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
   }
 
   void _applyFilters() {
-    final provider = Provider.of<ProductProvider>(context, listen: false);
+    final provider = Provider.of<ItemProvider>(context, listen: false);
     String? stateFilter;
     bool? discountFilter;
 
@@ -257,7 +268,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       _isFilterApplied = true;
     });
 
-    provider.getProducts(
+    provider.getItems(
       nameFilter: _filterName.isNotEmpty ? _filterName : null,
       withDiscount: discountFilter,
       state: stateFilter,
@@ -269,7 +280,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       return [
         ElevatedButton(
           onPressed: () {
-            //TODO: Logic for deactivating the product
+            // TODO: Logic for deactivating the item
           },
           child: const Text('Deactivate'),
           style: ElevatedButton.styleFrom(
@@ -281,7 +292,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       return [
         ElevatedButton(
           onPressed: () {
-            //TODO: Logic for editing the product
+            // TODO: Logic for editing the item
           },
           child: const Text('Edit'),
           style: ElevatedButton.styleFrom(
@@ -290,7 +301,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         ),
         ElevatedButton(
           onPressed: () {
-            //TODO: Logic for deleting the product
+            // TODO: Logic for deleting the item
           },
           child: const Text('Delete'),
           style: ElevatedButton.styleFrom(
@@ -299,7 +310,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         ),
         ElevatedButton(
           onPressed: () {
-            //TODO: Logic for activating the product
+            // TODO: Logic for activating the item
           },
           child: const Text('Activate'),
           style: ElevatedButton.styleFrom(
