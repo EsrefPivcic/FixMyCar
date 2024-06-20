@@ -19,7 +19,7 @@ namespace FixMyCar.Services.Database
         { 
         }
 
-        public virtual DbSet<Product> Products { get; set; }
+        public virtual DbSet<StoreItem> StoreItems { get; set; }
         public virtual DbSet<Discount> Discounts { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Role> Roles { get; set; }
@@ -33,8 +33,8 @@ namespace FixMyCar.Services.Database
             var monsterMotorsportPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "Monster-motorsport.png");
             var oem_r32 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "OEM-R32.png");
 
-            modelBuilder.Entity<Product>().HasData(
-                new Product
+            modelBuilder.Entity<StoreItem>().HasData(
+                new StoreItem
                 {
                     Id = 1,
                     Name = "EBC-Turbo",
@@ -42,7 +42,7 @@ namespace FixMyCar.Services.Database
                     ImageMimeType = "image/png",
                     State = "draft"
                 },
-                new Product
+                new StoreItem
                 {
                     Id = 2,
                     Name = "Monster-Motorsport",
@@ -50,7 +50,7 @@ namespace FixMyCar.Services.Database
                     ImageMimeType = "image/png",
                     State = "draft"
                 },
-                new Product
+                new StoreItem
                 {
                     Id = 3,
                     Name = "OEM-R32 Brembo",

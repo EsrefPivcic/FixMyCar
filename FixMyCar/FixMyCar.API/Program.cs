@@ -14,17 +14,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddTransient<IProductService, ProductService>();
+builder.Services.AddTransient<IStoreItemService, StoreItemService>();
 builder.Services.AddTransient<IDiscountService, DiscountService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IRoleService, RoleService>();
 
-builder.Services.AddTransient<BaseProductState>();
-builder.Services.AddTransient<InitialProductState>();
-builder.Services.AddTransient<DraftProductState>();
-builder.Services.AddTransient<ActiveProductState>();
+builder.Services.AddTransient<BaseStoreItemState>();
+builder.Services.AddTransient<InitialStoreItemState>();
+builder.Services.AddTransient<DraftStoreItemState>();
+builder.Services.AddTransient<ActiveStoreItemState>();
 
-builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(StoreItemProfile).Assembly);
 
 var key = builder.Configuration.GetValue<string>("JwtSettings:Secret");
 var keyBytes = Encoding.ASCII.GetBytes(key);

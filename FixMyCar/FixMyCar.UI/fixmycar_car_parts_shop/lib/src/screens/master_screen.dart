@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'items_screen.dart';
+import 'store_items_screen.dart';
 import 'home_screen.dart';
 
 class MasterScreen extends StatelessWidget {
@@ -48,7 +48,7 @@ class MasterScreen extends StatelessWidget {
         if (label == 'Items') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const ItemsScreen()),
+            MaterialPageRoute(builder: (context) => const StoreItemsScreen()),
           );
         } else if (label == 'Home') {
           Navigator.push(

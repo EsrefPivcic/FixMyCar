@@ -12,40 +12,40 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
 {
-    public class BaseProductState
+    public class BaseStoreItemState
     {
         protected FixMyCarContext _context;
         protected IMapper _mapper;
         public IServiceProvider _serviceProvider;
 
-        public BaseProductState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider)
+        public BaseStoreItemState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider)
         {
             _context = context;
             _mapper = mapper;
             _serviceProvider = serviceProvider;
         }
 
-        public virtual async Task<ProductGetDTO> Insert(ProductInsertDTO request)
+        public virtual async Task<StoreItemGetDTO> Insert(StoreItemInsertDTO request)
         {
             throw new UserException("Action not allowed.");
         }
 
-        public virtual async Task<ProductGetDTO> Update(Product entity, ProductUpdateDTO request)
+        public virtual async Task<StoreItemGetDTO> Update(StoreItem entity, StoreItemUpdateDTO request)
         {
             throw new UserException("Action not allowed.");
         }
 
-        public virtual async Task<ProductGetDTO> Activate(Product entity)
+        public virtual async Task<StoreItemGetDTO> Activate(StoreItem entity)
         {
             throw new UserException("Action not allowed.");
         }
 
-        public virtual async Task<ProductGetDTO> Hide(Product entity)
+        public virtual async Task<StoreItemGetDTO> Hide(StoreItem entity)
         {
             throw new UserException("Action not allowed.");
         }
 
-        public virtual async Task<ProductGetDTO> Delete(Product entity)
+        public virtual async Task<StoreItemGetDTO> Delete(StoreItem entity)
         {
             throw new UserException("Action not allowed.");
         }
@@ -55,19 +55,19 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
             return new List<string>();
         }
 
-        public BaseProductState CreateState(string state)
+        public BaseStoreItemState CreateState(string state)
         {
             switch(state)
             {
                 case "initial":
                     case null:
-                    return _serviceProvider.GetService<InitialProductState>();
+                    return _serviceProvider.GetService<InitialStoreItemState>();
                     break;
                 case "draft":
-                    return _serviceProvider.GetService<DraftProductState>();
+                    return _serviceProvider.GetService<DraftStoreItemState>();
                     break;
                 case "active":
-                    return _serviceProvider.GetService<ActiveProductState>();
+                    return _serviceProvider.GetService<ActiveStoreItemState>();
                     break;
 
                 default:

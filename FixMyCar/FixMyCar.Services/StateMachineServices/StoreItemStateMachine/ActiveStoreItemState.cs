@@ -10,32 +10,26 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
 {
-    public class InitialProductState : BaseProductState
+    public class ActiveStoreItemState : BaseStoreItemState
     {
-        public InitialProductState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        public ActiveStoreItemState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
         }
 
-        public override async Task<ProductGetDTO> Insert(ProductInsertDTO request)
+        public async override Task<StoreItemGetDTO> Hide(StoreItem entity)
         {
-            var set = _context.Set<Product>();
-
-            var entity = _mapper.Map<Product>(request);
-
             entity.State = "draft";
-
-            set.Add(entity);
 
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<ProductGetDTO>(entity);
+            return _mapper.Map<StoreItemGetDTO>(entity);
         }
 
         public override async Task<List<string>> AllowedActions()
         {
             var list = await base.AllowedActions();
 
-            list.Add("Insert");
+            list.Add("Hide");
 
             return list;
         }

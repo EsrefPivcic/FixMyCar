@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fixmycar_car_parts_shop/src/models/item/item.dart';
-import 'package:fixmycar_car_parts_shop/src/providers/item_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/store_item_provider.dart';
 import 'master_screen.dart';
 import 'dart:convert';
 
-class ItemsScreen extends StatefulWidget {
-  const ItemsScreen({Key? key}) : super(key: key);
+class StoreItemsScreen extends StatefulWidget {
+  const StoreItemsScreen({Key? key}) : super(key: key);
 
   @override
-  _ItemsScreenState createState() => _ItemsScreenState();
+  _StoreItemsScreenState createState() => _StoreItemsScreenState();
 }
 
-class _ItemsScreenState extends State<ItemsScreen> {
+class _StoreItemsScreenState extends State<StoreItemsScreen> {
   String _selectedStatusFilter = 'all';
   String _selectedDiscountFilter = 'all';
   String _filterName = '';
@@ -23,14 +23,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ItemProvider>(context, listen: false).getItems();
+      Provider.of<StoreItemProvider>(context, listen: false).getStoreItems();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
-      child: Consumer<ItemProvider>(
+      child: Consumer<StoreItemProvider>(
         builder: (context, provider, child) {
           return Column(
             children: [
@@ -69,7 +69,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     ),
                     itemCount: provider.items.length,
                     itemBuilder: (context, index) {
-                      final Item item = provider.items[index];
+                      final StoreItem item = provider.items[index];
                       return Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
@@ -167,7 +167,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    const Text('Item Status'),
+                    const Text('StoreItem Status'),
                     RadioListTile<String>(
                       title: const Text('Active'),
                       value: 'active',
@@ -250,7 +250,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
   }
 
   void _applyFilters() {
-    final provider = Provider.of<ItemProvider>(context, listen: false);
+    final provider = Provider.of<StoreItemProvider>(context, listen: false);
     String? stateFilter;
     bool? discountFilter;
 
@@ -268,7 +268,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
       _isFilterApplied = true;
     });
 
-    provider.getItems(
+    provider.getStoreItems(
       nameFilter: _filterName.isNotEmpty ? _filterName : null,
       withDiscount: discountFilter,
       state: stateFilter,

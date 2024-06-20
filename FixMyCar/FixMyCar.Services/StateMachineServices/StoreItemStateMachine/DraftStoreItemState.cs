@@ -14,24 +14,24 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
 {
-    public class DraftProductState : BaseProductState
+    public class DraftStoreItemState : BaseStoreItemState
     {
-        protected ILogger<DraftProductState> _logger;
-        public DraftProductState(ILogger<DraftProductState> logger, FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        protected ILogger<DraftStoreItemState> _logger;
+        public DraftStoreItemState(ILogger<DraftStoreItemState> logger, FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
             _logger = logger;
         }
 
-        public async override Task<ProductGetDTO> Update(Product entity, ProductUpdateDTO request)
+        public async override Task<StoreItemGetDTO> Update(StoreItem entity, StoreItemUpdateDTO request)
         {
             _mapper.Map(request, entity);
 
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<ProductGetDTO>(entity);
+            return _mapper.Map<StoreItemGetDTO>(entity);
         }
 
-        public async override Task<ProductGetDTO> Activate(Product entity)
+        public async override Task<StoreItemGetDTO> Activate(StoreItem entity)
         {
             _logger.LogInformation($"Aktivacija proizvoda: {entity.Id}");
             _logger.LogWarning($"Aktivacija proizvoda: {entity.Id}");
@@ -41,7 +41,7 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
 
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<ProductGetDTO>(entity);
+            return _mapper.Map<StoreItemGetDTO>(entity);
         }
 
         public override async Task<List<string>> AllowedActions()

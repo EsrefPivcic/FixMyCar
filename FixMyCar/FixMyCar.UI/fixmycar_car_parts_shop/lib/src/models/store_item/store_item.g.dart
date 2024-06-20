@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'item.dart';
+part of 'store_item.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-Item _$ItemFromJson(Map<String, dynamic> json) => Item(
+StoreItem _$StoreItemFromJson(Map<String, dynamic> json) => StoreItem(
       json['name'] as String?,
       json['state'] as String,
       json['discount'] == null
@@ -16,7 +16,7 @@ Item _$ItemFromJson(Map<String, dynamic> json) => Item(
       json['imageMimeType'] as String?,
     );
 
-Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
+Map<String, dynamic> _$StoreItemToJson(StoreItem instance) => <String, dynamic>{
       'name': instance.name,
       'state': instance.state,
       'discount': instance.discount,

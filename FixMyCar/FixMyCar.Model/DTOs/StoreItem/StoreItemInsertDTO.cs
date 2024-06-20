@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Model.DTOs.Product
 {
-    public partial class ProductInsertDTO
+    public partial class StoreItemInsertDTO
     {
         [Required(AllowEmptyStrings = false)]
         public string Name { get; set; }

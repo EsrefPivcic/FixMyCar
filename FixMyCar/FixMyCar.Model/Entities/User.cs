@@ -15,10 +15,23 @@ namespace FixMyCar.Model.Entities
         public string? Email { get; set; }
         public string? Phone { get; set; }
         public string Username { get; set; }
+        public DateTime? Created { get; set; }
+        public string? Gender { get; set; }
+        public string? Address { get; set; }
+        public string? PostalCode { get; set; }
         public string? PasswordHash { get; set; }
         public string? PasswordSalt { get; set; }
         [ForeignKey(nameof(Role))]
         public int RoleId { get; set; }
         public Role Role { get; set; }
+        [ForeignKey(nameof(City))]
+        public int? CityId { get; set; }
+        public City? City { get; set; }
+        [ForeignKey(nameof(CarPartsShop))]
+        public int? CarPartsShopId { get; set; }
+        public CarPartsShop? CarPartsShop { get; set; }
+        [ForeignKey(nameof(CarServiceShop))]
+        public int? CarServiceShopId { get; set; }
+        public CarServiceShop? CarServiceShop { get; set; }
     }
 }

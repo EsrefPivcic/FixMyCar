@@ -1,15 +1,15 @@
-import 'package:fixmycar_car_parts_shop/src/models/item/item.dart';
+import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item.dart';
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 
-class ItemProvider extends BaseProvider<Item> {
-  List<Item> items = [];
+class StoreItemProvider extends BaseProvider<StoreItem> {
+  List<StoreItem> items = [];
   int countOfItems = 0;
   bool isLoading = false;
 
-  ItemProvider() : super('Product');
+  StoreItemProvider() : super('StoreItem');
 
-  Future<void> getItems({
+  Future<void> getStoreItems({
     String? nameFilter,
     bool? withDiscount,
     String? state,
@@ -30,9 +30,9 @@ class ItemProvider extends BaseProvider<Item> {
     }
 
     try {
-      SearchResult<Item> searchResult = await get(
+      SearchResult<StoreItem> searchResult = await get(
         filter: queryParams,
-        fromJson: (json) => Item.fromJson(json),
+        fromJson: (json) => StoreItem.fromJson(json),
       );
 
       items = searchResult.result;

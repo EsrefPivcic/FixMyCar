@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Model.SearchObjects
 {
-    public partial class ProductSearchObject : BaseSearchObject
+    public partial class StoreItemSearchObject : BaseSearchObject
     {
         public string? Starts { get; set; }
         public string? Contains { get; set; }

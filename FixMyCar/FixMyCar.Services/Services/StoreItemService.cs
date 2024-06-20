@@ -14,16 +14,16 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Services
 {
-    public class ProductService : BaseService<Product, ProductGetDTO, ProductInsertDTO, ProductUpdateDTO, ProductSearchObject>, IProductService
+    public class StoreItemService : BaseService<StoreItem, StoreItemGetDTO, StoreItemInsertDTO, StoreItemUpdateDTO, StoreItemSearchObject>, IStoreItemService
     {
-        public BaseProductState _baseProductState { get; set; }
+        public BaseStoreItemState _baseProductState { get; set; }
 
-        public ProductService(FixMyCarContext context, IMapper mapper, BaseProductState baseProductState) : base(context, mapper)
+        public StoreItemService(FixMyCarContext context, IMapper mapper, BaseStoreItemState baseProductState) : base(context, mapper)
         {
             _baseProductState = baseProductState;
         }
 
-        public override IQueryable<Product> AddFilter(IQueryable<Product> query, ProductSearchObject? search = null)
+        public override IQueryable<StoreItem> AddFilter(IQueryable<StoreItem> query, StoreItemSearchObject? search = null)
         {
             if (!string.IsNullOrWhiteSpace(search?.Starts))
             {
@@ -43,7 +43,7 @@ namespace FixMyCar.Services.Services
             return base.AddFilter(query, search);
         }
 
-        public override IQueryable<Product> AddInclude(IQueryable<Product> query, ProductSearchObject? search = null)
+        public override IQueryable<StoreItem> AddInclude(IQueryable<StoreItem> query, StoreItemSearchObject? search = null)
         {
             if (search?.WithDiscount == false)
             {
@@ -58,34 +58,34 @@ namespace FixMyCar.Services.Services
             return base.AddInclude(query, search);
         }
 
-        public override async Task<ProductGetDTO> Insert (ProductInsertDTO request)
+        public override async Task<StoreItemGetDTO> Insert (StoreItemInsertDTO request)
         {
             var state = _baseProductState.CreateState("initial");
 
             return await state.Insert(request);
         }
 
-        public override async Task<ProductGetDTO> Update (int id, ProductUpdateDTO request)
+        public override async Task<StoreItemGetDTO> Update (int id, StoreItemUpdateDTO request)
         {
-            var entity = await _context.Products.FindAsync(id);
+            var entity = await _context.StoreItems.FindAsync(id);
 
             var state = _baseProductState.CreateState(entity.State);
 
             return await state.Update(entity, request);
         }
 
-        public async Task<ProductGetDTO> Activate (int id)
+        public async Task<StoreItemGetDTO> Activate (int id)
         {
-            var entity = await _context.Products.FindAsync(id);
+            var entity = await _context.StoreItems.FindAsync(id);
 
             var state = _baseProductState.CreateState(entity.State);
 
             return await state.Activate(entity);
         }
         
-        public async Task<ProductGetDTO> Hide (int id)
+        public async Task<StoreItemGetDTO> Hide (int id)
         {
-            var entity = await _context.Products.FindAsync(id);
+            var entity = await _context.StoreItems.FindAsync(id);
 
             var state = _baseProductState.CreateState(entity.State);
 
@@ -94,7 +94,7 @@ namespace FixMyCar.Services.Services
 
         public async Task<List<string>> AllowedActions(int id)
         {
-            var entity = await _context.Products.FindAsync(id);
+            var entity = await _context.StoreItems.FindAsync(id);
             var state = _baseProductState.CreateState(entity?.State ?? "initial");
             return await state.AllowedActions();
         }

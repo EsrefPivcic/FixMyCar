@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Model.Entities
 {
-    public partial class Product
+    public partial class StoreItem
     {
         public int Id { get; set; }
         public string Name { get; set; }
