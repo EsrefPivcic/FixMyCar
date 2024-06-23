@@ -11,5 +11,6 @@ namespace FixMyCar.Model.DTOs.Product
     {
         [Required(AllowEmptyStrings = false)]
         public string Name { get; set; }
+        public double Discount { get; set; } = 0;
     }
 }

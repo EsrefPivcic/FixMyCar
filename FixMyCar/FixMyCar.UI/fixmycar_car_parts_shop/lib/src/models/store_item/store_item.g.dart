@@ -9,9 +9,7 @@ part of 'store_item.dart';
 StoreItem _$StoreItemFromJson(Map<String, dynamic> json) => StoreItem(
       json['name'] as String?,
       json['state'] as String,
-      json['discount'] == null
-          ? null
-          : Discount.fromJson(json['discount'] as Map<String, dynamic>),
+      (json['discount'] as num).toDouble(),
       json['imageData'] as String?,
       json['imageMimeType'] as String?,
     );

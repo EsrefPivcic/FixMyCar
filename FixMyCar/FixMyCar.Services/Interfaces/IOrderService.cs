@@ -1,5 +1,6 @@
-﻿using FixMyCar.Model.DTOs.Discount;
+﻿using FixMyCar.Model.DTOs.Order;
 using FixMyCar.Model.Entities;
+using FixMyCar.Model.SearchObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Interfaces
 {
-    public interface IDiscountService : IBaseService<Discount, DiscountGetDTO, DiscountInsertDTO, DiscountUpdateDTO, DiscountSearchObject>
+    public interface IOrderService : IBaseService<Order, OrderGetDTO, OrderInsertDTO, OrderUpdateDTO, OrderSearchObject>
     {
     }
 }

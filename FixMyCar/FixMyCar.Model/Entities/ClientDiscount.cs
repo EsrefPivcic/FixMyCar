@@ -19,9 +19,7 @@ namespace FixMyCar.Model.Entities
         [ForeignKey(nameof(CarServiceShop))]
         public int? CarServiceShopId { get; set; }
         public CarServiceShop? CarServiceShop { get; set; }
-        [ForeignKey(nameof(Discount))]
-        public int DiscountId { get; set; }
-        public Discount Discount { get; set; }
+        public double Value { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Revoked { get; set; }
     }

@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model.DTOs.Discount
+namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
 {
-    public class DiscountUpdateDTO
+    internal class BaseOrderState
     {
-        public float Value { get; set; }
     }
 }

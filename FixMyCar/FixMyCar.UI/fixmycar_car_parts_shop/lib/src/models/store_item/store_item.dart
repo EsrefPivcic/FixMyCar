@@ -1,4 +1,3 @@
-import 'package:fixmycar_car_parts_shop/src/models/discount/discount.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'store_item.g.dart';
@@ -7,7 +6,7 @@ part 'store_item.g.dart';
 class StoreItem {
   String? name;
   String state;
-  Discount? discount;
+  double discount;
   String? imageData;
   String? imageMimeType;
 

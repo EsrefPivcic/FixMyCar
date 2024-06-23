@@ -12,8 +12,7 @@ namespace FixMyCar.Model.Entities
         public int Id { get; set; }
         public string Name { get; set; }
         [ForeignKey(nameof(Discount))]
-        public int? DiscountId { get; set; }
-        public Discount? Discount { get; set; }
+        public double Discount { get; set; }
         public string State { get; set; }
         public byte[]? ImageData { get; set; }
         public string? ImageMimeType { get; set; }

@@ -1,5 +1,4 @@
 ﻿using FixMyCar.Model.DTOs.AuthToken;
-using FixMyCar.Model.DTOs.Discount;
 using FixMyCar.Model.DTOs.Product;
 using FixMyCar.Model.DTOs.User;
 using FixMyCar.Model.Entities;

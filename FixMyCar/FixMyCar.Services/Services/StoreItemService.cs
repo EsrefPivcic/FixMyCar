@@ -40,22 +40,19 @@ namespace FixMyCar.Services.Services
                 query = query.Where(x => x.State.Contains(search.State));
             }
 
-            return base.AddFilter(query, search);
-        }
+            if (search?.WithDiscount != null)
+            {
+                if (search.WithDiscount == false)
+                {
+                    query = query.Where(x => x.Discount == 0);
+                }
+                else
+                {
+                    query = query.Where(x => x.Discount != 0);
+                }
+            }
 
-        public override IQueryable<StoreItem> AddInclude(IQueryable<StoreItem> query, StoreItemSearchObject? search = null)
-        {
-            if (search?.WithDiscount == false)
-            {
-                query = query.Where(x => x.DiscountId == null);
-                return base.AddInclude(query, search);
-            }
-            query = query.Include("Discount");
-            if (search?.WithDiscount == true)
-            {
-                query = query.Where(x => x.DiscountId != null);
-            }
-            return base.AddInclude(query, search);
+            return base.AddFilter(query, search);
         }
 
         public override async Task<StoreItemGetDTO> Insert (StoreItemInsertDTO request)

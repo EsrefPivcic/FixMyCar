@@ -10,7 +10,7 @@ namespace FixMyCar.Model.DTOs.Product
     {
         public string Name { get; set; }
         public string State { get; set; }
-        public Entities.Discount? Discount { get; set; }
+        public double? Discount { get; set; }
         public string? ImageData { get; set; }
         public string? ImageMimeType { get; set; }
     }

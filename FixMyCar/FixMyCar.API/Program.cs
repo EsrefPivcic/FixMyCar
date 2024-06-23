@@ -15,7 +15,6 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddTransient<IStoreItemService, StoreItemService>();
-builder.Services.AddTransient<IDiscountService, DiscountService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IRoleService, RoleService>();
 

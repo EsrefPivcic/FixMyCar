@@ -20,10 +20,10 @@ namespace FixMyCar.Services.Database
         }
 
         public virtual DbSet<StoreItem> StoreItems { get; set; }
-        public virtual DbSet<Discount> Discounts { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Role> Roles { get; set; }
         public virtual DbSet<AuthToken> AuthTokens { get; set; }
+        public virtual DbSet<Order> Order { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,7 +40,8 @@ namespace FixMyCar.Services.Database
                     Name = "EBC-Turbo",
                     ImageData = ImageHelper.GetImageData(ebcTurboPath),
                     ImageMimeType = "image/png",
-                    State = "draft"
+                    State = "draft",
+                    Discount = 0,
                 },
                 new StoreItem
                 {
@@ -48,7 +49,8 @@ namespace FixMyCar.Services.Database
                     Name = "Monster-Motorsport",
                     ImageData = ImageHelper.GetImageData(monsterMotorsportPath),
                     ImageMimeType = "image/png",
-                    State = "draft"
+                    State = "draft",
+                    Discount = 0.1,
                 },
                 new StoreItem
                 {
@@ -56,7 +58,8 @@ namespace FixMyCar.Services.Database
                     Name = "OEM-R32 Brembo",
                     ImageData = ImageHelper.GetImageData(oem_r32),
                     ImageMimeType = "image/png",
-                    State = "draft"
+                    State = "draft",
+                    Discount = 0,
                 }
             );
 

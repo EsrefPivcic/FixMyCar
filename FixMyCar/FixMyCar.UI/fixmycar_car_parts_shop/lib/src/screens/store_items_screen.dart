@@ -105,11 +105,11 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
-                            if (item.discount != null)
+                            if (item.discount != 0)
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                  'Discount: ${(item.discount!.value * 100).toInt()}%',
+                                  'Discount: ${(item.discount * 100).toInt()}%',
                                   style: Theme.of(context)
                                       .textTheme
                                       .bodySmall
