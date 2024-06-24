@@ -14,19 +14,19 @@ namespace FixMyCar.Controllers
         {
         }
 
-        [HttpPut("{id}/activate")]
+        [HttpPut("{id}/Activate")]
         public virtual async Task<StoreItemGetDTO> Activate(int id)
         {
             return await (_service as IStoreItemService).Activate(id);
         }
 
-        [HttpPut("{id}/hide")]
+        [HttpPut("{id}/Hide")]
         public virtual async Task<StoreItemGetDTO> Hide(int id)
         {
             return await (_service as IStoreItemService).Hide(id);
         }
 
-        [HttpGet("{id}/allowedActions")]
+        [HttpGet("{id}/AllowedActions")]
         public virtual async Task<List<string>> AllowedActions(int id)
         {
             return await (_service as IStoreItemService).AllowedActions(id);

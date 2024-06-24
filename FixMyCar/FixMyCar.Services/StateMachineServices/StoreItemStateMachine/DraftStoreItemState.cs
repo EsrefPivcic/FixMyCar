@@ -33,9 +33,9 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
 
         public async override Task<StoreItemGetDTO> Activate(StoreItem entity)
         {
-            _logger.LogInformation($"Aktivacija proizvoda: {entity.Id}");
-            _logger.LogWarning($"Aktivacija proizvoda: {entity.Id}");
-            _logger.LogError($"Aktivacija proizvoda: {entity.Id}");
+            //_logger.LogInformation($"Aktivacija proizvoda: {entity.Id}");
+            //_logger.LogWarning($"Aktivacija proizvoda: {entity.Id}");
+            //_logger.LogError($"Aktivacija proizvoda: {entity.Id}");
 
             entity.State = "active";
 

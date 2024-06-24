@@ -4,6 +4,7 @@ using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Mapping;
 using FixMyCar.Services.Services;
+using FixMyCar.Services.StateMachineServices.OrderStateMachine;
 using FixMyCar.Services.StateMachineServices.ProductStateMachine;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +18,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddTransient<IStoreItemService, StoreItemService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IRoleService, RoleService>();
+builder.Services.AddTransient<IOrderService, OrderService>();
+builder.Services.AddTransient<IOrderDetailService, OrderDetailService>();
+builder.Services.AddTransient<ICarServiceShopService, CarServiceShopService>();
+builder.Services.AddTransient<ICityService, CityService>();
 
 builder.Services.AddTransient<BaseStoreItemState>();
 builder.Services.AddTransient<InitialStoreItemState>();
 builder.Services.AddTransient<DraftStoreItemState>();
 builder.Services.AddTransient<ActiveStoreItemState>();
+
+builder.Services.AddTransient<BaseOrderState>();
+builder.Services.AddTransient<InitialOrderState>();
+builder.Services.AddTransient<OnHoldOrderState>();
+builder.Services.AddTransient<AcceptedOrderState>();
+builder.Services.AddTransient<RejectedOrderState>();
+builder.Services.AddTransient<CancelledOrderState>();
 
 builder.Services.AddAutoMapper(typeof(StoreItemProfile).Assembly);
 

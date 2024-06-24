@@ -23,7 +23,10 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Role> Roles { get; set; }
         public virtual DbSet<AuthToken> AuthTokens { get; set; }
-        public virtual DbSet<Order> Order { get; set; }
+        public virtual DbSet<Order> Orders { get; set; }
+        public virtual DbSet<OrderDetail> OrderDetails { get; set; }
+        public virtual DbSet<City> Cities { get; set; }
+        public virtual DbSet<CarServiceShop> CarServiceShops { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
