@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/store_item_provider.dart';
-import 'master_screen.dart';
 import 'dart:convert';
+import 'master_screen.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 class StoreItemsScreen extends StatefulWidget {
   const StoreItemsScreen({Key? key}) : super(key: key);
@@ -126,7 +128,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
-                                children: _buildActionButtons(item.state),
+                                children: _buildActionButtons(item),
                               ),
                             ),
                           ],
@@ -275,24 +277,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     );
   }
 
-  List<Widget> _buildActionButtons(String state) {
-    if (state == 'active') {
+  List<Widget> _buildActionButtons(StoreItem item) {
+    if (item.state == 'draft') {
       return [
         ElevatedButton(
           onPressed: () {
-            // TODO: Logic for deactivating the item
-          },
-          child: const Text('Deactivate'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).highlightColor,
-          ),
-        ),
-      ];
-    } else if (state == 'draft') {
-      return [
-        ElevatedButton(
-          onPressed: () {
-            // TODO: Logic for editing the item
+            _showEditForm(context, item);
           },
           child: const Text('Edit'),
           style: ElevatedButton.styleFrom(
@@ -320,6 +310,118 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
       ];
     }
     return [];
+  }
+
+  void _showEditForm(BuildContext context, StoreItem item) {
+    TextEditingController _nameController =
+        TextEditingController(text: item.name);
+    TextEditingController _discountController =
+        TextEditingController(text: item.discount.toString());
+
+    String? imagePath;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Dialog(
+              backgroundColor:
+                  Theme.of(context).colorScheme.surfaceContainerLow,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Container(
+                width: 400,
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: _discountController,
+                        decoration: const InputDecoration(
+                          labelText: 'Discount (%)',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 20),
+                      if (item.imageData != null)
+                        Image.memory(
+                          base64Decode(item.imageData!),
+                          height: 200,
+                          width: 200,
+                          fit: BoxFit.contain,
+                        )
+                      else
+                        const Placeholder(
+                          fallbackHeight: 200,
+                          fallbackWidth: 200,
+                        ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () async {
+                          FilePickerResult? result =
+                              await FilePicker.platform.pickFiles(
+                            type: FileType.image,
+                          );
+
+                          if (result != null) {
+                            setState(() {
+                              imagePath = result.files.single.path;
+                            });
+                          }
+                        },
+                        child: const Text('Select Image'),
+                      ),
+                      if (imagePath != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Image.file(
+                            File(imagePath!),
+                            height: 200,
+                            width: 200,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              // TODO: Save logic here
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Save'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override

@@ -8,6 +8,7 @@ namespace FixMyCar.Model.DTOs.Product
 {
     public partial class StoreItemGetDTO
     {
+        public int Id { get; set; }
         public string Name { get; set; }
         public string State { get; set; }
         public double? Discount { get; set; }

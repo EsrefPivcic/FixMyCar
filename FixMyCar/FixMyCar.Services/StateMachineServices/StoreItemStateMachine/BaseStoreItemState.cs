@@ -45,7 +45,7 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
             throw new UserException("Action not allowed.");
         }
 
-        public virtual async Task<StoreItemGetDTO> Delete(StoreItem entity)
+        public virtual async Task<string> Delete(StoreItem entity)
         {
             throw new UserException("Action not allowed.");
         }

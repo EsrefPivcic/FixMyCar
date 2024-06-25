@@ -44,6 +44,23 @@ namespace FixMyCar.Services.Services
             return _mapper.Map<TGet>(entity);
         }
 
+        public virtual async Task<string> Delete(int id)
+        {
+            var set = _context.Set<TDb>();
+
+            var entity = await set.FindAsync(id);
+
+            if (entity != null)
+            {
+                set.Remove(entity);
+
+                await _context.SaveChangesAsync();
+
+                return $"Successfully deleted: {Environment.NewLine} {entity}";
+            }
+            return "Entity doesn't exist.";
+        }
+
         public virtual async Task BeforeInsert(TDb entity, TInsert insert)
         {
         }

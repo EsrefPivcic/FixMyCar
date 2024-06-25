@@ -44,12 +44,24 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
             return _mapper.Map<StoreItemGetDTO>(entity);
         }
 
+        public async override Task<string> Delete(StoreItem entity)
+        {
+            var set = _context.Set<StoreItem>();
+
+            set.Remove(entity);
+
+            await _context.SaveChangesAsync();
+
+            return $"Successfully deleted: {Environment.NewLine} {entity.Name}";
+        }
+
         public override async Task<List<string>> AllowedActions()
         {
             var list = await base.AllowedActions();
 
             list.Add("Update");
             list.Add("Activate");
+            list.Add("Delete");
 
             return list;
         }

@@ -16,11 +16,11 @@ namespace FixMyCar.Services.Services
 {
     public class StoreItemService : BaseService<StoreItem, StoreItemGetDTO, StoreItemInsertDTO, StoreItemUpdateDTO, StoreItemSearchObject>, IStoreItemService
     {
-        public BaseStoreItemState _baseProductState { get; set; }
+        public BaseStoreItemState _baseStoreItemState { get; set; }
 
-        public StoreItemService(FixMyCarContext context, IMapper mapper, BaseStoreItemState baseProductState) : base(context, mapper)
+        public StoreItemService(FixMyCarContext context, IMapper mapper, BaseStoreItemState baseStoreItemState) : base(context, mapper)
         {
-            _baseProductState = baseProductState;
+            _baseStoreItemState = baseStoreItemState;
         }
 
         public override IQueryable<StoreItem> AddFilter(IQueryable<StoreItem> query, StoreItemSearchObject? search = null)
@@ -57,7 +57,7 @@ namespace FixMyCar.Services.Services
 
         public override async Task<StoreItemGetDTO> Insert (StoreItemInsertDTO request)
         {
-            var state = _baseProductState.CreateState("initial");
+            var state = _baseStoreItemState.CreateState("initial");
 
             return await state.Insert(request);
         }
@@ -66,16 +66,31 @@ namespace FixMyCar.Services.Services
         {
             var entity = await _context.StoreItems.FindAsync(id);
 
-            var state = _baseProductState.CreateState(entity.State);
+            var state = _baseStoreItemState.CreateState(entity.State);
 
             return await state.Update(entity, request);
+        }
+
+        public override async Task<string> Delete(int id)
+        {
+            var set = _context.Set<StoreItem>();
+
+            var entity = await set.FindAsync(id);
+
+            if (entity != null)
+            {
+                var state = _baseStoreItemState.CreateState(entity.State);
+
+                return await state.Delete(entity);
+            }
+            return "Entity doesn't exist.";
         }
 
         public async Task<StoreItemGetDTO> Activate (int id)
         {
             var entity = await _context.StoreItems.FindAsync(id);
 
-            var state = _baseProductState.CreateState(entity.State);
+            var state = _baseStoreItemState.CreateState(entity.State);
 
             return await state.Activate(entity);
         }
@@ -84,7 +99,7 @@ namespace FixMyCar.Services.Services
         {
             var entity = await _context.StoreItems.FindAsync(id);
 
-            var state = _baseProductState.CreateState(entity.State);
+            var state = _baseStoreItemState.CreateState(entity.State);
 
             return await state.Hide(entity);
         }
@@ -92,7 +107,7 @@ namespace FixMyCar.Services.Services
         public async Task<List<string>> AllowedActions(int id)
         {
             var entity = await _context.StoreItems.FindAsync(id);
-            var state = _baseProductState.CreateState(entity?.State ?? "initial");
+            var state = _baseStoreItemState.CreateState(entity?.State ?? "initial");
             return await state.AllowedActions();
         }
     }

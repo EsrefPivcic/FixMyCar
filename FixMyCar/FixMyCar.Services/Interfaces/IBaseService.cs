@@ -13,6 +13,7 @@ namespace FixMyCar.Services.Interfaces
     {
         Task<TGet> Insert(TInsert request);
         Task<TGet> Update(int id, TUpdate request);
+        Task<string> Delete(int id);
         Task BeforeInsert(TDb entity, TInsert insert);
     }
 }

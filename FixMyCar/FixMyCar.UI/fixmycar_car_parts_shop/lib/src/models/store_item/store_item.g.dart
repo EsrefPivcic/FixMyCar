@@ -7,6 +7,7 @@ part of 'store_item.dart';
 // **************************************************************************
 
 StoreItem _$StoreItemFromJson(Map<String, dynamic> json) => StoreItem(
+      (json['id'] as num).toInt(),
       json['name'] as String?,
       json['state'] as String,
       (json['discount'] as num).toDouble(),
@@ -15,6 +16,7 @@ StoreItem _$StoreItemFromJson(Map<String, dynamic> json) => StoreItem(
     );
 
 Map<String, dynamic> _$StoreItemToJson(StoreItem instance) => <String, dynamic>{
+      'id': instance.id,
       'name': instance.name,
       'state': instance.state,
       'discount': instance.discount,

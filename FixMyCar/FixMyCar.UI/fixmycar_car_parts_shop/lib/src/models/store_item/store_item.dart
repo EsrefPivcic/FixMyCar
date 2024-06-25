@@ -4,6 +4,7 @@ part 'store_item.g.dart';
 
 @JsonSerializable()
 class StoreItem {
+  int id;
   String? name;
   String state;
   double discount;
@@ -11,7 +12,7 @@ class StoreItem {
   String? imageMimeType;
 
   StoreItem(
-      this.name, this.state, this.discount, this.imageData, this.imageMimeType);
+      this.id, this.name, this.state, this.discount, this.imageData, this.imageMimeType);
 
   factory StoreItem.fromJson(Map<String, dynamic> json) => _$StoreItemFromJson(json);
 
