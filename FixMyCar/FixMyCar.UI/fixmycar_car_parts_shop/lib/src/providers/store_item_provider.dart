@@ -47,4 +47,17 @@ class StoreItemProvider extends BaseProvider<StoreItem> {
       print('Error fetching items: $e');
     }
   }
+
+  Future<void> updateStoreItem(int id, StoreItem sotreitem) async {
+    try {
+      await update(
+        id,
+        sotreitem,
+        toJson: (storeItem) => storeItem.toJson(),
+      );
+      print('StoreItem updated successfully.');
+    } catch (e) {
+      print('Error updating StoreItem: $e');
+    }
+  }
 }

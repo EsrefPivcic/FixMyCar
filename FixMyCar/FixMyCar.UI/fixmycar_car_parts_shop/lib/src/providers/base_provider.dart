@@ -56,28 +56,58 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   Future<void> insert(T item) async {
-    final response = await http.post(
+    try {
+      final response = await http.post(
       Uri.parse('$baseUrl/insert'),
       headers: await _createHeaders(),
       body: jsonEncode(item),
     );
-    //TODO: Handle response
+    if (response.statusCode == 200) {
+        print('Insert successful.');
+        notifyListeners();
+      } else {
+        throw Exception('Failed to insert data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error inserting data: $e');
+      rethrow;
+    }
   }
 
-  Future<void> update(String id, T item) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/update/$id'),
-      headers: await _createHeaders(),
-      body: jsonEncode(item),
-    );
-    //TODO: Handle response
+  Future<void> update(int id, T item, {required Map<String, dynamic> Function(T) toJson}) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/$endpoint/$id'),
+        headers: await _createHeaders(),
+        body: jsonEncode(toJson(item)),
+      );
+      if (response.statusCode == 200) {
+        print('Update successful.');
+        notifyListeners();
+      } else {
+        throw Exception('Failed to update data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error updating data: $e');
+      rethrow;
+    }
   }
 
   Future<void> delete(String id) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/delete/$id'),
+    try {
+      final response = await http.delete(
+      Uri.parse('$baseUrl/$endpoint/$id'),
       headers: await _createHeaders(),
     );
-    //TODO: Handle response
+    if (response.statusCode == 200) {
+        print('Delete successful.');
+        notifyListeners();
+      } else {
+        throw Exception('Failed to delete the item. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error deleting the item: $e');
+      rethrow;
+    }
   }
 }

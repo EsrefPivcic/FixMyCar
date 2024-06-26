@@ -14,9 +14,11 @@ namespace FixMyCar.Services.Mapping
         public StoreItemProfile() 
         {
             CreateMap<StoreItemInsertDTO, StoreItem>();
-            CreateMap<StoreItemUpdateDTO, StoreItem>().ForMember(dest => dest.ImageData, opt => 
-                opt.MapFrom(src => src.ImageData != null ? Convert.FromBase64String(src.ImageData) : null))
-                    .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<StoreItemUpdateDTO, StoreItem>()
+                .ForMember(dest => dest.ImageData, opt =>
+                {
+                    opt.MapFrom(src => Convert.FromBase64String(src.ImageData));
+                }).ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<StoreItemGetDTO, StoreItem>();
             CreateMap<StoreItem, StoreItemInsertDTO>();
             CreateMap<StoreItem, StoreItemUpdateDTO>();

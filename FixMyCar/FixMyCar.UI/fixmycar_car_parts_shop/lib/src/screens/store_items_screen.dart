@@ -316,9 +316,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     TextEditingController _nameController =
         TextEditingController(text: item.name);
     TextEditingController _discountController =
-        TextEditingController(text: item.discount.toString());
-
+        TextEditingController(text: (item.discount * 100).toString());
+    
     String? imagePath;
+    String? base64Image = item.imageData;
 
     showDialog(
       context: context,
@@ -356,9 +357,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 20),
-                      if (item.imageData != null)
+                      if (base64Image != null)
                         Image.memory(
-                          base64Decode(item.imageData!),
+                          base64Decode(base64Image!),
                           height: 200,
                           width: 200,
                           fit: BoxFit.contain,
@@ -379,21 +380,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           if (result != null) {
                             setState(() {
                               imagePath = result.files.single.path;
+                              base64Image = base64Encode(File(imagePath!).readAsBytesSync());
                             });
                           }
                         },
                         child: const Text('Select Image'),
                       ),
-                      if (imagePath != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 20),
-                          child: Image.file(
-                            File(imagePath!),
-                            height: 200,
-                            width: 200,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
                       const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -406,7 +398,15 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              // TODO: Save logic here
+                              item.name = _nameController.text;
+                              item.discount = double.tryParse(_discountController.text)! / 100;
+                              item.imageData = base64Image;
+                              Provider.of<StoreItemProvider>(context, listen: false)
+                                  .updateStoreItem(item.id, item)
+                                  .then((_) {
+                                Provider.of<StoreItemProvider>(context, listen: false)
+                                    .getStoreItems();
+                              });
                               Navigator.of(context).pop();
                             },
                             child: const Text('Save'),
