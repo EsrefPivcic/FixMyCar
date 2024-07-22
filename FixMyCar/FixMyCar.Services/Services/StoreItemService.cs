@@ -23,6 +23,13 @@ namespace FixMyCar.Services.Services
             _baseStoreItemState = baseStoreItemState;
         }
 
+        public override IQueryable<StoreItem> AddInclude(IQueryable<StoreItem> query, StoreItemSearchObject? search = null)
+        {
+            query = query.Include("StoreItemCategory");
+            query = query.Include("CarModels");
+            return base.AddInclude(query, search);
+        }
+
         public override IQueryable<StoreItem> AddFilter(IQueryable<StoreItem> query, StoreItemSearchObject? search = null)
         {
             if (!string.IsNullOrWhiteSpace(search?.Starts))

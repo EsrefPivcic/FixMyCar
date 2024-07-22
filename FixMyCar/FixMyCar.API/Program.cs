@@ -20,7 +20,7 @@ builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IRoleService, RoleService>();
 builder.Services.AddTransient<IOrderService, OrderService>();
 builder.Services.AddTransient<IOrderDetailService, OrderDetailService>();
-builder.Services.AddTransient<ICarServiceShopService, CarServiceShopService>();
+builder.Services.AddTransient<ICarRepairShopService, CarRepairShopService>();
 builder.Services.AddTransient<ICityService, CityService>();
 
 builder.Services.AddTransient<BaseStoreItemState>();

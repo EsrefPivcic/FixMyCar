@@ -14,9 +14,9 @@ namespace FixMyCar.Model.Entities
         [ForeignKey(nameof(User))]
         public int UserId { get; set; }
         public User User { get; set; }
-        [ForeignKey(nameof(CarServiceShop))]
-        public int CarServiceShopId { get; set; }
-        public CarServiceShop CarServiceShop { get; set; }
+        [ForeignKey(nameof(CarRepairShop))]
+        public int CarRepairShopId { get; set; }
+        public CarRepairShop CarRepairShop { get; set; }
         public DateTime OrderDate { get; set; }
         public DateTime ShippingDate { get; set; }
         public double TotalAmount { get; set; }

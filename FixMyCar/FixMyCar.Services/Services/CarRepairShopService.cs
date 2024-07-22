@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using FixMyCar.Model.DTOs.CarServiceShop;
+using FixMyCar.Model.DTOs.CarRepairShop;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Database;
@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Services
 {
-    public class CarServiceShopService : BaseService<CarServiceShop, CarServiceShopGetDTO, CarServiceShopInsertDTO, CarServiceShopUpdateDTO, CarServiceShopSearchObject>, ICarServiceShopService
+    public class CarRepairShopService : BaseService<CarRepairShop, CarRepairShopGetDTO, CarRepairShopInsertDTO, CarRepairShopUpdateDTO, CarRepairShopSearchObject>, ICarRepairShopService
     {
-        public CarServiceShopService(FixMyCarContext context, IMapper mapper) : base (context, mapper) 
+        public CarRepairShopService(FixMyCarContext context, IMapper mapper) : base (context, mapper) 
         { 
         }
     }

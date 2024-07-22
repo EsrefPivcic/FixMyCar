@@ -11,7 +11,7 @@ namespace FixMyCar.Model.DTOs.Order
     public class OrderInsertDTO
     {
         public int UserId { get; set; }
-        public int? CarServiceShopId { get; set; }
+        public int? CarRepairShopId { get; set; }
         public DateTime OrderDate { get; set; }
         public DateTime ShippingDate { get; set; }
         public double TotalAmount { get; set; }

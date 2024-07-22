@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model.DTOs.CarServiceShop
+namespace FixMyCar.Model.DTOs.CarRepairShop
 {
-    public class CarServiceShopUpdateDTO
+    public class CarRepairShopUpdateDTO
     {
         public string? Name { get; set; }
         public int? CityId { get; set; }

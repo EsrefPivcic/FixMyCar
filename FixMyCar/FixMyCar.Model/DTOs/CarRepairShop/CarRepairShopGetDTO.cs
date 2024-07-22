@@ -6,15 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model.DTOs.CarServiceShop
+namespace FixMyCar.Model.DTOs.CarRepairShop
 {
-    public class CarServiceShopInsertDTO
+    public class CarRepairShopGetDTO
     {
         public string Name { get; set; }
-        public int CityId { get; set; }
+        public string CityName { get; set; }
         public string Address { get; set; }
         public string PostalCode { get; set; }
         public string Phone { get; set; }
-        public byte[]? Logo { get; set; }
+        public string Logo { get; set; }
     }
 }

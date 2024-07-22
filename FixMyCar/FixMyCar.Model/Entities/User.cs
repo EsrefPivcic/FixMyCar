@@ -30,8 +30,8 @@ namespace FixMyCar.Model.Entities
         [ForeignKey(nameof(CarPartsShop))]
         public int? CarPartsShopId { get; set; }
         public CarPartsShop? CarPartsShop { get; set; }
-        [ForeignKey(nameof(CarServiceShop))]
-        public int? CarServiceShopId { get; set; }
-        public CarServiceShop? CarServiceShop { get; set; }
+        [ForeignKey(nameof(CarRepairShop))]
+        public int? CarRepairShopId { get; set; }
+        public CarRepairShop? CarRepairShop { get; set; }
     }
 }

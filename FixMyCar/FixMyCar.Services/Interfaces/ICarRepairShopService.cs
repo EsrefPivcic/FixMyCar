@@ -1,4 +1,4 @@
-﻿using FixMyCar.Model.DTOs.CarServiceShop;
+﻿using FixMyCar.Model.DTOs.CarRepairShop;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using System;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Interfaces
 {
-    public interface ICarServiceShopService : IBaseService<CarServiceShop, CarServiceShopGetDTO, CarServiceShopInsertDTO, CarServiceShopUpdateDTO, CarServiceShopSearchObject>
+    public interface ICarRepairShopService : IBaseService<CarRepairShop, CarRepairShopGetDTO, CarRepairShopInsertDTO, CarRepairShopUpdateDTO, CarRepairShopSearchObject>
     {
     }
 }

@@ -24,7 +24,9 @@ namespace FixMyCar.Services.Mapping
             CreateMap<StoreItem, StoreItemUpdateDTO>();
             CreateMap<StoreItem, StoreItemGetDTO>()
                 .ForMember(dest => dest.ImageData, opt =>
-                    opt.MapFrom(src => src.ImageData != null ? Convert.ToBase64String(src.ImageData) : string.Empty));
+                    opt.MapFrom(src => src.ImageData != null ? Convert.ToBase64String(src.ImageData) : string.Empty))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.StoreItemCategory.Name))
+                .ForMember(dest => dest.CarModels, opt => opt.MapFrom(src => src.CarModels));
         }
     }
 }
