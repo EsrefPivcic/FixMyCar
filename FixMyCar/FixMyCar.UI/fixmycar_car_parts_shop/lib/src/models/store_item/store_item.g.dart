@@ -13,6 +13,12 @@ StoreItem _$StoreItemFromJson(Map<String, dynamic> json) => StoreItem(
       (json['discount'] as num).toDouble(),
       json['imageData'] as String?,
       json['imageMimeType'] as String?,
+      json['details'] as String?,
+      (json['carModels'] as List<dynamic>)
+          .map((e) => CarModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      (json['storeItemCategoryId'] as num).toInt(),
+      json['category'] as String,
     );
 
 Map<String, dynamic> _$StoreItemToJson(StoreItem instance) => <String, dynamic>{
@@ -22,4 +28,8 @@ Map<String, dynamic> _$StoreItemToJson(StoreItem instance) => <String, dynamic>{
       'discount': instance.discount,
       'imageData': instance.imageData,
       'imageMimeType': instance.imageMimeType,
+      'details': instance.details,
+      'carModels': instance.carModels,
+      'storeItemCategoryId': instance.storeItemCategoryId,
+      'category': instance.category,
     };

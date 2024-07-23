@@ -107,6 +107,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 textAlign: TextAlign.center,
                               ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Category: ${item.category}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                             if (item.discount != 0)
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
@@ -123,6 +131,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                   textAlign: TextAlign.center,
                                 ),
                               ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Car models: ${item.carModels.map((model) => model.name).join(', ')}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
@@ -284,28 +300,28 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           onPressed: () {
             _showEditForm(context, item);
           },
-          child: const Text('Edit'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).highlightColor,
           ),
+          child: const Text('Edit'),
         ),
         ElevatedButton(
           onPressed: () {
             // TODO: Logic for deleting the item
           },
-          child: const Text('Delete'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).highlightColor,
           ),
+          child: const Text('Delete'),
         ),
         ElevatedButton(
           onPressed: () {
             // TODO: Logic for activating the item
-          },
-          child: const Text('Activate'),
+          },    
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).highlightColor,
           ),
+          child: const Text('Activate'),
         ),
       ];
     }
@@ -313,9 +329,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   }
 
   void _showEditForm(BuildContext context, StoreItem item) {
-    TextEditingController _nameController =
+    TextEditingController nameController =
         TextEditingController(text: item.name);
-    TextEditingController _discountController =
+    TextEditingController discountController =
         TextEditingController(text: (item.discount * 100).toString());
     
     String? imagePath;
@@ -341,7 +357,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(
-                        controller: _nameController,
+                        controller: nameController,
                         decoration: const InputDecoration(
                           labelText: 'Name',
                           border: OutlineInputBorder(),
@@ -349,7 +365,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       ),
                       const SizedBox(height: 20),
                       TextField(
-                        controller: _discountController,
+                        controller: discountController,
                         decoration: const InputDecoration(
                           labelText: 'Discount (%)',
                           border: OutlineInputBorder(),
@@ -398,8 +414,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              item.name = _nameController.text;
-                              item.discount = double.tryParse(_discountController.text)! / 100;
+                              item.name = nameController.text;
+                              item.discount = double.tryParse(discountController.text)! / 100;
                               item.imageData = base64Image;
                               Provider.of<StoreItemProvider>(context, listen: false)
                                   .updateStoreItem(item.id, item)
