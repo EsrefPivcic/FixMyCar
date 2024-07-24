@@ -67,7 +67,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       crossAxisCount: 5,
                       crossAxisSpacing: 8.0,
                       mainAxisSpacing: 8.0,
-                      childAspectRatio: 1,
+                      childAspectRatio: 0.9,
                     ),
                     itemCount: provider.items.length,
                     itemBuilder: (context, index) {
@@ -102,16 +102,41 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                item.name ?? 'Unknown item',
+                                item.name,
                                 style: Theme.of(context).textTheme.bodyLarge,
                                 textAlign: TextAlign.center,
                               ),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Category: ${item.category}',
-                                style: Theme.of(context).textTheme.bodySmall,
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    if (item.discount != 0) ...[
+                                      TextSpan(
+                                        text: '${item.price}KM ',
+                                        style: const TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: ' ${item.discountedPrice}KM',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge,
+                                      ),
+                                    ] else ...[
+                                      TextSpan(
+                                        text: '${item.price}KM',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge,
+                                      ),
+                                    ],
+                                  ],
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -134,11 +159,19 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                'Car models: ${item.carModels.map((model) => model.name).join(', ')}',
+                                'Category: ${item.category ?? "Unknown"}',
                                 style: Theme.of(context).textTheme.bodySmall,
                                 textAlign: TextAlign.center,
                               ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Car models: ${item.carModels?.isNotEmpty == true ? item.carModels!.map((model) => model.name).join(', ') : "Unknown"}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),                           
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
@@ -317,7 +350,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         ElevatedButton(
           onPressed: () {
             // TODO: Logic for activating the item
-          },    
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).highlightColor,
           ),
@@ -333,7 +366,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         TextEditingController(text: item.name);
     TextEditingController discountController =
         TextEditingController(text: (item.discount * 100).toString());
-    
+
     String? imagePath;
     String? base64Image = item.imageData;
 
@@ -392,11 +425,11 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               await FilePicker.platform.pickFiles(
                             type: FileType.image,
                           );
-
                           if (result != null) {
                             setState(() {
                               imagePath = result.files.single.path;
-                              base64Image = base64Encode(File(imagePath!).readAsBytesSync());
+                              base64Image = base64Encode(
+                                  File(imagePath!).readAsBytesSync());
                             });
                           }
                         },
@@ -415,12 +448,16 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           ElevatedButton(
                             onPressed: () {
                               item.name = nameController.text;
-                              item.discount = double.tryParse(discountController.text)! / 100;
+                              item.discount =
+                                  double.tryParse(discountController.text)! /
+                                      100;
                               item.imageData = base64Image;
-                              Provider.of<StoreItemProvider>(context, listen: false)
+                              Provider.of<StoreItemProvider>(context,
+                                      listen: false)
                                   .updateStoreItem(item.id, item)
                                   .then((_) {
-                                Provider.of<StoreItemProvider>(context, listen: false)
+                                Provider.of<StoreItemProvider>(context,
+                                        listen: false)
                                     .getStoreItems();
                               });
                               Navigator.of(context).pop();

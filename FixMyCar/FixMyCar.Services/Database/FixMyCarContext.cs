@@ -27,6 +27,9 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<OrderDetail> OrderDetails { get; set; }
         public virtual DbSet<City> Cities { get; set; }
         public virtual DbSet<CarRepairShop> CarRepairShops { get; set; }
+        public virtual DbSet<CarModel> CarModels { get; set; }
+        public virtual DbSet<CarManufacturer> CarManufacturers { get; set; }
+        public virtual DbSet<StoreItemCategory> StoreItemCategory { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -107,9 +110,10 @@ namespace FixMyCar.Services.Database
                     Id = 1,
                     Name = "EBC-Turbo",
                     ImageData = ImageHelper.GetImageData(ebcTurboPath),
-                    ImageMimeType = "image/png",
                     State = "draft",
-                    Discount = 0,
+                    Price = 350,
+                    Discount = 0,       
+                    DiscountedPrice = 350,
                     Details = "The Turbo Groove Discs have unique wide slots which help cool the discs and brake pads alike, " +
                     "and together with the blind drilled dimples help clear surface gases without affecting the structure of the disc unlike through drilled discs. " +
                     "Dirt, dust gases, grit or debris from heavy braking exit the pad braking area through the slots that extend to the outer edge of the disc – " +
@@ -125,9 +129,10 @@ namespace FixMyCar.Services.Database
                     Id = 2,
                     Name = "Monster-Motorsport",
                     ImageData = ImageHelper.GetImageData(monsterMotorsportPath),
-                    ImageMimeType = "image/png",
                     State = "draft",
+                    Price = 250,
                     Discount = 0.1,
+                    DiscountedPrice = 250 - (250 * 0.1),
                     Details = "Black Diamond DISCS. These award winning brake discs are made to the most exacting standards using computer aided design and computerised " +
                     "production whether you buy a Black Diamond X Drilled range for extra cooling Black Diamond 6- & 12-Groove range for more instant response and greater " +
                     "friction or Black Diamond's award winning Combination range for extra cooling extra friction and instant response you will always get Black Diamond's " +
@@ -139,9 +144,10 @@ namespace FixMyCar.Services.Database
                     Id = 3,
                     Name = "OEM-R32 Brembo",
                     ImageData = ImageHelper.GetImageData(oem_r32),
-                    ImageMimeType = "image/png",
                     State = "draft",
+                    Price = 400,
                     Discount = 0,
+                    DiscountedPrice = 400,
                     Details = "Pair of Mk4 Golf R32 334mm x 32mm Front Brake Discs. Mk4 Golf R32 Front Brake Disc Set - 334mm x 32mm. " +
                     "These are replacement discs for Mk4 Golf R32, or vehicles running this brake set up with 334mm front brake discs. " +
                     "This Kit Consists of: LH Brake Disc, RH Brake Disc.",

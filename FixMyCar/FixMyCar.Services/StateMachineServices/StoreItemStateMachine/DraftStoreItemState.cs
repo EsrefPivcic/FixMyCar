@@ -2,6 +2,7 @@
 using FixMyCar.Model.DTOs.Product;
 using FixMyCar.Model.Entities;
 using FixMyCar.Services.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,11 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
         public async override Task<StoreItemGetDTO> Update(StoreItem entity, StoreItemUpdateDTO request)
         {
             _mapper.Map(request, entity);
+
+            if (request.CarModelIds != null)
+            {
+                entity.CarModels = await _context.CarModels.Where(cm => request.CarModelIds.Contains(cm.Id)).ToListAsync();
+            }
 
             await _context.SaveChangesAsync();
 

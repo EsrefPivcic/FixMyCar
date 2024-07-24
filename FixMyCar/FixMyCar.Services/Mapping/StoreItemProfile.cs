@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FixMyCar.Model.DTOs.CarModel;
 using FixMyCar.Model.DTOs.Product;
 using FixMyCar.Model.Entities;
 using System;
@@ -17,7 +18,7 @@ namespace FixMyCar.Services.Mapping
             CreateMap<StoreItemUpdateDTO, StoreItem>()
                 .ForMember(dest => dest.ImageData, opt =>
                 {
-                    opt.MapFrom(src => Convert.FromBase64String(src.ImageData));
+                    opt.MapFrom(src => Convert.FromBase64String(src.ImageData!));
                 }).ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<StoreItemGetDTO, StoreItem>();
             CreateMap<StoreItem, StoreItemInsertDTO>();
@@ -25,8 +26,8 @@ namespace FixMyCar.Services.Mapping
             CreateMap<StoreItem, StoreItemGetDTO>()
                 .ForMember(dest => dest.ImageData, opt =>
                     opt.MapFrom(src => src.ImageData != null ? Convert.ToBase64String(src.ImageData) : string.Empty))
-                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.StoreItemCategory.Name))
-                .ForMember(dest => dest.CarModels, opt => opt.MapFrom(src => src.CarModels));
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.StoreItemCategory != null ? src.StoreItemCategory.Name : string.Empty))
+                .ForMember(dest => dest.CarModels, opt => opt.MapFrom(src => src.CarModels ?? null));
         }
     }
 }

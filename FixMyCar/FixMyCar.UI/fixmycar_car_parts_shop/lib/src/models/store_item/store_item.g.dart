@@ -8,26 +8,28 @@ part of 'store_item.dart';
 
 StoreItem _$StoreItemFromJson(Map<String, dynamic> json) => StoreItem(
       (json['id'] as num).toInt(),
-      json['name'] as String?,
+      json['name'] as String,
+      (json['price'] as num).toDouble(),
       json['state'] as String,
       (json['discount'] as num).toDouble(),
+      (json['discountedPrice'] as num).toDouble(),
       json['imageData'] as String?,
-      json['imageMimeType'] as String?,
       json['details'] as String?,
-      (json['carModels'] as List<dynamic>)
-          .map((e) => CarModel.fromJson(e as Map<String, dynamic>))
+      (json['carModels'] as List<dynamic>?)
+          ?.map((e) => CarModel.fromJson(e as Map<String, dynamic>))
           .toList(),
-      (json['storeItemCategoryId'] as num).toInt(),
-      json['category'] as String,
+      (json['storeItemCategoryId'] as num?)?.toInt(),
+      json['category'] as String?,
     );
 
 Map<String, dynamic> _$StoreItemToJson(StoreItem instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'price': instance.price,
       'state': instance.state,
       'discount': instance.discount,
+      'discountedPrice': instance.discountedPrice,
       'imageData': instance.imageData,
-      'imageMimeType': instance.imageMimeType,
       'details': instance.details,
       'carModels': instance.carModels,
       'storeItemCategoryId': instance.storeItemCategoryId,

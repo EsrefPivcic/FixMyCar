@@ -2,6 +2,7 @@
 using FixMyCar.Model.DTOs.Product;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.StateMachineServices.ProductStateMachine;
@@ -69,13 +70,15 @@ namespace FixMyCar.Services.Services
             return await state.Insert(request);
         }
 
-        public override async Task<StoreItemGetDTO> Update (int id, StoreItemUpdateDTO request)
+        public override async Task<StoreItemGetDTO> Update(int id, StoreItemUpdateDTO request)
         {
             var entity = await _context.StoreItems.FindAsync(id);
-
-            var state = _baseStoreItemState.CreateState(entity.State);
-
-            return await state.Update(entity, request);
+            if (entity != null)
+            {
+                var state = _baseStoreItemState.CreateState(entity.State);
+                return await state.Update(entity, request);
+            }
+            throw new UserException("Entity doesn't exist.");
         }
 
         public override async Task<string> Delete(int id)

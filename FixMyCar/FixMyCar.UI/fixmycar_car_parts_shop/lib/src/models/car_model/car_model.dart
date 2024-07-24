@@ -5,12 +5,11 @@ part 'car_model.g.dart';
 @JsonSerializable()
 class CarModel {
   int id;
-  String? manufacturer;
   String name;
   String modelYear;
 
   CarModel(
-      this.id, this.manufacturer, this.name, this.modelYear);
+      this.id, this.name, this.modelYear);
 
   factory CarModel.fromJson(Map<String, dynamic> json) => _$CarModelFromJson(json);
 

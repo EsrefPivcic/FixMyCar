@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using FixMyCar.Model.DTOs.CarModel;
+using FixMyCar.Model.DTOs.CarManufacturer;
 using FixMyCar.Model.Entities;
 using System;
 using System.Collections.Generic;
@@ -9,11 +9,10 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Mapping
 {
-    public class CarModelProfile : Profile
+    internal class CarManufacturerProfile : Profile
     {
-        public CarModelProfile() 
-        {
-            CreateMap<CarModel, CarModelGetDTO>();
+        public CarManufacturerProfile() { 
+            CreateMap<CarManufacturer, CarManufacturerGetDTO>();
         }
     }
 }
