@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 
-abstract class BaseProvider<T> with ChangeNotifier {
+abstract class BaseProvider<T, TUpdate> with ChangeNotifier {
   static const String baseUrl = 'https://localhost:7055';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String endpoint;
@@ -74,7 +74,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     }
   }
 
-  Future<void> update(int id, T item, {required Map<String, dynamic> Function(T) toJson}) async {
+  Future<void> update(int id, TUpdate item, {required Map<String, dynamic> Function(TUpdate) toJson}) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/$endpoint/$id'),

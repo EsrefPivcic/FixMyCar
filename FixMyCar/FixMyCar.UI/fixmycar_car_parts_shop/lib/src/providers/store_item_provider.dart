@@ -1,8 +1,9 @@
 import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item.dart';
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
+import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item_update.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 
-class StoreItemProvider extends BaseProvider<StoreItem> {
+class StoreItemProvider extends BaseProvider<StoreItem, StoreItemUpdate> {
   List<StoreItem> items = [];
   int countOfItems = 0;
   bool isLoading = false;
@@ -48,7 +49,7 @@ class StoreItemProvider extends BaseProvider<StoreItem> {
     }
   }
 
-  Future<void> updateStoreItem(int id, StoreItem sotreitem) async {
+  Future<void> updateStoreItem(int id, StoreItemUpdate sotreitem) async {
     try {
       await update(
         id,

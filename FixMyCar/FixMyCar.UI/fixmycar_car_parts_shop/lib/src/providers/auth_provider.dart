@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 
-class AuthProvider extends BaseProvider<void> {
+class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
   AuthProvider() : super('login');
 
   bool _isLoggedIn = false;

@@ -28,6 +28,7 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<City> Cities { get; set; }
         public virtual DbSet<CarRepairShop> CarRepairShops { get; set; }
         public virtual DbSet<CarModel> CarModels { get; set; }
+        public virtual DbSet<StoreItemCarModel> StoreItemCarModels { get; set; }
         public virtual DbSet<CarManufacturer> CarManufacturers { get; set; }
         public virtual DbSet<StoreItemCategory> StoreItemCategory { get; set; }
 

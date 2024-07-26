@@ -29,8 +29,27 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
 
             if (request.CarModelIds != null)
             {
-                entity.CarModels = await _context.CarModels.Where(cm => request.CarModelIds.Contains(cm.Id)).ToListAsync();
+                var existingCarModelAssociations = await _context.StoreItemCarModels
+                    .Where(sicm => sicm.StoreItemId == entity.Id)
+                    .ToListAsync();
+
+                _context.StoreItemCarModels.RemoveRange(existingCarModelAssociations);
+
+                var newCarModels = await _context.CarModels
+                    .Where(cm => request.CarModelIds.Contains(cm.Id))
+                    .ToListAsync();
+
+                foreach (var carModel in newCarModels)
+                {
+                    await _context.StoreItemCarModels.AddAsync(new StoreItemCarModel
+                    {
+                        StoreItemId = entity.Id,
+                        CarModelId = carModel.Id
+                    });
+                }
             }
+
+            entity.DiscountedPrice = entity.Price - (entity.Price * entity.Discount);
 
             await _context.SaveChangesAsync();
 

@@ -1,7 +1,14 @@
+import 'package:fixmycar_car_parts_shop/src/models/car_model/car_models_by_manufacturer.dart';
+import 'package:fixmycar_car_parts_shop/src/models/car_model/car_model.dart';
+import 'package:fixmycar_car_parts_shop/src/models/car_manufacturer/car_manufacturer.dart';
+import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item_update.dart';
+import 'package:fixmycar_car_parts_shop/src/models/store_item_category/store_item_category.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/store_item_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/car_models_by_manufacturer_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/store_item_category_provider.dart';
 import 'dart:convert';
 import 'master_screen.dart';
 import 'package:file_picker/file_picker.dart';
@@ -19,13 +26,33 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   String _selectedDiscountFilter = 'all';
   String _filterName = '';
   bool _isFilterApplied = false;
+  List<StoreItemCategory> _categories = [];
+  List<CarModelsByManufacturer> _carModelsByManufacturer = [];
   TextEditingController _nameFilterController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<StoreItemProvider>(context, listen: false).getStoreItems();
+      await _fetchCarModelsAndCategories();
+    });
+  }
+
+  Future<void> _fetchCarModelsAndCategories() async {
+    final categoriesProvider =
+        Provider.of<StoreItemCategoryProvider>(context, listen: false);
+    await categoriesProvider.getCategories();
+    setState(() {
+      _categories = categoriesProvider.categories;
+    });
+
+    final carModelsByManufacturerProvider =
+        Provider.of<CarModelsByManufacturerProvider>(context, listen: false);
+    await carModelsByManufacturerProvider.getCarModelsByManufacturer();
+    setState(() {
+      _carModelsByManufacturer =
+          carModelsByManufacturerProvider.modelsByManufacturer;
     });
   }
 
@@ -171,7 +198,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 style: Theme.of(context).textTheme.bodySmall,
                                 textAlign: TextAlign.center,
                               ),
-                            ),                           
+                            ),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
@@ -366,9 +393,18 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         TextEditingController(text: item.name);
     TextEditingController discountController =
         TextEditingController(text: (item.discount * 100).toString());
+    TextEditingController priceController =
+        TextEditingController(text: item.price.toString());
+    TextEditingController detailsController =
+        TextEditingController(text: item.details);
 
     String? imagePath;
     String? base64Image = item.imageData;
+    int? categoryId = item.storeItemCategoryId;
+    CarManufacturer? selectedManufacturer;
+    CarModel? selectedModel;
+    List<CarModel> selectedCarModels = List.from(item.carModels ?? []);
+    StoreItemUpdate updatedStoreItem = StoreItemUpdate.n();
 
     showDialog(
       context: context,
@@ -398,12 +434,124 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       ),
                       const SizedBox(height: 20),
                       TextField(
+                        controller: priceController,
+                        decoration: const InputDecoration(
+                          labelText: 'Price (KM)',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
                         controller: discountController,
                         decoration: const InputDecoration(
                           labelText: 'Discount (%)',
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 20),
+                      DropdownButton<int>(
+                        value: categoryId,
+                        onChanged: (int? newValue) {
+                          setState(() {
+                            categoryId = newValue;
+                            item.storeItemCategoryId = newValue!;
+                          });
+                        },
+                        items: _categories.map<DropdownMenuItem<int>>(
+                            (StoreItemCategory category) {
+                          return DropdownMenuItem<int>(
+                            value: category.id,
+                            child: Text(category.name),
+                          );
+                        }).toList(),
+                        isExpanded: true,
+                        hint: const Text('Select a category'),
+                      ),
+                      const SizedBox(height: 20),
+                      DropdownButton<CarManufacturer>(
+                        value: selectedManufacturer,
+                        onChanged: (CarManufacturer? newValue) {
+                          setState(() {
+                            selectedManufacturer = newValue;
+                            selectedModel = null;
+                          });
+                        },
+                        items: _carModelsByManufacturer
+                            .map<DropdownMenuItem<CarManufacturer>>(
+                                (CarModelsByManufacturer cm) {
+                          return DropdownMenuItem<CarManufacturer>(
+                            value: cm.manufacturer,
+                            child: Text(cm.manufacturer.name),
+                          );
+                        }).toList(),
+                        isExpanded: true,
+                        hint: const Text('Select a manufacturer'),
+                      ),
+                      if (selectedManufacturer != null)
+                        const SizedBox(height: 20),
+                      if (selectedManufacturer != null)
+                        DropdownButton<CarModel>(
+                          value: selectedModel,
+                          onChanged: (CarModel? newValue) {
+                            setState(() {
+                              if (newValue != null) {
+                                bool alreadyExists = selectedCarModels
+                                    .any((model) => model.id == newValue.id);
+                                if (!alreadyExists) {
+                                  selectedModel = newValue;
+                                  selectedCarModels.add(newValue);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Model already selected'),
+                                    ),
+                                  );
+                                }
+                              }
+                            });
+                          },
+                          items: _carModelsByManufacturer
+                              .firstWhere((cm) =>
+                                  cm.manufacturer == selectedManufacturer!)
+                              .models
+                              .map<DropdownMenuItem<CarModel>>(
+                                  (CarModel model) {
+                            return DropdownMenuItem<CarModel>(
+                              value: model,
+                              child: Text('${model.name} (${model.modelYear})'),
+                            );
+                          }).toList(),
+                          isExpanded: true,
+                          hint: const Text('Select a model'),
+                        ),
+                      const SizedBox(height: 20),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 4.0,
+                        children: selectedCarModels.map((CarModel model) {
+                          return FilterChip(
+                            label: Text('${model.name} (${model.modelYear})'),
+                            onSelected: (bool selected) {
+                              setState(() {
+                                if (!selected) {
+                                  selectedCarModels.remove(model);
+                                }
+                              });
+                            },
+                            selected: true,
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 20),
+                      TextField(
+                        controller: detailsController,
+                        maxLines: 5,
+                        decoration: const InputDecoration(
+                          labelText: 'Details',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       if (base64Image != null)
@@ -446,15 +594,18 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                             child: const Text('Cancel'),
                           ),
                           ElevatedButton(
-                            onPressed: () {
-                              item.name = nameController.text;
-                              item.discount =
-                                  double.tryParse(discountController.text)! /
-                                      100;
-                              item.imageData = base64Image;
-                              Provider.of<StoreItemProvider>(context,
+                            onPressed: () async {
+                              updatedStoreItem.name = nameController.text != "" ? nameController.text : item.name;
+                              updatedStoreItem.price = priceController.text != "" ? double.tryParse(priceController.text) ?? item.price : item.price;
+                              updatedStoreItem.discount = discountController.text != "" ? double.tryParse(discountController.text)! / 100 : item.discount;
+                              updatedStoreItem.imageData = base64Image;
+                              updatedStoreItem.details = detailsController.text != "" ? detailsController.text : item.details;
+                              updatedStoreItem.storeItemCategoryId = item.storeItemCategoryId;
+                              updatedStoreItem.carModelIds = selectedCarModels.map((model) => model.id).toList();
+
+                              await Provider.of<StoreItemProvider>(context,
                                       listen: false)
-                                  .updateStoreItem(item.id, item)
+                                  .updateStoreItem(item.id, updatedStoreItem)
                                   .then((_) {
                                 Provider.of<StoreItemProvider>(context,
                                         listen: false)
