@@ -4,14 +4,14 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 
-abstract class BaseProvider<T, TUpdate> with ChangeNotifier {
+abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
   static const String baseUrl = 'https://localhost:7055';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String endpoint;
 
   BaseProvider(this.endpoint);
 
-  Future<Map<String, String>> _createHeaders() async {
+  Future<Map<String, String>> createHeaders() async {
     final Map<String, String> headers = {
       'Content-Type': 'application/json; charset=UTF-8',
     };
@@ -34,7 +34,7 @@ abstract class BaseProvider<T, TUpdate> with ChangeNotifier {
 
       final response = await http.get(
         Uri.parse(url),
-        headers: await _createHeaders(),
+        headers: await createHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -55,11 +55,11 @@ abstract class BaseProvider<T, TUpdate> with ChangeNotifier {
     }
   }
 
-  Future<void> insert(T item) async {
+  Future<void> insert(TInsertUpdate item, {required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
     try {
       final response = await http.post(
-      Uri.parse('$baseUrl/insert'),
-      headers: await _createHeaders(),
+      Uri.parse('$baseUrl/$endpoint'),
+      headers: await createHeaders(),
       body: jsonEncode(item),
     );
     if (response.statusCode == 200) {
@@ -74,11 +74,11 @@ abstract class BaseProvider<T, TUpdate> with ChangeNotifier {
     }
   }
 
-  Future<void> update(int id, TUpdate item, {required Map<String, dynamic> Function(TUpdate) toJson}) async {
+  Future<void> update(int id, TInsertUpdate item, {required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/$endpoint/$id'),
-        headers: await _createHeaders(),
+        headers: await createHeaders(),
         body: jsonEncode(toJson(item)),
       );
       if (response.statusCode == 200) {
@@ -93,11 +93,11 @@ abstract class BaseProvider<T, TUpdate> with ChangeNotifier {
     }
   }
 
-  Future<void> delete(String id) async {
+  Future<void> delete(int id) async {
     try {
       final response = await http.delete(
       Uri.parse('$baseUrl/$endpoint/$id'),
-      headers: await _createHeaders(),
+      headers: await createHeaders(),
     );
     if (response.statusCode == 200) {
         print('Delete successful.');

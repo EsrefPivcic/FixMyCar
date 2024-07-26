@@ -1,9 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'store_item_update.g.dart';
+part 'store_item_insert_update.g.dart';
 
 @JsonSerializable()
-class StoreItemUpdate {
+class StoreItemInsertUpdate {
   String? name;
   double? price;
   double? discount;
@@ -12,12 +12,12 @@ class StoreItemUpdate {
   List<int>? carModelIds;
   int? storeItemCategoryId;
 
-  StoreItemUpdate.n();
+  StoreItemInsertUpdate.n();
 
-  StoreItemUpdate(
+  StoreItemInsertUpdate(
       this.name, this.price, this.discount, this.imageData, this.details, this.carModelIds, this.storeItemCategoryId);
 
-  factory StoreItemUpdate.fromJson(Map<String, dynamic> json) => _$StoreItemUpdateFromJson(json);
+  factory StoreItemInsertUpdate.fromJson(Map<String, dynamic> json) => _$StoreItemInsertUpdateFromJson(json);
 
-  Map<String, dynamic> toJson() => _$StoreItemUpdateToJson(this);
+  Map<String, dynamic> toJson() => _$StoreItemInsertUpdateToJson(this);
 }

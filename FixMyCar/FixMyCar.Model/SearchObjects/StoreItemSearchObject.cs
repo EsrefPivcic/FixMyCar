@@ -12,5 +12,7 @@ namespace FixMyCar.Model.SearchObjects
         public string? Contains { get; set; }
         public bool? WithDiscount { get; set; }
         public string? State { get; set; }
+        public int? StoreItemCategoryId { get; set; }
+        public List<int>? CarModelIds { get; set; }
     }
 }

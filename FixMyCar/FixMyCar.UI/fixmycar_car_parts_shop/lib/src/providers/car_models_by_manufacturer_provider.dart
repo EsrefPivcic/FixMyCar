@@ -29,7 +29,6 @@ class CarModelsByManufacturerProvider extends BaseProvider<CarModelsByManufactur
       isLoading = false;
       
       notifyListeners();
-      print('Error fetching models: $e');
     }
   }
 }

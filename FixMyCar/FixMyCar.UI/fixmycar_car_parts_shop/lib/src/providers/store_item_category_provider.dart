@@ -29,7 +29,6 @@ class StoreItemCategoryProvider extends BaseProvider<StoreItemCategory, StoreIte
       isLoading = false;
 
       notifyListeners();
-      print('Error fetching categories: $e');
     }
   }
 }

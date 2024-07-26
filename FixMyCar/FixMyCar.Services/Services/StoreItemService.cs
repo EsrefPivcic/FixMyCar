@@ -33,30 +33,44 @@ namespace FixMyCar.Services.Services
 
         public override IQueryable<StoreItem> AddFilter(IQueryable<StoreItem> query, StoreItemSearchObject? search = null)
         {
-            if (!string.IsNullOrWhiteSpace(search?.Starts))
+            if (search != null)
             {
-                query = query.Where(x => x.Name.StartsWith(search.Starts));
-            }
-
-            if (!string.IsNullOrWhiteSpace(search?.Contains))
-            {
-                query = query.Where(x => x.Name.Contains(search.Contains));
-            }
-
-            if (!string.IsNullOrWhiteSpace(search?.State))
-            {
-                query = query.Where(x => x.State.Contains(search.State));
-            }
-
-            if (search?.WithDiscount != null)
-            {
-                if (search.WithDiscount == false)
+                if (!string.IsNullOrWhiteSpace(search?.Starts))
                 {
-                    query = query.Where(x => x.Discount == 0);
+                    query = query.Where(x => x.Name.StartsWith(search.Starts));
                 }
-                else
+
+                if (!string.IsNullOrWhiteSpace(search?.Contains))
                 {
-                    query = query.Where(x => x.Discount != 0);
+                    query = query.Where(x => x.Name.Contains(search.Contains));
+                }
+
+                if (!string.IsNullOrWhiteSpace(search?.State))
+                {
+                    query = query.Where(x => x.State.Contains(search.State));
+                }
+
+
+                if (search?.WithDiscount != null)
+                {
+                    if (search.WithDiscount == false)
+                    {
+                        query = query.Where(x => x.Discount == 0);
+                    }
+                    else
+                    {
+                        query = query.Where(x => x.Discount != 0);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(search?.StoreItemCategoryId.ToString()))
+                {
+                    query = query.Where(x => x.StoreItemCategoryId == search.StoreItemCategoryId);
+                }
+
+                if (search?.CarModelIds != null && search?.CarModelIds?.Count != 0)
+                {
+                    query = query.Where(x => x.CarModels.Any(cm => search.CarModelIds.Contains(cm.Id)));
                 }
             }
 

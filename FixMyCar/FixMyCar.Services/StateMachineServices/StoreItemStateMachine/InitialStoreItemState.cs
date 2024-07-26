@@ -2,6 +2,7 @@
 using FixMyCar.Model.DTOs.Product;
 using FixMyCar.Model.Entities;
 using FixMyCar.Services.Database;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,20 @@ namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
             var entity = _mapper.Map<StoreItem>(request);
 
             entity.State = "draft";
+
+            entity.DiscountedPrice = entity.Price - (entity.Price * entity.Discount);
+
+            if (request.CarModelIds != null)
+            {
+                foreach (var carModelId in request.CarModelIds)
+                {
+                    await _context.StoreItemCarModels.AddAsync(new StoreItemCarModel
+                    {
+                        StoreItemId = entity.Id,
+                        CarModelId = carModelId
+                    });
+                }
+            }
 
             set.Add(entity);
 

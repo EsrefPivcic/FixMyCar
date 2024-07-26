@@ -1,13 +1,14 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'store_item_update.dart';
+part of 'store_item_insert_update.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-StoreItemUpdate _$StoreItemUpdateFromJson(Map<String, dynamic> json) =>
-    StoreItemUpdate(
+StoreItemInsertUpdate _$StoreItemInsertUpdateFromJson(
+        Map<String, dynamic> json) =>
+    StoreItemInsertUpdate(
       json['name'] as String?,
       (json['price'] as num?)?.toDouble(),
       (json['discount'] as num?)?.toDouble(),
@@ -19,7 +20,8 @@ StoreItemUpdate _$StoreItemUpdateFromJson(Map<String, dynamic> json) =>
       (json['storeItemCategoryId'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$StoreItemUpdateToJson(StoreItemUpdate instance) =>
+Map<String, dynamic> _$StoreItemInsertUpdateToJson(
+        StoreItemInsertUpdate instance) =>
     <String, dynamic>{
       'name': instance.name,
       'price': instance.price,

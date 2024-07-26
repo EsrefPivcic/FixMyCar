@@ -1,7 +1,7 @@
 import 'package:fixmycar_car_parts_shop/src/models/car_model/car_models_by_manufacturer.dart';
 import 'package:fixmycar_car_parts_shop/src/models/car_model/car_model.dart';
 import 'package:fixmycar_car_parts_shop/src/models/car_manufacturer/car_manufacturer.dart';
-import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item_update.dart';
+import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item_insert_update.dart';
 import 'package:fixmycar_car_parts_shop/src/models/store_item_category/store_item_category.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +26,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   String _selectedDiscountFilter = 'all';
   String _filterName = '';
   bool _isFilterApplied = false;
+  int? _categoryIdFilter;
+  List<CarModel> _selectedCarModelsFilter = [];
   List<StoreItemCategory> _categories = [];
   List<CarModelsByManufacturer> _carModelsByManufacturer = [];
   TextEditingController _nameFilterController = TextEditingController();
@@ -58,170 +60,181 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MasterScreen(
-      child: Consumer<StoreItemProvider>(
-        builder: (context, provider, child) {
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: IconButton(
-                    icon: Icon(Icons.filter_list,
-                        color: Theme.of(context).primaryColorLight),
-                    onPressed: () => _showFilterDialog(context),
+    return Scaffold(
+      body: MasterScreen(
+        child: Consumer<StoreItemProvider>(
+          builder: (context, provider, child) {
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: IconButton(
+                      icon: Icon(Icons.filter_list,
+                          color: Theme.of(context).primaryColorLight),
+                      onPressed: () => _showFilterDialog(context),
+                    ),
                   ),
                 ),
-              ),
-              if (provider.isLoading)
-                const Expanded(
-                    child: Center(child: CircularProgressIndicator()))
-              else if (provider.items.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Text(_isFilterApplied
-                        ? 'No results found for your search.'
-                        : 'No items available.'),
-                  ),
-                )
-              else
-                Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(8.0),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 5,
-                      crossAxisSpacing: 8.0,
-                      mainAxisSpacing: 8.0,
-                      childAspectRatio: 0.9,
+                if (provider.isLoading)
+                  const Expanded(
+                      child: Center(child: CircularProgressIndicator()))
+                else if (provider.items.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Text(_isFilterApplied
+                          ? 'No results found for your search.'
+                          : 'No items available.'),
                     ),
-                    itemCount: provider.items.length,
-                    itemBuilder: (context, index) {
-                      final StoreItem item = provider.items[index];
-                      return Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: item.imageData != null
-                                      ? Image.memory(
-                                          base64Decode(item.imageData!),
-                                          fit: BoxFit.contain,
-                                          width: 200,
-                                          height: 200,
-                                        )
-                                      : const SizedBox(
-                                          width: 80,
-                                          height: 80,
-                                          child: Placeholder(),
-                                        ),
+                  )
+                else
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(8.0),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 5,
+                        crossAxisSpacing: 8.0,
+                        mainAxisSpacing: 8.0,
+                        childAspectRatio: 0.9,
+                      ),
+                      itemCount: provider.items.length,
+                      itemBuilder: (context, index) {
+                        final StoreItem item = provider.items[index];
+                        return Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: item.imageData != ""
+                                        ? Image.memory(
+                                            base64Decode(item.imageData!),
+                                            fit: BoxFit.contain,
+                                            width: 200,
+                                            height: 200,
+                                          )
+                                        : const SizedBox(
+                                            width: 80,
+                                            height: 80,
+                                            child: Placeholder(),
+                                          ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                item.name,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    if (item.discount != 0) ...[
-                                      TextSpan(
-                                        text: '${item.price}KM ',
-                                        style: const TextStyle(
-                                          decoration:
-                                              TextDecoration.lineThrough,
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: ' ${item.discountedPrice}KM',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge,
-                                      ),
-                                    ] else ...[
-                                      TextSpan(
-                                        text: '${item.price}KM',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge,
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            if (item.discount != 0)
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                  'Discount: ${(item.discount * 100).toInt()}%',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color:
-                                            Theme.of(context).primaryColorLight,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  item.name,
+                                  style: Theme.of(context).textTheme.bodyLarge,
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Category: ${item.category ?? "Unknown"}',
-                                style: Theme.of(context).textTheme.bodySmall,
-                                textAlign: TextAlign.center,
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      if (item.discount != 0) ...[
+                                        TextSpan(
+                                          text: '${item.price}KM ',
+                                          style: const TextStyle(
+                                            decoration:
+                                                TextDecoration.lineThrough,
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: ' ${item.discountedPrice}KM',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge,
+                                        ),
+                                      ] else ...[
+                                        TextSpan(
+                                          text: '${item.price}KM',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge,
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Car models: ${item.carModels?.isNotEmpty == true ? item.carModels!.map((model) => model.name).join(', ') : "Unknown"}',
-                                style: Theme.of(context).textTheme.bodySmall,
-                                textAlign: TextAlign.center,
+                              if (item.discount != 0)
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Discount: ${(item.discount * 100).toInt()}%',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .primaryColorLight,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Category: ${item.category == "" ? "Unknown" : item.category}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: _buildActionButtons(item),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Car models: ${item.carModels?.isNotEmpty == true ? item.carModels!.map((model) => model.name).join(', ') : "Unknown"}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: _buildActionButtons(item),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-            ],
-          );
+              ],
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showEditForm(context, null, false);
         },
+        backgroundColor: Theme.of(context).hoverColor,
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
   void _showFilterDialog(BuildContext context) {
     _nameFilterController.text = _filterName;
+    CarManufacturer? selectedManufacturer;
+    CarModel? selectedModel;
 
     showDialog(
       context: context,
@@ -257,7 +270,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       },
                     ),
                     RadioListTile<String>(
-                      title: const Text('Draft'),
+                      title: const Text('Hidden'),
                       value: 'draft',
                       groupValue: _selectedStatusFilter,
                       onChanged: (value) {
@@ -308,6 +321,103 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         });
                       },
                     ),
+                    DropdownButton<int>(
+                      value: _categoryIdFilter,
+                      onChanged: (int? newValue) {
+                        setState(() {
+                          _categoryIdFilter = newValue;
+                        });
+                      },
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text('All'),
+                        ),
+                        ..._categories.map<DropdownMenuItem<int>>(
+                            (StoreItemCategory category) {
+                          return DropdownMenuItem<int>(
+                            value: category.id,
+                            child: Text(category.name),
+                          );
+                        }).toList(),
+                      ],
+                      isExpanded: true,
+                      hint: const Text('Select a category'),
+                    ),
+                    const SizedBox(height: 20),
+                    DropdownButton<CarManufacturer>(
+                      value: selectedManufacturer,
+                      onChanged: (CarManufacturer? newValue) {
+                        setState(() {
+                          selectedManufacturer = newValue;
+                          selectedModel = null;
+                        });
+                      },
+                      items: _carModelsByManufacturer
+                          .map<DropdownMenuItem<CarManufacturer>>(
+                              (CarModelsByManufacturer cm) {
+                        return DropdownMenuItem<CarManufacturer>(
+                          value: cm.manufacturer,
+                          child: Text(cm.manufacturer.name),
+                        );
+                      }).toList(),
+                      isExpanded: true,
+                      hint: const Text('Select a manufacturer'),
+                    ),
+                    if (selectedManufacturer != null)
+                      const SizedBox(height: 20),
+                    if (selectedManufacturer != null)
+                      DropdownButton<CarModel>(
+                        value: selectedModel,
+                        onChanged: (CarModel? newValue) {
+                          setState(() {
+                            if (newValue != null) {
+                              bool alreadyExists = _selectedCarModelsFilter
+                                  .any((model) => model.id == newValue.id);
+                              if (!alreadyExists) {
+                                selectedModel = newValue;
+                                _selectedCarModelsFilter.add(newValue);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Model already selected'),
+                                  ),
+                                );
+                              }
+                            }
+                          });
+                        },
+                        items: _carModelsByManufacturer
+                            .firstWhere((cm) =>
+                                cm.manufacturer == selectedManufacturer!)
+                            .models
+                            .map<DropdownMenuItem<CarModel>>((CarModel model) {
+                          return DropdownMenuItem<CarModel>(
+                            value: model,
+                            child: Text('${model.name} (${model.modelYear})'),
+                          );
+                        }).toList(),
+                        isExpanded: true,
+                        hint: const Text('Select a model'),
+                      ),
+                    const SizedBox(height: 20),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 4.0,
+                      children: _selectedCarModelsFilter.map((CarModel model) {
+                        return FilterChip(
+                          label: Text('${model.name} (${model.modelYear})'),
+                          onSelected: (bool selected) {
+                            setState(() {
+                              if (!selected) {
+                                _selectedCarModelsFilter.remove(model);
+                              }
+                            });
+                          },
+                          selected: true,
+                        );
+                      }).toList(),
+                    ),
                   ],
                 ),
               ),
@@ -331,26 +441,28 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     final provider = Provider.of<StoreItemProvider>(context, listen: false);
     String? stateFilter;
     bool? discountFilter;
+    List<int> carModels;
 
     if (_selectedStatusFilter != 'all') {
       stateFilter = _selectedStatusFilter;
     }
-
     if (_selectedDiscountFilter == 'discounted') {
       discountFilter = true;
     } else if (_selectedDiscountFilter == 'non-discounted') {
       discountFilter = false;
     }
+    carModels = _selectedCarModelsFilter.map((model) => model.id).toList();
 
     setState(() {
       _isFilterApplied = true;
     });
 
     provider.getStoreItems(
-      nameFilter: _filterName.isNotEmpty ? _filterName : null,
-      withDiscount: discountFilter,
-      state: stateFilter,
-    );
+        nameFilter: _filterName.isNotEmpty ? _filterName : null,
+        withDiscount: discountFilter,
+        state: stateFilter,
+        categoryFilter: _categoryIdFilter,
+        carModelsFilter: carModels);
   }
 
   List<Widget> _buildActionButtons(StoreItem item) {
@@ -358,7 +470,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
       return [
         ElevatedButton(
           onPressed: () {
-            _showEditForm(context, item);
+            _showEditForm(context, item, true);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).highlightColor,
@@ -366,8 +478,39 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           child: const Text('Edit'),
         ),
         ElevatedButton(
-          onPressed: () {
-            // TODO: Logic for deleting the item
+          onPressed: () async {
+            bool confirmDelete = await showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Confirm Deletion'),
+                  content:
+                      const Text('Are you sure you want to delete this item?'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('No'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('Yes'),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            if (confirmDelete) {
+              await Provider.of<StoreItemProvider>(context, listen: false)
+                  .deleteStoreItem(item.id)
+                  .then((_) {
+                Provider.of<StoreItemProvider>(context, listen: false)
+                    .getStoreItems();
+              });
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).highlightColor,
@@ -375,8 +518,39 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           child: const Text('Delete'),
         ),
         ElevatedButton(
-          onPressed: () {
-            // TODO: Logic for activating the item
+          onPressed: () async {
+            bool confirmActivate = await showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Confirm Activation'),
+                  content: const Text(
+                      'Are you sure you want to activate this item?'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('No'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('Yes'),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            if (confirmActivate) {
+              await Provider.of<StoreItemProvider>(context, listen: false)
+                  .activate(item.id)
+                  .then((_) {
+                Provider.of<StoreItemProvider>(context, listen: false)
+                    .getStoreItems();
+              });
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).highlightColor,
@@ -384,27 +558,75 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           child: const Text('Activate'),
         ),
       ];
+    } else {
+      return [
+        ElevatedButton(
+          onPressed: () async {
+            bool confirmHide = await showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Confirm Hiding'),
+                  content:
+                      const Text('Are you sure you want to hide this item?'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('No'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('Yes'),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            if (confirmHide) {
+              await Provider.of<StoreItemProvider>(context, listen: false)
+                  .hide(item.id)
+                  .then((_) {
+                Provider.of<StoreItemProvider>(context, listen: false)
+                    .getStoreItems();
+              });
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).highlightColor,
+          ),
+          child: const Text('Hide'),
+        ),
+      ];
     }
-    return [];
   }
 
-  void _showEditForm(BuildContext context, StoreItem item) {
-    TextEditingController nameController =
-        TextEditingController(text: item.name);
-    TextEditingController discountController =
-        TextEditingController(text: (item.discount * 100).toString());
-    TextEditingController priceController =
-        TextEditingController(text: item.price.toString());
-    TextEditingController detailsController =
-        TextEditingController(text: item.details);
-
+  void _showEditForm(BuildContext context, StoreItem? item, bool edit) {
+    TextEditingController nameController = TextEditingController(text: "");
+    TextEditingController discountController = TextEditingController(text: "0");
+    TextEditingController priceController = TextEditingController(text: "0");
+    TextEditingController detailsController = TextEditingController(text: "");
+    String? base64Image = "";
     String? imagePath;
-    String? base64Image = item.imageData;
-    int? categoryId = item.storeItemCategoryId;
+    int? categoryId;
     CarManufacturer? selectedManufacturer;
     CarModel? selectedModel;
-    List<CarModel> selectedCarModels = List.from(item.carModels ?? []);
-    StoreItemUpdate updatedStoreItem = StoreItemUpdate.n();
+    List<CarModel> selectedCarModels = [];
+    StoreItemInsertUpdate newStoreItem = StoreItemInsertUpdate.n();
+
+    if (edit) {
+      nameController = TextEditingController(text: item!.name);
+      discountController =
+          TextEditingController(text: (item.discount * 100).toString());
+      priceController = TextEditingController(text: item.price.toString());
+      detailsController = TextEditingController(text: item.details);
+      base64Image = item.imageData;
+      categoryId = item.storeItemCategoryId;
+      selectedCarModels = List.from(item.carModels ?? []);
+    }
 
     showDialog(
       context: context,
@@ -456,7 +678,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         onChanged: (int? newValue) {
                           setState(() {
                             categoryId = newValue;
-                            item.storeItemCategoryId = newValue!;
+                            newStoreItem.storeItemCategoryId = newValue!;
                           });
                         },
                         items: _categories.map<DropdownMenuItem<int>>(
@@ -554,7 +776,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      if (base64Image != null)
+                      if (base64Image != "")
                         Image.memory(
                           base64Decode(base64Image!),
                           height: 200,
@@ -595,23 +817,72 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           ),
                           ElevatedButton(
                             onPressed: () async {
-                              updatedStoreItem.name = nameController.text != "" ? nameController.text : item.name;
-                              updatedStoreItem.price = priceController.text != "" ? double.tryParse(priceController.text) ?? item.price : item.price;
-                              updatedStoreItem.discount = discountController.text != "" ? double.tryParse(discountController.text)! / 100 : item.discount;
-                              updatedStoreItem.imageData = base64Image;
-                              updatedStoreItem.details = detailsController.text != "" ? detailsController.text : item.details;
-                              updatedStoreItem.storeItemCategoryId = item.storeItemCategoryId;
-                              updatedStoreItem.carModelIds = selectedCarModels.map((model) => model.id).toList();
-
-                              await Provider.of<StoreItemProvider>(context,
-                                      listen: false)
-                                  .updateStoreItem(item.id, updatedStoreItem)
-                                  .then((_) {
-                                Provider.of<StoreItemProvider>(context,
+                              if (edit) {
+                                newStoreItem.name = nameController.text != ""
+                                    ? nameController.text
+                                    : item!.name;
+                                newStoreItem.price = priceController.text != ""
+                                    ? double.tryParse(priceController.text) ??
+                                        item!.price
+                                    : item!.price;
+                                newStoreItem.discount =
+                                    discountController.text != ""
+                                        ? double.tryParse(
+                                                discountController.text)! /
+                                            100
+                                        : item!.discount;
+                                newStoreItem.imageData = base64Image;
+                                newStoreItem.details =
+                                    detailsController.text != ""
+                                        ? detailsController.text
+                                        : item!.details;
+                                newStoreItem.storeItemCategoryId =
+                                    newStoreItem.storeItemCategoryId ??
+                                        item!.storeItemCategoryId;
+                                newStoreItem.carModelIds = selectedCarModels
+                                    .map((model) => model.id)
+                                    .toList();
+                                await Provider.of<StoreItemProvider>(context,
                                         listen: false)
-                                    .getStoreItems();
-                              });
-                              Navigator.of(context).pop();
+                                    .updateStoreItem(item!.id, newStoreItem)
+                                    .then((_) {
+                                  Provider.of<StoreItemProvider>(context,
+                                          listen: false)
+                                      .getStoreItems();
+                                });
+                                Navigator.of(context).pop();
+                              } else {
+                                if (nameController.text == "" ||
+                                    priceController.text == "") {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Item name and price are required!'),
+                                    ),
+                                  );
+                                } else {
+                                  newStoreItem.name = nameController.text;
+                                  newStoreItem.price =
+                                      double.tryParse(priceController.text) ??
+                                          0;
+                                  newStoreItem.discount =
+                                      double.tryParse(discountController.text);
+                                  newStoreItem.imageData = base64Image;
+                                  newStoreItem.details = detailsController.text;
+                                  newStoreItem.carModelIds = selectedCarModels
+                                      .map((model) => model.id)
+                                      .toList();
+                                  await Provider.of<StoreItemProvider>(context,
+                                          listen: false)
+                                      .insertStoreItem(newStoreItem)
+                                      .then((_) {
+                                    Provider.of<StoreItemProvider>(context,
+                                            listen: false)
+                                        .getStoreItems();
+                                  });
+                                  Navigator.of(context).pop();
+                                }
+                              }
                             },
                             child: const Text('Save'),
                           ),
