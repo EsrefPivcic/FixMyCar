@@ -1,4 +1,4 @@
-using FixMyCar.Model.DTOs.Product;
+using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Interfaces;

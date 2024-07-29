@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using FixMyCar.Services.StateMachineServices.OrderStateMachine;
-using FixMyCar.Model.DTOs.Product;
+using FixMyCar.Model.DTOs.StoreItem;
 
 namespace FixMyCar.Services.Services
 {

@@ -1,3 +1,4 @@
+import 'package:fixmycar_car_parts_shop/src/screens/discounts_screen.dart';
 import 'package:flutter/material.dart';
 import 'store_items_screen.dart';
 import 'home_screen.dart';
@@ -55,7 +56,13 @@ class MasterScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
-        } else {
+        } else if (label == 'Discounts') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const DiscountsScreen()),
+          );
+        }
+        else {
           print('$label button pressed');
         }
       },

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FixMyCar.Model.DTOs.Product;
+using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 

@@ -22,7 +22,7 @@ namespace FixMyCar.Model.Entities
         public double TotalAmount { get; set; }
         [ForeignKey(nameof(ClientDiscount))]
         public int? ClientDiscountId { get; set; }
-        public ClientDiscount? ClientDiscount { get; set; }
+        public CarPartsShopClientDiscount? ClientDiscount { get; set; }
         public string State { get; set; }
         public string ShippingCity { get; set; }
         public string ShippingAddress { get; set; }

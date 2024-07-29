@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FixMyCar.Model.DTOs.CarModel;
-using FixMyCar.Model.DTOs.Product;
+using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using System;
 using System.Collections.Generic;

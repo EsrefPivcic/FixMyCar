@@ -24,6 +24,7 @@ builder.Services.AddTransient<ICarRepairShopService, CarRepairShopService>();
 builder.Services.AddTransient<ICityService, CityService>();
 builder.Services.AddTransient<ICarModelService, CarModelService>();
 builder.Services.AddTransient<IStoreItemCategoryService, StoreItemCategoryService>();
+builder.Services.AddTransient<ICarPartsShopClientDiscountService, CarPartsShopClientDiscountService>();
 
 builder.Services.AddTransient<BaseStoreItemState>();
 builder.Services.AddTransient<InitialStoreItemState>();

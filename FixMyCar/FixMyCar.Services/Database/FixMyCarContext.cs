@@ -31,6 +31,7 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<StoreItemCarModel> StoreItemCarModels { get; set; }
         public virtual DbSet<CarManufacturer> CarManufacturers { get; set; }
         public virtual DbSet<StoreItemCategory> StoreItemCategory { get; set; }
+        public virtual DbSet<CarPartsShopClientDiscount> CarPartsShopClientDiscounts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

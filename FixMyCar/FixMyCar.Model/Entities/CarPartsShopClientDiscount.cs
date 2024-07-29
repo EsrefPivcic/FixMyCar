@@ -7,18 +7,15 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Model.Entities
 {
-    public class ClientDiscount
+    public class CarPartsShopClientDiscount
     {
         public int Id { get; set; }
+        [ForeignKey(nameof(CarPartsShop))]
+        public int CarPartsShopId { get; set; }
+        public CarPartsShop CarPartsShop { get; set; }
         [ForeignKey(nameof(User))]
         public int UserId { get; set; }
         public User User { get; set; }
-        [ForeignKey(nameof(CarPartsShop))]
-        public int? CarPartsShopId { get; set; }
-        public CarPartsShop? CarPartsShop { get; set; }
-        [ForeignKey(nameof(CarRepairShop))]
-        public int? CarRepairShopId { get; set; }
-        public CarRepairShop? CarRepairShop { get; set; }
         public double Value { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Revoked { get; set; }

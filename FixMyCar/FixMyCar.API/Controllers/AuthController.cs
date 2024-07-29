@@ -1,5 +1,5 @@
 ﻿using FixMyCar.Model.DTOs.AuthToken;
-using FixMyCar.Model.DTOs.Product;
+using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.DTOs.User;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;

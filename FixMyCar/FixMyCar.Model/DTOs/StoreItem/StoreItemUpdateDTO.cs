@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model.DTOs.Product
+namespace FixMyCar.Model.DTOs.StoreItem
 {
     public partial class StoreItemUpdateDTO
     {

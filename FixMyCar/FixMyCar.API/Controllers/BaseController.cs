@@ -1,5 +1,5 @@
 ﻿using FixMyCar.Model.DTOs;
-using FixMyCar.Model.DTOs.Product;
+using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
