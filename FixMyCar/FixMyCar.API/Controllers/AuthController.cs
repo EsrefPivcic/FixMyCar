@@ -26,11 +26,11 @@ namespace FixMyCar.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDTO credentials)
         {
-            var token = await (_service as IAuthService).Login(credentials.Username, credentials.Password);
+            var token = await (_service as IAuthService).Login(credentials.Username, credentials.Password, credentials.Role);
 
             if (token == null)
             {
-                return Unauthorized(new {message = "Incorrect username or password."});
+                return Unauthorized(new {message = "Incorrect login."});
             }
 
             return Ok(new { token });

@@ -21,17 +21,12 @@ namespace FixMyCar.Model.Entities
         public string? PostalCode { get; set; }
         public string? PasswordHash { get; set; }
         public string? PasswordSalt { get; set; }
+        public byte[]? Image { get; set; }
         [ForeignKey(nameof(Role))]
         public int RoleId { get; set; }
         public Role Role { get; set; }
         [ForeignKey(nameof(City))]
         public int? CityId { get; set; }
         public City? City { get; set; }
-        [ForeignKey(nameof(CarPartsShop))]
-        public int? CarPartsShopId { get; set; }
-        public CarPartsShop? CarPartsShop { get; set; }
-        [ForeignKey(nameof(CarRepairShop))]
-        public int? CarRepairShopId { get; set; }
-        public CarRepairShop? CarRepairShop { get; set; }
     }
 }

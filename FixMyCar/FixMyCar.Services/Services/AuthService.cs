@@ -26,7 +26,7 @@ namespace FixMyCar.Services.Services
             _secret = secret;
         }
 
-        public async Task<string> Login(string username, string password)
+        public async Task<string> Login(string username, string password, string role)
         {
             var user = await _context.Users.Include(x => x.Role).FirstOrDefaultAsync(x => x.Username == username);
 
@@ -36,6 +36,10 @@ namespace FixMyCar.Services.Services
             }
             var hash = Hashing.GenerateHash(user.PasswordSalt, password);
             if (hash != user.PasswordHash)
+            {
+                return null;
+            }
+            if (user.Role.Name != role && user.Role.Name != "Admin")
             {
                 return null;
             }

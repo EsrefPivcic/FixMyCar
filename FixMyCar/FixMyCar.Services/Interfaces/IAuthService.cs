@@ -12,7 +12,7 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface IAuthService : IBaseService<AuthToken, AuthTokenGetDTO, AuthTokentInsertDTO, AuthTokenUpdateDTO, AuthTokenSearchObject>
     {
-        Task<string> Login(string username, string passowrd);
+        Task<string> Login(string username, string passowrd, string role);
         Task RevokeToken(string token);
         Task<bool> IsTokenRevoked(string token);
     }

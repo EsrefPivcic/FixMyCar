@@ -10,9 +10,6 @@ namespace FixMyCar.Model.Entities
     public class CarPartsShopClientDiscount
     {
         public int Id { get; set; }
-        [ForeignKey(nameof(CarPartsShop))]
-        public int CarPartsShopId { get; set; }
-        public CarPartsShop CarPartsShop { get; set; }
         [ForeignKey(nameof(User))]
         public int UserId { get; set; }
         public User User { get; set; }

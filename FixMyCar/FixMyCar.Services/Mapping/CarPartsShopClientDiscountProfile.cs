@@ -15,7 +15,7 @@ namespace FixMyCar.Services.Mapping
             CreateMap<CarPartsShopClientDiscountInsertDTO, CarPartsShopClientDiscount>();
             CreateMap<CarPartsShopClientDiscountUpdateDTO, CarPartsShopClientDiscount>();
             CreateMap<CarPartsShopClientDiscount, CarPartsShopClientDiscountGetDTO>()
-                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User.Username != null ? src.User.Username : string.Empty));
+                /*.ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User.Username != null ? src.User.Username : string.Empty))*/;
         }
     }
 }
