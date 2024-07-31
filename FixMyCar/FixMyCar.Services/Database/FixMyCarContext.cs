@@ -26,7 +26,6 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<OrderDetail> OrderDetails { get; set; }
         public virtual DbSet<City> Cities { get; set; }
-        public virtual DbSet<CarRepairShop> CarRepairShops { get; set; }
         public virtual DbSet<CarModel> CarModels { get; set; }
         public virtual DbSet<StoreItemCarModel> StoreItemCarModels { get; set; }
         public virtual DbSet<CarManufacturer> CarManufacturers { get; set; }
@@ -36,6 +35,46 @@ namespace FixMyCar.Services.Database
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Role>().HasData(
+                new Role
+                {
+                    Id = 1,
+                    Name = "Admin"
+                }
+            );
+
+            modelBuilder.Entity<Role>().HasData(
+                new Role
+                {
+                    Id = 2,
+                    Name = "Client"
+                }
+            );
+
+            modelBuilder.Entity<Role>().HasData(
+                new Role
+                {
+                    Id = 3,
+                    Name = "Car Repair Shop"
+                }
+            );
+
+            modelBuilder.Entity<Role>().HasData(
+                new Role
+                {
+                    Id = 4,
+                    Name = "Car Parts Shop"
+                }
+            );
+
+            modelBuilder.Entity<User>()
+             .HasDiscriminator<int>("RoleId")
+             .HasValue<User>(0)
+             .HasValue<Admin>(1)
+             .HasValue<Client>(2)
+             .HasValue<CarRepairShop>(3)
+             .HasValue<CarPartsShop>(4);
 
             modelBuilder.Entity<StoreItem>()
                 .HasMany(s => s.CarModels)
@@ -190,14 +229,6 @@ namespace FixMyCar.Services.Database
                 }
             );
 
-            modelBuilder.Entity<Role>().HasData(
-                new Role
-                {
-                    Id = 1,
-                    Name = "Admin"
-                }
-            );
-
             var salt = Hashing.GenerateSalt();
 
             modelBuilder.Entity<User>().HasData(
@@ -206,9 +237,9 @@ namespace FixMyCar.Services.Database
                     Id = 1,
                     Name = "Esref",
                     Surname = "Pivcic",
-                    Username = "eshi",
+                    Username = "admin",
                     PasswordSalt = salt,
-                    PasswordHash = Hashing.GenerateHash(salt, "eshi"),
+                    PasswordHash = Hashing.GenerateHash(salt, "admin"),
                     RoleId = 1
                 }
             );

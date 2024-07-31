@@ -11,12 +11,15 @@ namespace FixMyCar.Model.Entities
     public class Order
     {
         public int Id { get; set; }
-        [ForeignKey(nameof(User))]
-        public int UserId { get; set; }
-        public User User { get; set; }
+        [ForeignKey(nameof(CarPartsShop))]
+        public int CarPartsShopId { get; set; }
+        public CarPartsShop CarPartsShop { get; set; }
         [ForeignKey(nameof(CarRepairShop))]
-        public int CarRepairShopId { get; set; }
-        public CarRepairShop CarRepairShop { get; set; }
+        public int? CarRepairShopId { get; set; }
+        public CarRepairShop? CarRepairShop { get; set; }
+        [ForeignKey(nameof(Client))]
+        public int? ClientId { get; set; }
+        public Client? Client { get; set; }
         public DateTime OrderDate { get; set; }
         public DateTime ShippingDate { get; set; }
         public double TotalAmount { get; set; }

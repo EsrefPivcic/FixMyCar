@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using FixMyCar.Model.DTOs.CarRepairShop;
+using FixMyCar.Model.DTOs.Admin;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Database;
@@ -15,20 +15,21 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Services
 {
-    public class CarRepairShopService : BaseService<CarRepairShop, CarRepairShopGetDTO, CarRepairShopInsertDTO, CarRepairShopUpdateDTO, CarRepairShopSearchObject>, ICarRepairShopService
+    public class AdminService : BaseService<Admin, AdminGetDTO, AdminInsertDTO, AdminUpdateDTO, AdminSearchObject>, IAdminService
     {
-        ILogger<CarRepairShopService> _logger;
-        public CarRepairShopService(FixMyCarContext context, IMapper mapper, ILogger<CarRepairShopService> logger) : base (context, mapper) 
+        ILogger<AdminService> _logger;
+        public AdminService(FixMyCarContext context, IMapper mapper, ILogger<AdminService> logger) : base(context, mapper)
         {
             _logger = logger;
         }
-        public override IQueryable<CarRepairShop> AddInclude(IQueryable<CarRepairShop> query, CarRepairShopSearchObject? search = null)
+
+        public override IQueryable<Admin> AddInclude(IQueryable<Admin> query, AdminSearchObject? search = null)
         {
             query = query.Include("Role");
             return base.AddInclude(query, search);
         }
 
-        public override async Task BeforeInsert(CarRepairShop entity, CarRepairShopInsertDTO request)
+        public override async Task BeforeInsert(Admin entity, AdminInsertDTO request)
         {
             _logger.LogInformation($"Adding user: {entity.Username}");
 

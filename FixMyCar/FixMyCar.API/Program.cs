@@ -21,6 +21,9 @@ builder.Services.AddTransient<IRoleService, RoleService>();
 builder.Services.AddTransient<IOrderService, OrderService>();
 builder.Services.AddTransient<IOrderDetailService, OrderDetailService>();
 builder.Services.AddTransient<ICarRepairShopService, CarRepairShopService>();
+builder.Services.AddTransient<IClientService, ClientService>();
+builder.Services.AddTransient<ICarPartsShopService, CarPartsShopService>();
+builder.Services.AddTransient<IAdminService, AdminService>();
 builder.Services.AddTransient<ICityService, CityService>();
 builder.Services.AddTransient<ICarModelService, CarModelService>();
 builder.Services.AddTransient<IStoreItemCategoryService, StoreItemCategoryService>();
@@ -74,7 +77,7 @@ builder.Services.AddAuthentication(options =>
             var token = context.SecurityToken as JwtSecurityToken;
             if (await authService.IsTokenRevoked(token.RawData))
             {
-                context.Fail("This token has been revoked.");
+                context.Fail("Session expired.");
             }
         }
     };

@@ -17,9 +17,7 @@ namespace FixMyCar.Services.Mapping
             CreateMap<Order, OrderInsertDTO>();
             CreateMap<Order, OrderUpdateDTO>();
             CreateMap<Order, OrderGetDTO>()
-            .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name))
-            .ForMember(dest => dest.UserSurname, opt => opt.MapFrom(src => src.User.Surname))
-            .ForMember(dest => dest.CarRepairShopName, opt => opt.MapFrom(src => src.CarRepairShop.Name))
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Client.Name != null ? src.Client.Name : src.CarRepairShop.Name))
             .ForMember(dest => dest.ClientDiscountValue, opt => opt.MapFrom(src => src.ClientDiscount != null ? src.ClientDiscount.Value : 0));
         }
     }

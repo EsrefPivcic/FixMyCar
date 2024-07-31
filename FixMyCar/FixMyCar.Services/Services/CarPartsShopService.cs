@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using FixMyCar.Model.DTOs.CarRepairShop;
+using FixMyCar.Model.DTOs.CarPartsShop;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Database;
@@ -15,20 +15,20 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Services
 {
-    public class CarRepairShopService : BaseService<CarRepairShop, CarRepairShopGetDTO, CarRepairShopInsertDTO, CarRepairShopUpdateDTO, CarRepairShopSearchObject>, ICarRepairShopService
+    public class CarPartsShopService : BaseService<CarPartsShop, CarPartsShopGetDTO, CarPartsShopInsertDTO, CarPartsShopUpdateDTO, CarPartsShopSearchObject>, ICarPartsShopService
     {
-        ILogger<CarRepairShopService> _logger;
-        public CarRepairShopService(FixMyCarContext context, IMapper mapper, ILogger<CarRepairShopService> logger) : base (context, mapper) 
+        ILogger<CarPartsShopService> _logger;
+        public CarPartsShopService(FixMyCarContext context, IMapper mapper, ILogger<CarPartsShopService> logger) : base(context, mapper)
         {
             _logger = logger;
         }
-        public override IQueryable<CarRepairShop> AddInclude(IQueryable<CarRepairShop> query, CarRepairShopSearchObject? search = null)
+        public override IQueryable<CarPartsShop> AddInclude(IQueryable<CarPartsShop> query, CarPartsShopSearchObject? search = null)
         {
             query = query.Include("Role");
             return base.AddInclude(query, search);
         }
 
-        public override async Task BeforeInsert(CarRepairShop entity, CarRepairShopInsertDTO request)
+        public override async Task BeforeInsert(CarPartsShop entity, CarPartsShopInsertDTO request)
         {
             _logger.LogInformation($"Adding user: {entity.Username}");
 

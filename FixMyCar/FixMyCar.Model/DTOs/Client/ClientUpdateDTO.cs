@@ -1,14 +1,12 @@
-﻿using FixMyCar.Model.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model.DTOs.CarRepairShop
+namespace FixMyCar.Model.DTOs.Client
 {
-    public class CarRepairShopUpdateDTO
+    public class ClientUpdateDTO
     {
         public string? Username { get; set; }
         public int? RoleId { get; set; }

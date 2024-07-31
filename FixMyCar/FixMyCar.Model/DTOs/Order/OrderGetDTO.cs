@@ -10,9 +10,7 @@ namespace FixMyCar.Model.DTOs.Order
 {
     public class OrderGetDTO
     {
-        public string UserName { get; set; }
-        public string UserSurname { get; set; }
-        public string CarRepairShopName { get; set; }
+        public string Username { get; set; }
         public DateTime OrderDate { get; set; }
         public DateTime ShippingDate { get; set; }
         public double TotalAmount { get; set; }
