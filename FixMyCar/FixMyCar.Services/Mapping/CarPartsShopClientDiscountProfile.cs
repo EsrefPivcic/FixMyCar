@@ -12,10 +12,13 @@ namespace FixMyCar.Services.Mapping
     public class CarPartsShopClientDiscountProfile : Profile
     {
         public CarPartsShopClientDiscountProfile() {
-            CreateMap<CarPartsShopClientDiscountInsertDTO, CarPartsShopClientDiscount>();
+            CreateMap<CarPartsShopClientDiscountInsertDTO, CarPartsShopClientDiscount>()
+                .ForMember(dest => dest.ClientId, opt => opt.Ignore())
+                .ForMember(dest => dest.CarRepairShopId, opt => opt.Ignore())
+                .ForMember(dest => dest.Created, opt => opt.Ignore());
             CreateMap<CarPartsShopClientDiscountUpdateDTO, CarPartsShopClientDiscount>();
             CreateMap<CarPartsShopClientDiscount, CarPartsShopClientDiscountGetDTO>()
-                /*.ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User.Username != null ? src.User.Username : string.Empty))*/;
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.Client != null ? src.Client.Username : src.CarRepairShop != null ? src.CarRepairShop.Username : null));
         }
     }
 }

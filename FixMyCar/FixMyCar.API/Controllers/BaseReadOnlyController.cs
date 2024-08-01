@@ -21,7 +21,7 @@ namespace FixMyCar.Controllers
         }
 
         [HttpGet()]
-        public async Task<PagedResult<TGet>> Get([FromQuery] TSearch? search = null)
+        public async virtual Task<PagedResult<TGet>> Get([FromQuery] TSearch? search = null)
         {
             return await _service.Get(search);
         }

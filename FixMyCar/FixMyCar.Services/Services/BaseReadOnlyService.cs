@@ -25,8 +25,8 @@ namespace FixMyCar.Services.Services
         public async Task<PagedResult<TGet>> Get(TSearch? search = null)
         {
             var query = _context.Set<TDb>().AsQueryable();
-            query = AddFilter(query, search);
             query = AddInclude(query, search);
+            query = AddFilter(query, search);
 
             PagedResult<TGet> pagedResult = new PagedResult<TGet>();
             pagedResult.Count = await query.CountAsync();
