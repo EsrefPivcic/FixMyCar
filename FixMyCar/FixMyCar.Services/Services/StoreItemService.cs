@@ -35,6 +35,11 @@ namespace FixMyCar.Services.Services
         {
             if (search != null)
             {
+                if (search != null && search?.CarPartsShopName != null)
+                {
+                    query = query.Where(x => x.CarPartsShop.Username == search.CarPartsShopName);
+                }
+
                 if (!string.IsNullOrWhiteSpace(search?.Starts))
                 {
                     query = query.Where(x => x.Name.StartsWith(search.Starts));
@@ -49,7 +54,6 @@ namespace FixMyCar.Services.Services
                 {
                     query = query.Where(x => x.State.Contains(search.State));
                 }
-
 
                 if (search?.WithDiscount != null)
                 {

@@ -17,10 +17,14 @@ namespace FixMyCar.Model.Entities
         public string State { get; set; }
         public byte[]? ImageData { get; set; }
         public string? Details { get; set; }
+        [ForeignKey(nameof(CarPartsShop))]
+        public int CarPartsShopId { get; set; }
+        public CarPartsShop CarPartsShop { get; set; }
         public ICollection<StoreItemCarModel>? StoreItemCarModels { get; set; }
         public ICollection<CarModel>? CarModels { get; set; }
         [ForeignKey(nameof(StoreItemCategory))]
         public int? StoreItemCategoryId { get; set; }
         public StoreItemCategory? StoreItemCategory { get; set; }
+        public ICollection<OrderDetail> OrderDetails { get; set; }
     }
 }

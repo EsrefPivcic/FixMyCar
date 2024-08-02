@@ -41,6 +41,8 @@ builder.Services.AddTransient<AcceptedOrderState>();
 builder.Services.AddTransient<RejectedOrderState>();
 builder.Services.AddTransient<CancelledOrderState>();
 
+builder.Services.AddTransient<SeedService>();
+
 builder.Services.AddAutoMapper(typeof(StoreItemProfile).Assembly);
 
 var key = builder.Configuration.GetValue<string>("JwtSettings:Secret");
@@ -121,6 +123,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var seedService = scope.ServiceProvider.GetRequiredService<SeedService>();
+    await seedService.SeedData();
+}
 
 if (app.Environment.IsDevelopment())
 {

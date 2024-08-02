@@ -14,5 +14,6 @@ namespace FixMyCar.Model.SearchObjects
         public string? State { get; set; }
         public int? StoreItemCategoryId { get; set; }
         public List<int>? CarModelIds { get; set; }
+        public string? CarPartsShopName { get; set; }
     }
 }

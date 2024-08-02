@@ -1,9 +1,11 @@
 using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.CompilerServices;
+using System.Security.Claims;
 
 namespace FixMyCar.Controllers
 {
@@ -30,6 +32,22 @@ namespace FixMyCar.Controllers
         public virtual async Task<List<string>> AllowedActions(int id)
         {
             return await (_service as IStoreItemService).AllowedActions(id);
+        }
+
+        [HttpPost()]
+        public async override Task<StoreItemGetDTO> Insert(StoreItemInsertDTO request)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.Username = username;
+            return await (_service as IStoreItemService).Insert(request);
+        }
+
+        [HttpGet()]
+        public async override Task<PagedResult<StoreItemGetDTO>> Get([FromQuery] StoreItemSearchObject? search = null)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            search.CarPartsShopName = username;
+            return await (_service as IStoreItemService).Get(search);
         }
     }
 }

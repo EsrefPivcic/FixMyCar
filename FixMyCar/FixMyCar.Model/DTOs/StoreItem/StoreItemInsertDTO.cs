@@ -16,6 +16,7 @@ namespace FixMyCar.Model.DTOs.StoreItem
         public double? Discount { get; set; }
         public string? ImageData { get; set; }
         public string? Details { get; set; }
+        public string? Username { get; set; }
         public List<int>? CarModelIds { get; set; }
         public int? StoreItemCategoryId { get; set; }
     }

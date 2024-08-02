@@ -11,6 +11,6 @@ namespace FixMyCar.Model.DTOs.Client
         public string Username { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
-        public Entities.Role Role { get; set; }
+        public string Role { get; set; }
     }
 }

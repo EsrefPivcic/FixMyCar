@@ -16,6 +16,14 @@ namespace FixMyCar.API.Controllers
         {
         }
 
+        [HttpPost()]
+        public async override Task<CarPartsShopClientDiscountGetDTO> Insert(CarPartsShopClientDiscountInsertDTO request)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.Username = username;
+            return await (_service as ICarPartsShopClientDiscountService).Insert(request);
+        }
+
         [HttpGet("/CarPartsShopClientDiscount/GetByCarPartsShop")]
         public async Task<PagedResult<CarPartsShopClientDiscountGetDTO>> GetByCarPartsShop([FromQuery] CarPartsShopClientDiscountSearchObject? search = null)
         {
@@ -23,7 +31,7 @@ namespace FixMyCar.API.Controllers
 
             search.CarPartsShopName = username;
 
-            return await _service.Get(search);
+            return await (_service as ICarPartsShopClientDiscountService).Get(search);
         }
     }
 }

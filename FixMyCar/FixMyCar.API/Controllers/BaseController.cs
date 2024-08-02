@@ -19,7 +19,7 @@ namespace FixMyCar.Controllers
         }
 
         [HttpPost()]
-        public async Task<TGet> Insert(TInsert request)
+        public async virtual Task<TGet> Insert(TInsert request)
         {
             return await _service.Insert(request);
         }

@@ -46,6 +46,8 @@ namespace FixMyCar.Services.Services
 
             var user = await _context.Users.FindAsync(request.UserId) ?? throw new UserException("User not found");
 
+            var carpartsshop = await _context.Users.FirstAsync(u => u.Username == request.Username) ?? throw new UserException("User not found");
+
             if (user is Client)
             {
                 entity.ClientId = user.Id;
@@ -60,6 +62,7 @@ namespace FixMyCar.Services.Services
             }
 
             entity.Created = DateTime.Now;
+            entity.CarPartsShopId = carpartsshop.Id;
 
             await set.AddAsync(entity);
             await _context.SaveChangesAsync();
