@@ -12,6 +12,7 @@ FixMyCar is a project developed as part of the seminar work for the Software Dev
 
 - **Backend:** ASP.NET Core Web API
 - **Frontend:** Flutter
+- **Database:** SQL database - migrated using Entity Framework commands ("add-migration", "update-database")
 
 ## License
 
