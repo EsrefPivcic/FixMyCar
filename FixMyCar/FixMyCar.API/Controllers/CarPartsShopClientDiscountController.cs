@@ -20,7 +20,7 @@ namespace FixMyCar.API.Controllers
         public async override Task<CarPartsShopClientDiscountGetDTO> Insert(CarPartsShopClientDiscountInsertDTO request)
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            request.Username = username;
+            request.CarPartsShopUsername = username;
             return await (_service as ICarPartsShopClientDiscountService).Insert(request);
         }
 

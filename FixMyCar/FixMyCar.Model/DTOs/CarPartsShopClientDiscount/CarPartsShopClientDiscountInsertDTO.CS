@@ -10,8 +10,8 @@ namespace FixMyCar.Model.DTOs.CarPartsShopClientDiscount
 {
     public class CarPartsShopClientDiscountInsertDTO
     {
-        public int UserId { get; set; }
-        public string? Username { get; set; }
+        public string? CarPartsShopUsername { get; set; }
+        public string Username { get; set; }
         public double Value { get; set; }
     }
 }

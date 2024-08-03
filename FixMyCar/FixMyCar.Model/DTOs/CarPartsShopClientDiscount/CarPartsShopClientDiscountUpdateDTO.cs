@@ -10,7 +10,7 @@ namespace FixMyCar.Model.DTOs.CarPartsShopClientDiscount
 {
     public class CarPartsShopClientDiscountUpdateDTO
     {
-        public double Value { get; set; }
-        public DateTime? Revoked { get; set; }
+        public double? Value { get; set; }
+        public bool? Revoked { get; set; }
     }
 }

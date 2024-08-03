@@ -2,6 +2,7 @@ import 'package:fixmycar_car_parts_shop/src/screens/discounts_screen.dart';
 import 'package:flutter/material.dart';
 import 'store_items_screen.dart';
 import 'home_screen.dart';
+import 'package:fixmycar_car_parts_shop/src/screens/orders_screen.dart';
 
 class MasterScreen extends StatelessWidget {
   final Widget child;
@@ -60,6 +61,12 @@ class MasterScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const DiscountsScreen()),
+          );
+        }
+        else if (label == 'Orders') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const OrdersScreen()),
           );
         }
         else {

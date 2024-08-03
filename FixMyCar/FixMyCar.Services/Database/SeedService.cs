@@ -116,6 +116,45 @@ namespace FixMyCar.Services.Database
                 );
                 await _context.SaveChangesAsync();
             }
+
+            if (!_context.CarPartsShopClientDiscounts.Any())
+            {
+                await _context.CarPartsShopClientDiscounts.AddRangeAsync(
+                    new CarPartsShopClientDiscount
+                    {
+                        Value = 0.10,
+                        CarPartsShopId = 2,
+                        ClientId = 4,
+                        Created = DateTime.Now.Date,
+                        Revoked = DateTime.Now.Date
+                    },
+                    new CarPartsShopClientDiscount
+                    {
+                        Value = 0.15,
+                        CarPartsShopId = 2,
+                        ClientId = 4,
+                        Created = DateTime.Now.Date,
+                        Revoked = null
+                    },
+                    new CarPartsShopClientDiscount
+                    {
+                        Value = 0.20,
+                        CarPartsShopId = 2,
+                        CarRepairShopId = 3,
+                        Created = DateTime.Now.Date,
+                        Revoked = DateTime.Now.Date
+                    },
+                    new CarPartsShopClientDiscount
+                    {
+                        Value = 0.13,
+                        CarPartsShopId = 2,
+                        CarRepairShopId = 3,
+                        Created = DateTime.Now.Date,
+                        Revoked = null
+                    }
+                );
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

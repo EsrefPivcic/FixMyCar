@@ -30,11 +30,35 @@ namespace FixMyCar.Services.Services
 
         public override IQueryable<CarPartsShopClientDiscount> AddFilter(IQueryable<CarPartsShopClientDiscount> query, CarPartsShopClientDiscountSearchObject? search = null)
         {
-            if (search != null && search?.CarPartsShopName != null)
+            if (search != null)
             {
-                query = query.Where(x => x.CarPartsShop.Username == search.CarPartsShopName);
+                if (search?.CarPartsShopName != null)
+                {
+                    query = query.Where(x => x.CarPartsShop.Username == search.CarPartsShopName);
+                }
+                if (!string.IsNullOrEmpty(search?.Role))
+                {
+                    if (search?.Role == "Client")
+                    {
+                        query = query.Where(x => x.ClientId != null);
+                    }
+                    else
+                    {
+                        query = query.Where(x => x.CarRepairShopId != null);
+                    }
+                }
+                if (search?.Active != null)
+                {
+                    if (search?.Active == true)
+                    {
+                        query = query.Where(x => x.Revoked == null);
+                    }
+                    else
+                    {
+                        query = query.Where(x => x.Revoked != null);
+                    }
+                }
             }
-
             return base.AddFilter(query, search);
         }
 
@@ -44,9 +68,18 @@ namespace FixMyCar.Services.Services
 
             CarPartsShopClientDiscount entity = _mapper.Map<CarPartsShopClientDiscount>(request);
 
-            var user = await _context.Users.FindAsync(request.UserId) ?? throw new UserException("User not found");
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username) ?? throw new UserException("User not found");
 
-            var carpartsshop = await _context.Users.FirstAsync(u => u.Username == request.Username) ?? throw new UserException("User not found");
+            var carpartsshop = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.CarPartsShopUsername) ?? throw new UserException("Car Parts Shop not found");
+
+            if (await _context.CarPartsShopClientDiscounts
+                .Where(x => (x.ClientId == user.Id || x.CarRepairShopId == user.Id) && 
+                x.CarPartsShopId == carpartsshop.Id &&
+                x.Revoked == null)
+                .CountAsync() > 0)
+            {
+                throw new UserException("There is already an active discount for this user.");
+            }
 
             if (user is Client)
             {
@@ -61,7 +94,7 @@ namespace FixMyCar.Services.Services
                 throw new UserException("Invalid user type for discount");
             }
 
-            entity.Created = DateTime.Now;
+            entity.Created = DateTime.Now.Date;
             entity.CarPartsShopId = carpartsshop.Id;
 
             await set.AddAsync(entity);

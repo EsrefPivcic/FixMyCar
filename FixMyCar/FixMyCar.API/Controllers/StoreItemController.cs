@@ -42,8 +42,8 @@ namespace FixMyCar.Controllers
             return await (_service as IStoreItemService).Insert(request);
         }
 
-        [HttpGet()]
-        public async override Task<PagedResult<StoreItemGetDTO>> Get([FromQuery] StoreItemSearchObject? search = null)
+        [HttpGet("GetByCarPartsShop")]
+        public async Task<PagedResult<StoreItemGetDTO>> GetByCarPartsShop([FromQuery] StoreItemSearchObject? search = null)
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             search.CarPartsShopName = username;

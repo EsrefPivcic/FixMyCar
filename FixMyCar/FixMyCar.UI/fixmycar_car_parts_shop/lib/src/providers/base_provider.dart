@@ -23,6 +23,7 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
   }
 
   Future<SearchResult<T>> get({
+    String customEndpoint = '',
     Map<String, dynamic>? filter,
     required T Function(Map<String, dynamic>) fromJson,
   }) async {
@@ -30,8 +31,7 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
       String queryString =
           filter != null ? Uri(queryParameters: filter).query : '';
       String url =
-          '$baseUrl/$endpoint${queryString.isNotEmpty ? '?$queryString' : ''}';
-
+          '$baseUrl/$endpoint${customEndpoint.isNotEmpty ? '/$customEndpoint' : ''}${queryString.isNotEmpty ? '?$queryString' : ''}';
       final response = await http.get(
         Uri.parse(url),
         headers: await createHeaders(),
@@ -56,23 +56,38 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
   }
 
   Future<void> insert(TInsertUpdate item, {required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
-    try {
-      final response = await http.post(
+  try {
+    final response = await http.post(
       Uri.parse('$baseUrl/$endpoint'),
       headers: await createHeaders(),
       body: jsonEncode(item),
     );
+
     if (response.statusCode == 200) {
-        print('Insert successful.');
-        notifyListeners();
+      print('Insert successful.');
+      notifyListeners();
+    } else {
+      final responseBody = jsonDecode(response.body);
+      final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+      if (errors != null) {
+        final userErrors = errors['UserError'] as List<dynamic>?;
+        if (userErrors != null) {
+          for (var error in userErrors) {
+            throw Exception('User error. $error Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Server side error. Status code: ${response.statusCode}');
+        }
       } else {
-        throw Exception('Failed to insert data. Status code: ${response.statusCode}');
+        throw Exception('Unknown error. Status code: ${response.statusCode}');
       }
-    } catch (e) {
-      print('Error inserting data: $e');
-      rethrow;
     }
+  } catch (e) {
+    rethrow;
   }
+}
+
 
   Future<void> update(int id, TInsertUpdate item, {required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
     try {

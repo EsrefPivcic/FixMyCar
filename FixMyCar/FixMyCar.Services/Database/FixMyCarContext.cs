@@ -92,8 +92,8 @@ namespace FixMyCar.Services.Database
                 }       
             );
             
-            modelBuilder.Entity<CarRepairShop>().HasData(
-                new CarRepairShop
+            modelBuilder.Entity<CarPartsShop>().HasData(
+                new CarPartsShop
                 {
                     Id = 2,
                     Name = "Esref",
@@ -102,6 +102,32 @@ namespace FixMyCar.Services.Database
                     PasswordSalt = salt2,
                     PasswordHash = Hashing.GenerateHash(salt2, "carpartsshop"),
                     RoleId = 4
+                }
+            );
+
+            modelBuilder.Entity<CarRepairShop>().HasData(
+                new CarRepairShop
+                {
+                    Id = 3,
+                    Name = "Esref",
+                    Surname = "Pivcic",
+                    Username = "carrepairshop",
+                    PasswordSalt = salt2,
+                    PasswordHash = Hashing.GenerateHash(salt2, "carrepairshop"),
+                    RoleId = 3
+                }
+            );
+
+            modelBuilder.Entity<Client>().HasData(
+                new Client
+                {
+                    Id = 4,
+                    Name = "Esref",
+                    Surname = "Pivcic",
+                    Username = "client",
+                    PasswordSalt = salt2,
+                    PasswordHash = Hashing.GenerateHash(salt2, "client"),
+                    RoleId = 2
                 }
             );
 

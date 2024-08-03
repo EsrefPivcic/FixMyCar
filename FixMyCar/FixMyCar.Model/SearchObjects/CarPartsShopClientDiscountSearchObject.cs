@@ -10,5 +10,7 @@ namespace FixMyCar.Model.SearchObjects
     public class CarPartsShopClientDiscountSearchObject : BaseSearchObject
     {
         public string? CarPartsShopName { get; set; }
+        public string? Role { get; set; }
+        public bool? Active { get; set; }
     }
 }

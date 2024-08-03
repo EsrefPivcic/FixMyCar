@@ -1,20 +1,35 @@
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/models/car_parts_shop_client_discount/car_parts_shop_client_discount.dart';
+import 'package:fixmycar_car_parts_shop/src/models/car_parts_shop_client_discount/car_parts_shop_client_discount_insert_update.dart';
 
-class CarPartsShopClientDiscountProvider extends BaseProvider<CarPartsShopClientDiscount, CarPartsShopClientDiscount> {
+class CarPartsShopClientDiscountProvider extends BaseProvider<CarPartsShopClientDiscount, CarPartsShopClientDiscountInsertUpdate> {
   List<CarPartsShopClientDiscount> discounts = [];
   int countOfItems = 0;
   bool isLoading = false;
 
-  CarPartsShopClientDiscountProvider() : super('CarPartsShopClientDiscount/GetByCarPartsShop');
+  CarPartsShopClientDiscountProvider() : super('CarPartsShopClientDiscount');
 
-  Future<void> getByCarPartsShop() async {
+  Future<void> getByCarPartsShop({
+    String? role,
+    bool? active
+  }) async {
     isLoading = true;
     notifyListeners();
 
+    Map<String, dynamic> queryParams = {};
+
+    if (role != null && role.isNotEmpty) {
+      queryParams['Role'] = role;
+    }
+    if (active != null) {
+      queryParams['Active'] = active.toString();
+    }
+
     try {
       SearchResult<CarPartsShopClientDiscount> searchResult = await get(
+        customEndpoint: 'GetByCarPartsShop',
+        filter: queryParams,
         fromJson: (json) => CarPartsShopClientDiscount.fromJson(json),
       );
 
@@ -30,5 +45,20 @@ class CarPartsShopClientDiscountProvider extends BaseProvider<CarPartsShopClient
       
       notifyListeners();
     }
+  }
+
+  Future<void> updateDiscount(int id, CarPartsShopClientDiscountInsertUpdate discount) async {
+    await update(
+      id,
+      discount,
+      toJson: (storeItem) => storeItem.toJson(),
+    );
+  }
+
+  Future<void> insertDiscount(CarPartsShopClientDiscountInsertUpdate discount) async {
+    await insert(
+      discount,
+      toJson: (storeItem) => storeItem.toJson(),
+    );
   }
 }
