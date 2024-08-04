@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using FixMyCar.Services.StateMachineServices.OrderStateMachine;
-using FixMyCar.Model.DTOs.StoreItem;
+using Microsoft.EntityFrameworkCore;
 
 namespace FixMyCar.Services.Services
 {
@@ -20,6 +20,16 @@ namespace FixMyCar.Services.Services
         public OrderService(FixMyCarContext context, IMapper mapper, BaseOrderState baseOrderState) : base(context, mapper)
         { 
             _baseOrderState = baseOrderState;
+        }
+
+        public override IQueryable<Order> AddInclude(IQueryable<Order> query, OrderSearchObject? search = null)
+        {
+            query = query.Include("CarRepairShop");
+            query = query.Include("CarPartsShop");
+            query = query.Include("Client");
+            query = query.Include("City");
+            query = query.Include("ClientDiscount");
+            return base.AddInclude(query, search);
         }
 
         public override async Task<OrderGetDTO> Insert(OrderInsertDTO request)

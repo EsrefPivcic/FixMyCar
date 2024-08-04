@@ -12,13 +12,16 @@ namespace FixMyCar.Services.Mapping
     public class OrderProfile : Profile
     {
         public OrderProfile() {
-            CreateMap<OrderInsertDTO, Order>();
             CreateMap<OrderUpdateDTO, Order>();
-            CreateMap<Order, OrderInsertDTO>();
+            CreateMap<OrderInsertDTO, Order>()
+                .ForMember(dest => dest.ClientId, opt => opt.Ignore())
+                .ForMember(dest => dest.CarRepairShopId, opt => opt.Ignore());
             CreateMap<Order, OrderUpdateDTO>();
             CreateMap<Order, OrderGetDTO>()
-            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Client.Name != null ? src.Client.Name : src.CarRepairShop.Name))
-            .ForMember(dest => dest.ClientDiscountValue, opt => opt.MapFrom(src => src.ClientDiscount != null ? src.ClientDiscount.Value : 0));
+            .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Client != null ? src.Client.Username : src.CarRepairShop != null ? src.CarRepairShop.Username : "Unknown"))
+            .ForMember(dest => dest.ClientDiscountValue, opt => opt.MapFrom(src => src.ClientDiscount != null ? src.ClientDiscount.Value : 0))
+            .ForMember(dest => dest.CarPartsShopName, opt => opt.MapFrom(src => src.CarPartsShop != null ? src.CarPartsShop.Username : "Unknown"))
+            .ForMember(dest => dest.ShippingCity, opt => opt.MapFrom(src => src.City != null ? src.City.Name : "Unknown"));
         }
     }
 }

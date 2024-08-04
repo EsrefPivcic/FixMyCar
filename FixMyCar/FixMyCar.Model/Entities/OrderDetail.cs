@@ -17,8 +17,9 @@ namespace FixMyCar.Model.Entities
         public int StoreItemId { get; set; }
         public StoreItem StoreItem { get; set; }
         public int Quantity { get; set; }
-        public int UnitPrice { get; set; }
-        public int TotalItemsPrice { get; set; }
-        public double? Discount { get; set; }
+        public double UnitPrice { get; set; }
+        public double TotalItemsPrice { get; set; }
+        public double TotalItemsPriceDiscounted { get; set; }
+        public double Discount { get; set; }
     }
 }

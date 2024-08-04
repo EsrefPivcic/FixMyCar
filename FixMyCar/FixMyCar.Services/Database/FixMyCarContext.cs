@@ -207,6 +207,14 @@ namespace FixMyCar.Services.Database
                     ModelYear = "2000-2005"
                 }
             );
+
+            modelBuilder.Entity<City>().HasData(
+                new City
+                {
+                    Id = 1,
+                    Name = "Livno"
+                }
+            );
         }
     }
 }

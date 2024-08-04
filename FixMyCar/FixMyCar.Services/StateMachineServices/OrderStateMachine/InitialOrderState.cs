@@ -2,7 +2,9 @@
 using FixMyCar.Model.DTOs.Order;
 using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,15 +23,67 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
         {
             var set = _context.Set<Order>();
 
-            var entity = _mapper.Map<Order>(request);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username) ?? throw new UserException("User not found");
+
+            Order entity = _mapper.Map<Order>(request);  
+
+            if (user is Client)
+            {
+                entity.ClientId = user.Id;
+            }
+            else if (user is CarRepairShop)
+            {
+                entity.CarRepairShopId = user.Id;
+            }
+            else
+            {
+                throw new UserException("Invalid user type for discount");
+            }
 
             entity.State = "onhold";
+
+            entity.TotalAmount = 0;
+
+            foreach (var storeItem in request.StoreItems) 
+            {
+                var storeItemDetails = await _context.StoreItems.FirstOrDefaultAsync(s => s.Id == storeItem.StoreItemId) ?? throw new UserException("Store item not found");
+                entity.TotalAmount = entity.TotalAmount + (storeItemDetails.DiscountedPrice * storeItem.Quantity);
+            }
+
+            var discount = await _context.CarPartsShopClientDiscounts.FirstOrDefaultAsync(d => ((d.ClientId == user.Id || d.CarRepairShopId == user.Id) && d.CarPartsShopId == entity.CarPartsShopId) && d.Revoked != null);
+
+            if (discount != null)
+            {
+                entity.ClientDiscountId = discount.Id;
+                entity.TotalAmount = entity.TotalAmount - (entity.TotalAmount * discount.Value);
+            }
 
             set.Add(entity);
 
             await _context.SaveChangesAsync();
 
+            await InsertOrderDetails(entity.Id, request.StoreItems);
+
             return _mapper.Map<OrderGetDTO>(entity);
+        }
+
+        private async Task InsertOrderDetails(int orderId, List<StoreItemOrderDTO> storeItems)
+        {
+            foreach (var storeItem in storeItems) 
+            {
+                var storeItemDetails = await _context.StoreItems.FirstOrDefaultAsync(s => s.Id == storeItem.StoreItemId) ?? throw new UserException("Store item not found");
+                var set = _context.Set<OrderDetail>();
+                OrderDetail newOrderDetail = new OrderDetail();
+                newOrderDetail.OrderId = orderId;
+                newOrderDetail.StoreItemId = storeItemDetails.Id;
+                newOrderDetail.Quantity = storeItem.Quantity;
+                newOrderDetail.UnitPrice = storeItemDetails.Price;
+                newOrderDetail.TotalItemsPrice = storeItemDetails.Price * storeItem.Quantity;
+                newOrderDetail.Discount = storeItemDetails.Discount;
+                newOrderDetail.TotalItemsPriceDiscounted = (storeItemDetails.Price * storeItem.Quantity) - ((storeItemDetails.Price * storeItem.Quantity) * storeItemDetails.Discount);
+                set.Add(newOrderDetail);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public override async Task<List<string>> AllowedActions()

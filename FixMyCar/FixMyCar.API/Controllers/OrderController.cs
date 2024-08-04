@@ -6,6 +6,7 @@ using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace FixMyCar.API.Controllers
 {
@@ -14,6 +15,14 @@ namespace FixMyCar.API.Controllers
     {
         public OrderController(IOrderService service, ILogger<BaseController<Order, OrderGetDTO, OrderInsertDTO, OrderUpdateDTO, OrderSearchObject>> logger) : base (service, logger)
         { 
+        }
+
+        [HttpPost()]
+        public async override Task<OrderGetDTO> Insert(OrderInsertDTO request)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.Username = username;
+            return await (_service as IOrderService).Insert(request);
         }
 
         [HttpPut("{id}/Accept")]
