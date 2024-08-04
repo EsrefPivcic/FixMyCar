@@ -71,19 +71,19 @@ In the solution folder (`FixMyCar`), navigate to `FixMyCar.UI/fixmycar_car_parts
 
 #### Open the folder with Visual Studio Code:
 
-      code .
+    code .
 
 #### Install Dependencies:
 
 In the terminal, run the following command to get all dependencies:
 
-      flutter pub get
+    flutter pub get
 
 #### Run the App:
 
 To start the app, run:
 
-      flutter run -d windows
+    flutter run -d windows
 
 ### Test the App
 
