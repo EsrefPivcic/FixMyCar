@@ -32,6 +32,18 @@ namespace FixMyCar.Services.Services
             return base.AddInclude(query, search);
         }
 
+        public override IQueryable<Order> AddFilter(IQueryable<Order> query, OrderSearchObject? search = null)
+        {
+            if (search != null)
+            {
+                if (search?.CarPartsShopName != null)
+                {
+                    query = query.Where(o => o.CarPartsShop.Username == search.CarPartsShopName);
+                }
+            }
+            return base.AddFilter(query, search);
+        }
+
         public override async Task<OrderGetDTO> Insert(OrderInsertDTO request)
         {
             var state = _baseOrderState.CreateState("initial");

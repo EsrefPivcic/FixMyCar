@@ -18,7 +18,8 @@ namespace FixMyCar.Services.Mapping
             CreateMap<OrderDetailGetDTO, OrderDetail>();
             CreateMap<OrderDetail, OrderDetailInsertDTO>();
             CreateMap<OrderDetail, OrderDetailUpdateDTO>();
-            CreateMap<OrderDetail, OrderDetailGetDTO>();
+            CreateMap<OrderDetail, OrderDetailGetDTO>()
+                .ForMember(dest => dest.StoreItemName, opt => opt.MapFrom(src => src.StoreItem != null ? src.StoreItem.Name : "Unknown"));
         }
     }
 }

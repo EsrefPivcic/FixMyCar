@@ -8,5 +8,6 @@ namespace FixMyCar.Model.SearchObjects
 {
     public class OrderSearchObject : BaseSearchObject
     {
+        public string? CarPartsShopName { get; set; }
     }
 }

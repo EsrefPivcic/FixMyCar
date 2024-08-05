@@ -1,8 +1,8 @@
 ﻿using FixMyCar.Controllers;
 using FixMyCar.Model.DTOs.Order;
-using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -53,6 +53,14 @@ namespace FixMyCar.API.Controllers
         public virtual async Task<List<string>> AllowedActions(int id)
         {
             return await (_service as IOrderService).AllowedActions(id);
+        }
+
+        [HttpGet("GetByCarPartsShop")]
+        public async Task<PagedResult<OrderGetDTO>> GetByCarPartsShop([FromQuery] OrderSearchObject? search = null)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            search.CarPartsShopName = username;
+            return await (_service as IOrderService).Get(search);
         }
     }
 }

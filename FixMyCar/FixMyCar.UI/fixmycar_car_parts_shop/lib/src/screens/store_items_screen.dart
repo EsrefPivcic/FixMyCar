@@ -144,7 +144,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                     children: [
                                       if (item.discount != 0) ...[
                                         TextSpan(
-                                          text: '${item.price}KM ',
+                                          text: '${item.price}€ ',
                                           style: const TextStyle(
                                             decoration:
                                                 TextDecoration.lineThrough,
@@ -152,14 +152,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: ' ${item.discountedPrice}KM',
+                                          text: ' ${item.discountedPrice}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
                                         ),
                                       ] else ...[
                                         TextSpan(
-                                          text: '${item.price}KM',
+                                          text: '${item.price}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
@@ -658,7 +658,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       TextField(
                         controller: priceController,
                         decoration: const InputDecoration(
-                          labelText: 'Price (KM)',
+                          labelText: 'Price (€)',
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
