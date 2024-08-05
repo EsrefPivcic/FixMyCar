@@ -2,26 +2,23 @@ import 'package:fixmycar_car_parts_shop/src/models/order_detail/order_detail.dar
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 
-class OrderDetailsProvider extends BaseProvider<OrderDetail, OrderDetail> {
+class OrderDetailProvider extends BaseProvider<OrderDetail, OrderDetail> {
   List<OrderDetail> orderDetails = [];
   int countOfItems = 0;
   bool isLoading = false;
 
-  OrderDetailsProvider() : super('OrderDetail');
+  OrderDetailProvider() : super('OrderDetail');
 
-  Future<void> getByOrder({
-    required int id
-  }) async {
+  Future<void> getByOrder({required int id}) async {
     isLoading = true;
     notifyListeners();
 
     Map<String, dynamic> queryParams = {};
 
-    queryParams['OrderId'] = id;
+    queryParams['OrderId'] = id.toString();
 
     try {
       SearchResult<OrderDetail> searchResult = await get(
-        customEndpoint: 'GetByOrder',
         filter: queryParams,
         fromJson: (json) => OrderDetail.fromJson(json),
       );
@@ -35,7 +32,7 @@ class OrderDetailsProvider extends BaseProvider<OrderDetail, OrderDetail> {
       orderDetails = [];
       countOfItems = 0;
       isLoading = false;
-      
+
       notifyListeners();
     }
   }

@@ -26,9 +26,9 @@ namespace FixMyCar.API.Controllers
         }
 
         [HttpPut("{id}/Accept")]
-        public virtual async Task<OrderGetDTO> Accept(int id)
+        public virtual async Task<OrderGetDTO> Accept(int id, DateTime shippingDate)
         {
-            return await (_service as IOrderService).Accept(id);
+            return await (_service as IOrderService).Accept(id, shippingDate);
         }
 
         [HttpPut("{id}/Reject")]
