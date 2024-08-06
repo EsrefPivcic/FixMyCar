@@ -61,8 +61,8 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItemInsertUpdate> {
 
   Future<void> updateStoreItem(int id, StoreItemInsertUpdate storeitem) async {
     await update(
-      id,
-      storeitem,
+      id: id,
+      item: storeitem,
       toJson: (storeItem) => storeItem.toJson(),
     );
   }

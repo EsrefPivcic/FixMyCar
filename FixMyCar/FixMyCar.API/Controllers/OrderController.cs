@@ -25,31 +25,31 @@ namespace FixMyCar.API.Controllers
             return await (_service as IOrderService).Insert(request);
         }
 
-        [HttpPut("{id}/Accept")]
-        public virtual async Task<OrderGetDTO> Accept(int id, DateTime shippingDate)
+        [HttpPut("Accept/{id}")]
+        public virtual async Task<OrderGetDTO> Accept(int id, OrderAcceptDTO orderAccept)
         {
-            return await (_service as IOrderService).Accept(id, shippingDate);
+            return await (_service as IOrderService).Accept(id, orderAccept);
         }
 
-        [HttpPut("{id}/Reject")]
+        [HttpPut("Reject/{id}")]
         public virtual async Task<OrderGetDTO> Reject(int id)
         {
             return await (_service as IOrderService).Reject(id);
         }
 
-        [HttpPut("{id}/Cancel")]
+        [HttpPut("Cancel/{id}")]
         public virtual async Task<OrderGetDTO> Cancel(int id)
         {
             return await (_service as IOrderService).Cancel(id);
         }
 
-        [HttpPut("{id}/Resend")]
+        [HttpPut("Resend/{id}")]
         public virtual async Task<OrderGetDTO> Resend(int id)
         {
             return await (_service as IOrderService).Resend(id);
         }
 
-        [HttpGet("{id}/allowedActions")]
+        [HttpGet("AllowedActions/{id}")]
         public virtual async Task<List<string>> AllowedActions(int id)
         {
             return await (_service as IOrderService).AllowedActions(id);

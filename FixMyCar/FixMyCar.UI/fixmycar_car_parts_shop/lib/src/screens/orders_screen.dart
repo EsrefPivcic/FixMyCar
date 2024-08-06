@@ -1,3 +1,4 @@
+import 'package:fixmycar_car_parts_shop/src/models/order/order_accept.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/order_detail_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/order_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/models/order/order.dart';
@@ -43,11 +44,53 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  Future _confirmReject(int orderId) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Reject'),
+        content: const Text('Are you sure you want to reject this order?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<OrderProvider>(context, listen: false)
+                    .reject(orderId)
+                    .then((_) {
+                  Provider.of<OrderProvider>(context, listen: false)
+                      .getByCarPartsShop();
+                });
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _showOrderDetails(BuildContext context, Order order) async {
     final orderDetailProvider =
         Provider.of<OrderDetailProvider>(context, listen: false);
 
     await orderDetailProvider.getByOrder(id: order.id);
+
+    if (!mounted) return;
 
     showDialog(
       context: context,
@@ -72,7 +115,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 8.0),
-                      // Order details with improved styling
                       Text.rich(
                         TextSpan(
                           children: [
@@ -239,7 +281,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.of(context).pop();
                             },
                             style: ElevatedButton.styleFrom(
@@ -250,8 +292,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           const SizedBox(width: 8.0),
                           if (order.state == "onhold") ...[
                             ElevatedButton(
-                              onPressed: () {
-                                // Implement rejection logic here
+                              onPressed: () async {
+                                await _confirmReject(order.id);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -269,9 +311,25 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                   lastDate: DateTime(2100),
                                 );
                                 if (selectedDate != null) {
-                                  //TODO: Implement logic to accept the order and set shipping date
-                                  print(
-                                      'Selected shipping date: $selectedDate');
+                                  final OrderAccept orderAccept =
+                                      OrderAccept(selectedDate);
+                                  try {
+                                    await Provider.of<OrderProvider>(context,
+                                            listen: false)
+                                        .accept(order.id, orderAccept)
+                                        .then((_) {
+                                      Provider.of<OrderProvider>(context,
+                                              listen: false)
+                                          .getByCarPartsShop();
+                                    });
+                                    Navigator.of(context).pop();
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(e.toString()),
+                                      ),
+                                    );
+                                  }
                                 }
                               },
                               style: ElevatedButton.styleFrom(

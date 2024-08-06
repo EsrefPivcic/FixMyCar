@@ -12,7 +12,7 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface IOrderService : IBaseService<Order, OrderGetDTO, OrderInsertDTO, OrderUpdateDTO, OrderSearchObject>
     {
-        Task<OrderGetDTO> Accept(int id, DateTime shippingDate);
+        Task<OrderGetDTO> Accept(int id, OrderAcceptDTO orderAccept);
         Task<OrderGetDTO> Reject(int id);
         Task<OrderGetDTO> Cancel(int id);
         Task<OrderGetDTO> Resend(int id);

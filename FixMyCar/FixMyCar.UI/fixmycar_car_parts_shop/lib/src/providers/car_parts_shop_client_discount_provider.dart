@@ -49,9 +49,9 @@ class CarPartsShopClientDiscountProvider extends BaseProvider<CarPartsShopClient
 
   Future<void> updateDiscount(int id, CarPartsShopClientDiscountInsertUpdate discount) async {
     await update(
-      id,
-      discount,
-      toJson: (storeItem) => storeItem.toJson(),
+      id: id,
+      item: discount,
+      toJson: (storeItem) => storeItem.toJson()
     );
   }
 

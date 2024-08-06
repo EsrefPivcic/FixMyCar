@@ -60,13 +60,13 @@ namespace FixMyCar.Services.Services
             return await state.Update(entity, request);
         }
 
-        public async Task<OrderGetDTO> Accept(int id, DateTime shippingDate)
+        public async Task<OrderGetDTO> Accept(int id, OrderAcceptDTO orderAccept)
         {
             var entity = await _context.Orders.FindAsync(id);
 
             var state = _baseOrderState.CreateState(entity.State);
 
-            return await state.Accept(entity, shippingDate);
+            return await state.Accept(entity, orderAccept);
         }
 
         public async Task<OrderGetDTO> Reject(int id)

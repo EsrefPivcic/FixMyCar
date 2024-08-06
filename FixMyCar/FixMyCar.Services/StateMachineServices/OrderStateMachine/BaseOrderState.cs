@@ -37,7 +37,7 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             throw new UserException("Action not allowed.");
         }
 
-        public virtual async Task<OrderGetDTO> Accept(Order entity, DateTime shippingDate)
+        public virtual async Task<OrderGetDTO> Accept(Order entity, OrderAcceptDTO orderAccept)
         {
             throw new UserException("Action not allowed.");
         }

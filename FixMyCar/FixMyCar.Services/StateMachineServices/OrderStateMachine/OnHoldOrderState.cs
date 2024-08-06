@@ -27,11 +27,11 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             return _mapper.Map<OrderGetDTO>(entity);
         }
 
-        public async override Task<OrderGetDTO> Accept(Order entity, DateTime shippingDate)
+        public async override Task<OrderGetDTO> Accept(Order entity, OrderAcceptDTO orderAccept)
         {
             entity.State = "accepted";
 
-            entity.ShippingDate = shippingDate;
+            entity.ShippingDate = orderAccept.shippingDate;
 
             await _context.SaveChangesAsync();
 

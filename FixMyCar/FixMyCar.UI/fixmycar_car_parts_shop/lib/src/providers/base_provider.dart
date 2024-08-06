@@ -55,44 +55,51 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
     }
   }
 
-  Future<void> insert(TInsertUpdate item, {required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/$endpoint'),
-      headers: await createHeaders(),
-      body: jsonEncode(item),
-    );
+  Future<void> insert(TInsertUpdate item,
+      {required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/$endpoint'),
+        headers: await createHeaders(),
+        body: jsonEncode(item),
+      );
 
-    if (response.statusCode == 200) {
-      print('Insert successful.');
-      notifyListeners();
-    } else {
-      final responseBody = jsonDecode(response.body);
-      final errors = responseBody['errors'] as Map<String, dynamic>?;
+      if (response.statusCode == 200) {
+        print('Insert successful.');
+        notifyListeners();
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
 
-      if (errors != null) {
-        final userErrors = errors['UserError'] as List<dynamic>?;
-        if (userErrors != null) {
-          for (var error in userErrors) {
-            throw Exception('User error. $error Status code: ${response.statusCode}');
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
           }
         } else {
-          throw Exception('Server side error. Status code: ${response.statusCode}');
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
         }
-      } else {
-        throw Exception('Unknown error. Status code: ${response.statusCode}');
       }
+    } catch (e) {
+      rethrow;
     }
-  } catch (e) {
-    rethrow;
   }
-}
 
-
-  Future<void> update(int id, TInsertUpdate item, {required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
+  Future<void> update(
+      {required int id,
+      required TInsertUpdate item,
+      required Map<String, dynamic> Function(TInsertUpdate) toJson,
+      String customEndpoint = ''}) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/$endpoint/$id'),
+        Uri.parse(
+            '$baseUrl/$endpoint${customEndpoint.isNotEmpty ? '/$customEndpoint' : ''}/$id'),
         headers: await createHeaders(),
         body: jsonEncode(toJson(item)),
       );
@@ -100,7 +107,8 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
         print('Update successful.');
         notifyListeners();
       } else {
-        throw Exception('Failed to update data. Status code: ${response.statusCode}');
+        throw Exception(
+            'Failed to update data. Status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error updating data: $e');
@@ -111,14 +119,15 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
   Future<void> delete(int id) async {
     try {
       final response = await http.delete(
-      Uri.parse('$baseUrl/$endpoint/$id'),
-      headers: await createHeaders(),
-    );
-    if (response.statusCode == 200) {
+        Uri.parse('$baseUrl/$endpoint/$id'),
+        headers: await createHeaders(),
+      );
+      if (response.statusCode == 200) {
         print('Delete successful.');
         notifyListeners();
       } else {
-        throw Exception('Failed to delete the item. Status code: ${response.statusCode}');
+        throw Exception(
+            'Failed to delete the item. Status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error deleting the item: $e');
