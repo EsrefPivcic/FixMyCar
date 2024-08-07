@@ -40,6 +40,83 @@ namespace FixMyCar.Services.Services
                 {
                     query = query.Where(o => o.CarPartsShop.Username == search.CarPartsShopName);
                 }
+
+                if (!string.IsNullOrEmpty(search?.Role))
+                {
+                    if (search?.Role == "Client")
+                    {
+                        query = query.Where(x => x.ClientId != null);
+                    }
+                    else
+                    {
+                        query = query.Where(x => x.CarRepairShopId != null);
+                    }
+                }
+
+                if (search?.Discount != null)
+                {
+                    if (search.Discount == true)
+                    {
+                        query = query.Where(x => x.ClientDiscountId != null);
+                    }
+                    else
+                    {
+                        query = query.Where(x => x.ClientDiscountId == null);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(search?.State))
+                {
+                    query = query.Where(x => x.State.Contains(search.State));
+
+                    if (search?.State == "accepted" && (search.MinShippingDate != null || search?.MaxShippingDate != null))
+                    {
+                        if (search?.MinShippingDate != null && search?.MaxShippingDate != null)
+                        {
+                            query = query.Where(x => x.ShippingDate >= search.MinShippingDate && x.OrderDate <= search.MaxShippingDate);
+                        }
+
+                        if (search?.MinShippingDate != null && search?.MaxShippingDate == null)
+                        {
+                            query = query.Where(x => x.ShippingDate >= search.MinShippingDate);
+                        }
+
+                        if (search?.MinShippingDate == null && search?.MaxShippingDate != null)
+                        {
+                            query = query.Where(x => x.ShippingDate <= search.MaxShippingDate);
+                        }
+                    }
+                }
+
+                if (search?.MinTotalAmount != null && search?.MaxTotalAmount != null)
+                {
+                    query = query.Where(x => x.TotalAmount >= search.MinTotalAmount && x.TotalAmount <= search.MaxTotalAmount);
+                }
+
+                if (search?.MinTotalAmount != null && search?.MaxTotalAmount == null)
+                {
+                    query = query.Where(x => x.TotalAmount >= search.MinTotalAmount);
+                }
+
+                if (search?.MinTotalAmount == null && search?.MaxTotalAmount != null)
+                {
+                    query = query.Where(x => x.TotalAmount <= search.MaxTotalAmount);
+                }
+
+                if (search?.MinOrderDate != null && search?.MaxOrderDate != null)
+                {
+                    query = query.Where(x => x.OrderDate >= search.MinOrderDate && x.OrderDate <= search.MaxOrderDate);
+                }
+
+                if (search?.MinOrderDate != null && search?.MaxOrderDate == null)
+                {
+                    query = query.Where(x => x.OrderDate >= search.MinOrderDate);
+                }
+
+                if (search?.MinOrderDate == null && search?.MaxOrderDate != null)
+                {
+                    query = query.Where(x => x.OrderDate <= search.MaxOrderDate);
+                }
             }
             return base.AddFilter(query, search);
         }

@@ -77,6 +77,7 @@ namespace FixMyCar.Services.Database
                         StoreItemCategoryId = 1,
                     }
                 );
+
                 await _context.SaveChangesAsync();
             }
 
@@ -114,6 +115,7 @@ namespace FixMyCar.Services.Database
                         CarModelId = 2
                     }
                 );
+
                 await _context.SaveChangesAsync();
             }
 
@@ -153,7 +155,168 @@ namespace FixMyCar.Services.Database
                         Revoked = null
                     }
                 );
+
                 await _context.SaveChangesAsync();
+            }
+
+            if (!_context.Orders.Any())
+            {
+                StoreItem storeItem1 = await _context.StoreItems.FindAsync(1);
+                StoreItem storeItem2 = await _context.StoreItems.FindAsync(2);
+                StoreItem storeItem3 = await _context.StoreItems.FindAsync(3);
+                CarPartsShopClientDiscount clientDiscount1 = await _context.CarPartsShopClientDiscounts.FindAsync(2);
+                CarPartsShopClientDiscount clientDiscount2 = await _context.CarPartsShopClientDiscounts.FindAsync(4);
+                await _context.Orders.AddRangeAsync(
+                    new Order
+                    {
+                        CarPartsShopId = 2,
+                        CarRepairShopId = 3,
+                        OrderDate = DateTime.Now.Date,
+                        ShippingDate = null,
+                        TotalAmount = ((storeItem1.DiscountedPrice * 2) + (storeItem2.DiscountedPrice * 1)) -
+                    (((storeItem1.DiscountedPrice * 2) + (storeItem2.DiscountedPrice * 1)) * clientDiscount2.Value),
+                        ClientDiscountId = 4,
+                        State = "onhold",
+                        CityId = 1,
+                        ShippingAddress = "Kralja Tvrtka I bb",
+                        ShippingPostalCode = "80101",
+                        PaymentMethod = "Card"
+                    },
+                    new Order
+                    {
+                        CarPartsShopId = 2,
+                        CarRepairShopId = 3,
+                        OrderDate = DateTime.Now.Date,
+                        ShippingDate = DateTime.Now.Date,
+                        TotalAmount = ((storeItem1.DiscountedPrice * 5) + (storeItem2.DiscountedPrice * 1)) -
+                    (((storeItem1.DiscountedPrice * 5) + (storeItem2.DiscountedPrice * 1)) * clientDiscount2.Value),
+                        ClientDiscountId = 4,
+                        State = "accepted",
+                        CityId = 1,
+                        ShippingAddress = "Kralja Tvrtka I bb",
+                        ShippingPostalCode = "80101",
+                        PaymentMethod = "Card"
+                    },
+                    new Order
+                    {
+                        CarPartsShopId = 2,
+                        ClientId = 4,
+                        OrderDate = DateTime.Now.Date,
+                        ShippingDate = null,
+                        TotalAmount = ((storeItem3.DiscountedPrice * 4) + (storeItem2.DiscountedPrice * 3)) -
+                    (((storeItem3.DiscountedPrice * 4) + (storeItem2.DiscountedPrice * 3)) * clientDiscount2.Value),
+                        ClientDiscountId = 2,
+                        State = "rejected",
+                        CityId = 1,
+                        ShippingAddress = "Kralja Tvrtka I bb",
+                        ShippingPostalCode = "80101",
+                        PaymentMethod = "Card"
+                    },
+                    new Order
+                    {
+                        CarPartsShopId = 2,
+                        ClientId = 4,
+                        OrderDate = DateTime.Now.Date,
+                        ShippingDate = null,
+                        TotalAmount = ((storeItem3.DiscountedPrice * 2) + (storeItem1.DiscountedPrice * 1)) -
+                    (((storeItem3.DiscountedPrice * 2) + (storeItem1.DiscountedPrice * 1)) * clientDiscount2.Value),
+                        ClientDiscountId = 2,
+                        State = "cancelled",
+                        CityId = 1,
+                        ShippingAddress = "Kralja Tvrtka I bb",
+                        ShippingPostalCode = "80101",
+                        PaymentMethod = "Card"
+                    }
+                );
+
+                await _context.SaveChangesAsync();
+
+                if (!_context.OrderDetails.Any())
+                {
+                    await _context.OrderDetails.AddRangeAsync(
+                        new OrderDetail { 
+                            OrderId = 1,
+                            StoreItemId = storeItem1.Id,
+                            Quantity = 2,
+                            UnitPrice = storeItem1.Price,
+                            TotalItemsPrice = storeItem1.Price * 2,
+                            TotalItemsPriceDiscounted = storeItem1.DiscountedPrice * 2,
+                            Discount = storeItem1.Discount,
+                        },
+                        new OrderDetail
+                        {
+                            OrderId = 1,
+                            StoreItemId = storeItem2.Id,
+                            Quantity = 1,
+                            UnitPrice = storeItem2.Price,
+                            TotalItemsPrice = storeItem2.Price * 1,
+                            TotalItemsPriceDiscounted = storeItem2.DiscountedPrice * 1,
+                            Discount = storeItem2.Discount,
+                        },
+                        new OrderDetail
+                        {
+                            OrderId = 2,
+                            StoreItemId = storeItem1.Id,
+                            Quantity = 5,
+                            UnitPrice = storeItem1.Price,
+                            TotalItemsPrice = storeItem1.Price * 5,
+                            TotalItemsPriceDiscounted = storeItem1.DiscountedPrice * 5,
+                            Discount = storeItem1.Discount,
+                        },
+                        new OrderDetail
+                        {
+                            OrderId = 2,
+                            StoreItemId = storeItem2.Id,
+                            Quantity = 1,
+                            UnitPrice = storeItem2.Price,
+                            TotalItemsPrice = storeItem2.Price * 1,
+                            TotalItemsPriceDiscounted = storeItem2.DiscountedPrice * 1,
+                            Discount = storeItem2.Discount,
+                        },
+                        new OrderDetail
+                        {
+                            OrderId = 3,
+                            StoreItemId = storeItem3.Id,
+                            Quantity = 4,
+                            UnitPrice = storeItem3.Price,
+                            TotalItemsPrice = storeItem3.Price * 4,
+                            TotalItemsPriceDiscounted = storeItem3.DiscountedPrice * 4,
+                            Discount = storeItem3.Discount,
+                        },
+                        new OrderDetail
+                        {
+                            OrderId = 3,
+                            StoreItemId = storeItem2.Id,
+                            Quantity = 3,
+                            UnitPrice = storeItem2.Price,
+                            TotalItemsPrice = storeItem2.Price * 3,
+                            TotalItemsPriceDiscounted = storeItem2.DiscountedPrice * 3,
+                            Discount = storeItem2.Discount,
+                        },
+                        new OrderDetail
+                        {
+                            OrderId = 4,
+                            StoreItemId = storeItem3.Id,
+                            Quantity = 2,
+                            UnitPrice = storeItem3.Price,
+                            TotalItemsPrice = storeItem3.Price * 2,
+                            TotalItemsPriceDiscounted = storeItem3.DiscountedPrice * 2,
+                            Discount = storeItem3.Discount,
+                        },
+                        new OrderDetail
+                        {
+                            OrderId = 4,
+                            StoreItemId = storeItem1.Id,
+                            Quantity = 1,
+                            UnitPrice = storeItem1.Price,
+                            TotalItemsPrice = storeItem1.Price * 1,
+                            TotalItemsPriceDiscounted = storeItem1.DiscountedPrice * 1,
+                            Discount = storeItem1.Discount,
+                        }
+                    );
+
+                    await _context.SaveChangesAsync();
+                }
             }
         }
     }

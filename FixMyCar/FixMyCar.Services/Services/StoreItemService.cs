@@ -40,17 +40,17 @@ namespace FixMyCar.Services.Services
                     query = query.Where(x => x.CarPartsShop.Username == search.CarPartsShopName);
                 }
 
-                if (!string.IsNullOrWhiteSpace(search?.Starts))
+                if (!string.IsNullOrEmpty(search?.Starts))
                 {
                     query = query.Where(x => x.Name.StartsWith(search.Starts));
                 }
 
-                if (!string.IsNullOrWhiteSpace(search?.Contains))
+                if (!string.IsNullOrEmpty(search?.Contains))
                 {
                     query = query.Where(x => x.Name.Contains(search.Contains));
                 }
 
-                if (!string.IsNullOrWhiteSpace(search?.State))
+                if (!string.IsNullOrEmpty(search?.State))
                 {
                     query = query.Where(x => x.State.Contains(search.State));
                 }
