@@ -36,6 +36,88 @@ namespace FixMyCar.Services.Database
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<City>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired();
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(u => u.City)
+                      .WithMany()
+                      .HasForeignKey(u => u.CityId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.CarPartsShop)
+                .WithMany()
+                .HasForeignKey(o => o.CarPartsShopId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.CarRepairShop)
+                .WithMany()
+                .HasForeignKey(o => o.CarRepairShopId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Client)
+                .WithMany()
+                .HasForeignKey(o => o.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.ClientDiscount)
+                .WithMany()
+                .HasForeignKey(o => o.ClientDiscountId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.City)
+                .WithMany()
+                .HasForeignKey(o => o.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.Order)
+                .WithMany(o => o.OrderDetails)
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(od => od.StoreItem)
+                .WithMany(si => si.OrderDetails)
+                .HasForeignKey(od => od.StoreItemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StoreItem>()
+                .HasMany(s => s.CarModels)
+                .WithMany(c => c.StoreItems)
+                .UsingEntity<StoreItemCarModel>(
+                    j => j
+                        .HasOne(pt => pt.CarModel)
+                        .WithMany(t => t.StoreItemCarModels)
+                        .HasForeignKey(pt => pt.CarModelId),
+                    j => j
+                        .HasOne(pt => pt.StoreItem)
+                        .WithMany(p => p.StoreItemCarModels)
+                        .HasForeignKey(pt => pt.StoreItemId),
+                    j =>
+                    {
+                        j.HasKey(t => new { t.StoreItemId, t.CarModelId });
+                    });
+
+            modelBuilder.Entity<City>().HasData(
+                new City
+                {
+                    Id = 1,
+                    Name = "Livno"
+                }
+            );
+
             modelBuilder.Entity<Role>().HasData(
                 new Role
                 {
@@ -86,6 +168,13 @@ namespace FixMyCar.Services.Database
                     Name = "Esref",
                     Surname = "Pivcic",
                     Username = "admin",
+                    Created = DateTime.Now.Date,
+                    Email = "esrefpivcic@gmail.com",
+                    Phone = "063111222",
+                    Gender = "Male",
+                    Address = "Goricka 71",
+                    PostalCode = "80101",
+                    CityId = 1,
                     PasswordSalt = salt,
                     PasswordHash = Hashing.GenerateHash(salt, "admin"),
                     RoleId = 1
@@ -99,6 +188,13 @@ namespace FixMyCar.Services.Database
                     Name = "Esref",
                     Surname = "Pivcic",
                     Username = "carpartsshop",
+                    Created = DateTime.Now.Date,
+                    Email = "esrefpivcic@gmail.com",
+                    Phone = "063111222",
+                    Gender = "Male",
+                    Address = "Goricka 71",
+                    PostalCode = "80101",
+                    CityId = 1,
                     PasswordSalt = salt2,
                     PasswordHash = Hashing.GenerateHash(salt2, "carpartsshop"),
                     RoleId = 4
@@ -112,6 +208,13 @@ namespace FixMyCar.Services.Database
                     Name = "Esref",
                     Surname = "Pivcic",
                     Username = "carrepairshop",
+                    Created = DateTime.Now.Date,
+                    Email = "esrefpivcic@gmail.com",
+                    Phone = "063111222",
+                    Gender = "Male",
+                    Address = "Goricka 71",
+                    PostalCode = "80101",
+                    CityId = 1,
                     PasswordSalt = salt2,
                     PasswordHash = Hashing.GenerateHash(salt2, "carrepairshop"),
                     RoleId = 3
@@ -125,41 +228,18 @@ namespace FixMyCar.Services.Database
                     Name = "Esref",
                     Surname = "Pivcic",
                     Username = "client",
+                    Created = DateTime.Now.Date,
+                    Email = "esrefpivcic@gmail.com",
+                    Phone = "063111222",
+                    Gender = "Male",
+                    Address = "Goricka 71",
+                    PostalCode = "80101",
+                    CityId = 1,
                     PasswordSalt = salt2,
                     PasswordHash = Hashing.GenerateHash(salt2, "client"),
                     RoleId = 2
                 }
             );
-
-            modelBuilder.Entity<OrderDetail>()
-                .HasOne(od => od.Order)
-                .WithMany(o => o.OrderDetails)
-                .HasForeignKey(od => od.OrderId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-
-            modelBuilder.Entity<OrderDetail>()
-                .HasOne(od => od.StoreItem)
-                .WithMany(si => si.OrderDetails)
-                .HasForeignKey(od => od.StoreItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<StoreItem>()
-                .HasMany(s => s.CarModels)
-                .WithMany(c => c.StoreItems)
-                .UsingEntity<StoreItemCarModel>(
-                    j => j
-                        .HasOne(pt => pt.CarModel)
-                        .WithMany(t => t.StoreItemCarModels)
-                        .HasForeignKey(pt => pt.CarModelId),
-                    j => j
-                        .HasOne(pt => pt.StoreItem)
-                        .WithMany(p => p.StoreItemCarModels)
-                        .HasForeignKey(pt => pt.StoreItemId),
-                    j =>
-                    {
-                        j.HasKey(t => new { t.StoreItemId, t.CarModelId });
-                    });
 
             modelBuilder.Entity<StoreItemCategory>().HasData(
                 new StoreItemCategory
@@ -205,14 +285,6 @@ namespace FixMyCar.Services.Database
                     CarManufacturerId = 1,
                     Name = "Passat B5.5",
                     ModelYear = "2000-2005"
-                }
-            );
-
-            modelBuilder.Entity<City>().HasData(
-                new City
-                {
-                    Id = 1,
-                    Name = "Livno"
                 }
             );
         }

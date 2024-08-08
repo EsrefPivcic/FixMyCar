@@ -25,6 +25,7 @@ namespace FixMyCar.Services.Services
         public override IQueryable<CarPartsShop> AddInclude(IQueryable<CarPartsShop> query, CarPartsShopSearchObject? search = null)
         {
             query = query.Include("Role");
+            query = query.Include("City");
             return base.AddInclude(query, search);
         }
 
@@ -39,6 +40,33 @@ namespace FixMyCar.Services.Services
 
             entity.PasswordSalt = Hashing.GenerateSalt();
             entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
+            entity.Created = DateTime.Now;
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            City city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+
+            if (city != null)
+            {
+                entity.CityId = city.Id;
+            }
+            else
+            {
+                var citySet = _context.Set<City>();
+                City newCity = new City
+                {
+                    Name = request.City
+                };
+                await citySet.AddAsync(newCity);
+                await _context.SaveChangesAsync();
+
+                newCity = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+                entity.CityId = newCity.Id;
+            }
+
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
             await base.BeforeInsert(entity, request);
         }
     }

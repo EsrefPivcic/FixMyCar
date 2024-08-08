@@ -1,4 +1,5 @@
-﻿using FixMyCar.Model.Entities;
+﻿using FixMyCar.Model.DTOs.User;
+using FixMyCar.Model.Entities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -8,12 +9,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Model.DTOs.CarRepairShop
 {
-    public class CarRepairShopInsertDTO
+    public class CarRepairShopInsertDTO : UserInsertDTO
     {
-        public string Username { get; set; }
-        public string Name { get; set; }
-        public string Surname { get; set; }
-        public string Password { get; set; }
-        public string PasswordConfirm { get; set; }
     }
 }

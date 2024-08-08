@@ -21,6 +21,7 @@ namespace FixMyCar.Services.Services
         public override IQueryable<User> AddInclude(IQueryable<User> query, UserSearchObject? search = null)
         {
             query = query.Include("Role");
+            query = query.Include("City");
             return base.AddInclude(query, search);
         }
 
