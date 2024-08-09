@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
             home: authProvider.isLoggedIn
                 ? const HomeScreen()
                 : const LoginScreen(),
+            debugShowCheckedModeBanner: false,
           );
         },
       ),

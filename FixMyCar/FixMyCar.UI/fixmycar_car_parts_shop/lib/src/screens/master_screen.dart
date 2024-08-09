@@ -1,30 +1,33 @@
-import 'package:fixmycar_car_parts_shop/src/screens/discounts_screen.dart';
 import 'package:flutter/material.dart';
-import 'store_items_screen.dart';
-import 'home_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:fixmycar_car_parts_shop/src/screens/discounts_screen.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/orders_screen.dart';
+import 'package:fixmycar_car_parts_shop/src/screens/store_items_screen.dart';
+import 'package:fixmycar_car_parts_shop/src/screens/home_screen.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/screens/login_screen.dart';
 
 class MasterScreen extends StatelessWidget {
   final Widget child;
-  final bool showNavigation;
 
-  const MasterScreen(
-      {super.key, required this.child, this.showNavigation = true});
+  const MasterScreen({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final isLoggedIn = authProvider.isLoggedIn;
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
         flexibleSpace: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Image.asset('lib/src/assets/images/car-service-icon.png'),
             ),
-            if (showNavigation)
+            if (isLoggedIn)
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -36,7 +39,16 @@ class MasterScreen extends StatelessWidget {
                   ],
                 ),
               ),
-            const SizedBox(width: 56),
+            if (isLoggedIn)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.white),
+                  onPressed: () {
+                    _showLogoutDialog(context, authProvider);
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -62,18 +74,57 @@ class MasterScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => const DiscountsScreen()),
           );
-        }
-        else if (label == 'Orders') {
+        } else if (label == 'Orders') {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const OrdersScreen()),
           );
-        }
-        else {
+        } else {
           print('$label button pressed');
         }
       },
       child: Text(label, style: const TextStyle(color: Colors.white)),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context, AuthProvider authProvider) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await authProvider.logout();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString()),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

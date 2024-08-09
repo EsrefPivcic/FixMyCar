@@ -18,7 +18,7 @@ namespace FixMyCar.Services.Mapping
                 .ForMember(dest => dest.City, opt => opt.Ignore())
                 .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Image != null ? Convert.FromBase64String(src.Image!) : null));
             CreateMap<CarPartsShopUpdateDTO, CarPartsShop>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)); ;
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<CarPartsShop, CarPartsShopInsertDTO>();
             CreateMap<CarPartsShop, CarPartsShopUpdateDTO>();
             CreateMap<CarPartsShop, CarPartsShopGetDTO>()

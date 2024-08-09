@@ -7,6 +7,7 @@ using FixMyCar.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using FixMyCar.Services.Utilities;
+using FixMyCar.Model.Utilities;
 
 namespace FixMyCar.Services.Services
 {
@@ -25,18 +26,67 @@ namespace FixMyCar.Services.Services
             return base.AddInclude(query, search);
         }
 
-        public override async Task BeforeInsert(User entity, UserInsertDTO request)
+        public override IQueryable<User> AddFilter(IQueryable<User> query, UserSearchObject? search = null)
         {
-            _logger.LogInformation($"Adding user: {entity.Username}");
-
-            if (request.Password != request.PasswordConfirm)
+            if (search != null)
             {
-                throw new Exception("Passwords must match.");
+                if (search?.Username != null)
+                {
+                    query = query.Where(u => u.Username ==  search.Username);
+                }
             }
 
-            entity.PasswordSalt = Hashing.GenerateSalt();
-            entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
-            await base.BeforeInsert(entity, request);
+            return base.AddFilter(query, search);   
+        }
+
+        public override async Task BeforeInsert(User entity, UserInsertDTO request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == request.Username);
+
+            if (user == null)
+            {
+                _logger.LogInformation($"Adding user: {entity.Username}");
+
+                if (request.Password != request.PasswordConfirm)
+                {
+                    throw new UserException("Passwords must match.");
+                }
+
+                entity.PasswordSalt = Hashing.GenerateSalt();
+                entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
+                entity.Created = DateTime.Now.Date;
+
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                City city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+
+                if (city != null)
+                {
+                    entity.CityId = city.Id;
+                }
+                else
+                {
+                    var citySet = _context.Set<City>();
+                    City newCity = new City
+                    {
+                        Name = request.City
+                    };
+                    await citySet.AddAsync(newCity);
+                    await _context.SaveChangesAsync();
+
+                    newCity = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+                    entity.CityId = newCity.Id;
+                }
+
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                await base.BeforeInsert(entity, request);
+            }
+            else
+            {
+                throw new UserException("This username is already in use.");
+            }
         }
     }
 }

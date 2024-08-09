@@ -122,9 +122,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                             height: 200,
                                           )
                                         : const SizedBox(
-                                            width: 80,
-                                            height: 80,
-                                            child: Placeholder(),
+                                            width: 200,
+                                            height: 200,
+                                            child: Icon(Icons.image, size: 150),
                                           ),
                                   ),
                                 ),
@@ -784,10 +784,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           fit: BoxFit.contain,
                         )
                       else
-                        const Placeholder(
-                          fallbackHeight: 200,
-                          fallbackWidth: 200,
-                        ),
+                        const Icon(Icons.image, size: 150),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () async {

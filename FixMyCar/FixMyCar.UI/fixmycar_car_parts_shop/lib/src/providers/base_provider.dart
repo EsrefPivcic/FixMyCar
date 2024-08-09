@@ -56,10 +56,11 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
   }
 
   Future<void> insert(TInsertUpdate item,
-      {required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
+      {String customEndpoint = '',
+        required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/$endpoint'),
+        Uri.parse('$baseUrl/$endpoint${customEndpoint.isNotEmpty ? '/$customEndpoint' : ''}'),
         headers: await createHeaders(),
         body: jsonEncode(item),
       );

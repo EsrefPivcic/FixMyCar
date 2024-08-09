@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 
 class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
-  AuthProvider() : super('login');
+  AuthProvider() : super('Auth');
 
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
@@ -32,6 +32,22 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
       await storage.write(key: 'jwt_token', value: token);
       isLoggedIn = true;
       print("Login successful!");
+    } else {
+      final responseBody = json.decode(response.body);
+      throw Exception(responseBody['message']);
+    }
+  }
+
+  Future<void> logout() async {
+    final response = await http.post(
+      Uri.parse('${BaseProvider.baseUrl}/logout'),
+      headers: await createHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      await storage.write(key: 'jwt_token', value: '');
+      isLoggedIn = false;
+      print("Logout successful!");
     } else {
       final responseBody = json.decode(response.body);
       throw Exception(responseBody['message']);

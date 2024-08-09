@@ -4,6 +4,7 @@ import 'package:fixmycar_car_parts_shop/src/providers/order_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/store_item_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/car_parts_shop_client_discount_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
@@ -22,6 +23,7 @@ void main() {
             create: (_) => CarPartsShopClientDiscountProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => OrderDetailProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: const MyApp(),
     ),

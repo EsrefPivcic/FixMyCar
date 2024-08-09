@@ -14,12 +14,5 @@ namespace FixMyCar.API.Controllers
         public CarPartsShopController(ICarPartsShopService service, ILogger<BaseController<CarPartsShop, CarPartsShopGetDTO, CarPartsShopInsertDTO, CarPartsShopUpdateDTO, CarPartsShopSearchObject>> logger) : base(service, logger)
         {
         }
-
-        [AllowAnonymous]
-        [HttpPost()]
-        public async override Task<CarPartsShopGetDTO> Insert(CarPartsShopInsertDTO request)
-        {
-            return await _service.Insert(request);
-        }
     }
 }

@@ -40,7 +40,7 @@ namespace FixMyCar.Services.Services
 
             entity.PasswordSalt = Hashing.GenerateSalt();
             entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
-            entity.Created = DateTime.Now;
+            entity.Created = DateTime.Now.Date;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             City city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());

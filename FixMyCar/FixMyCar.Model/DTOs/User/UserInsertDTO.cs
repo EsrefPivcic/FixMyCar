@@ -22,5 +22,6 @@ namespace FixMyCar.Model.DTOs.User
         public string PasswordConfirm { get; set; }
         public string? Image { get; set; }
         public string City { get; set; }
+        public int RoleId { get; set; }
     }
 }

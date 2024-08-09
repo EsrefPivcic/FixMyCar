@@ -4,6 +4,7 @@ import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_parts_shop/constants.dart';
 import 'home_screen.dart';
 import 'master_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -51,7 +52,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
-      showNavigation: false,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppPadding.defaultPadding),
@@ -135,6 +135,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: const Text(AppConstants.loginButtonLabel),
                             ),
+                      const SizedBox(height: 16.0),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                        child:
+                            const Text("Don't have an account? Register here."),
+                      ),
                     ],
                   ),
                 ),
