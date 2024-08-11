@@ -8,6 +8,7 @@ namespace FixMyCar.Model.DTOs.User
 {
     public class UserUpdateDTO
     {
+        public string? Username { get; set; }
         public string? Name { get; set; }
         public string? Surname { get; set; }
         public string? Email { get; set; }
@@ -15,7 +16,6 @@ namespace FixMyCar.Model.DTOs.User
         public string? Gender { get; set; }
         public string? Address { get; set; }
         public string? PostalCode { get; set; }
-        public string? Image { get; set; }
         public string? City { get; set; }
     }
 }

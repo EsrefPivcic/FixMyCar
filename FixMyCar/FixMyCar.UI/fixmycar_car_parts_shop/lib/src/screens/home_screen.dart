@@ -1,8 +1,10 @@
+import 'package:fixmycar_car_parts_shop/src/models/user/user_update.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
 import 'master_screen.dart';
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,6 +15,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? _editingField;
+  UserUpdate? _userUpdate;
+  String? _editValue;
 
   @override
   void initState() {
@@ -28,6 +32,38 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _updateUser(String field) {
+    _userUpdate = UserUpdate(null, null, null, null, null, null, null, null);
+    switch (field) {
+      case 'name':
+        _userUpdate!.name = _editValue;
+        break;
+      case 'surname':
+        _userUpdate!.surname = _editValue;
+        break;
+      case 'email':
+        _userUpdate!.email = _editValue;
+        break;
+      case 'phone':
+        _userUpdate!.phone = _editValue;
+        break;
+      case 'gender':
+        _userUpdate!.gender = _editValue;
+        break;
+      case 'address':
+        _userUpdate!.address = _editValue;
+        break;
+      case 'postalCode':
+        _userUpdate!.postalCode = _editValue;
+        break;
+      case 'city':
+        _userUpdate!.city = _editValue;
+        break;
+      default:
+        break;
+    }
+  }
+
   Widget _buildEditableField({
     required String label,
     required String value,
@@ -36,38 +72,73 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        InkWell(
-          onTap: () => _toggleEdit(field),
-          child: Chip(
-            label: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(label),
-                const SizedBox(width: 4),
-                const Icon(Icons.edit, size: 16),
-              ],
-            ),
-            backgroundColor: Theme.of(context).cardColor,
-          ),
-        ),
+        Text(label, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 4.0),
         if (_editingField == field)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: TextFormField(
-              initialValue: value,
-              decoration: InputDecoration(
-                labelText: 'Edit $label',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  initialValue: value,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                  onChanged: (newValue) {
+                    _editValue = newValue;
+                  },
                 ),
               ),
-              onFieldSubmitted: (newValue) {
-                _toggleEdit(field);
-              },
+              const SizedBox(width: 8.0),
+              TextButton(
+                onPressed: () => _toggleEdit(field),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  _toggleEdit(field);
+                  if (_editValue != null && _editValue!.isNotEmpty) {
+                    _updateUser(field);
+                    await Provider.of<UserProvider>(context, listen: false)
+                        .updateByToken(
+                            user: _userUpdate!,
+                            toJson: (UserUpdate user) => user.toJson())
+                        .then((_) {
+                      Provider.of<UserProvider>(context, listen: false)
+                          .getByToken();
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Input required!"),
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Apply'),
+              ),
+            ],
+          )
+        else
+          ListTile(
+            title: Text(value),
+            trailing: IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _toggleEdit(field),
             ),
           ),
+        const Divider(),
       ],
     );
+  }
+
+  Future<void> _pickImage() async {
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result != null) {
+      //TODO: Logic to handle file upload
+    }
   }
 
   @override
@@ -89,7 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     direction: isWideScreen ? Axis.horizontal : Axis.vertical,
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Expanded(
+                      SizedBox(
+                        width: 350,
                         child: Card(
                           elevation: 4.0,
                           shape: RoundedRectangleBorder(
@@ -97,82 +169,100 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    if (user.image != null && user.image != '')
-                                      CircleAvatar(
-                                        backgroundImage: MemoryImage(
-                                            base64Decode(user.image!)),
-                                        radius: 50,
-                                      )
-                                    else
-                                      const CircleAvatar(
-                                        radius: 50,
-                                        child: Icon(Icons.person, size: 50),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      if (user.image != null &&
+                                          user.image != '')
+                                        CircleAvatar(
+                                          backgroundImage: MemoryImage(
+                                              base64Decode(user.image!)),
+                                          radius: 50,
+                                        )
+                                      else
+                                        const CircleAvatar(
+                                          radius: 50,
+                                          child: Icon(Icons.person, size: 50),
+                                        ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.camera_alt),
+                                          onPressed: _pickImage,
+                                        ),
                                       ),
-                                    Positioned(
-                                      bottom: 0,
-                                      right: 0,
-                                      child: IconButton(
-                                        icon: const Icon(Icons.edit),
-                                        onPressed: () => _toggleEdit('image'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16.0),
-                                _buildEditableField(
-                                  label: '${user.name} ${user.surname}',
-                                  value: '${user.name} ${user.surname}',
-                                  field: 'name',
-                                ),
-                                const SizedBox(height: 8.0),
-                                _buildEditableField(
-                                  label: 'Gender: ${user.gender}',
-                                  value: user.gender,
-                                  field: 'gender',
-                                ),
-                                const SizedBox(height: 8.0),
-                                _buildEditableField(
-                                  label: 'Company Name: ${user.username}',
-                                  value: user.username,
-                                  field: 'username',
-                                ),
-                                const SizedBox(height: 8.0),
-                                _buildEditableField(
-                                  label: 'Email: ${user.email}',
-                                  value: user.email,
-                                  field: 'email',
-                                ),
-                                const SizedBox(height: 8.0),
-                                _buildEditableField(
-                                  label: 'Phone: ${user.phone}',
-                                  value: user.phone,
-                                  field: 'phone',
-                                ),
-                                const SizedBox(height: 8.0),
-                                _buildEditableField(
-                                  label: 'Address: ${user.address}',
-                                  value: user.address,
-                                  field: 'address',
-                                ),
-                                const SizedBox(height: 8.0),
-                                _buildEditableField(
-                                  label: 'Postal Code: ${user.postalCode}',
-                                  value: user.postalCode,
-                                  field: 'postalCode',
-                                ),
-                                const SizedBox(height: 8.0),
-                                _buildEditableField(
-                                  label: 'City: ${user.city}',
-                                  value: user.city,
-                                  field: 'city',
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8.0),
+                                  Text.rich(TextSpan(
+                                    text: user.username,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  )),
+                                  const SizedBox(height: 16.0),
+                                  _buildEditableField(
+                                    label: 'Name',
+                                    value: user.name,
+                                    field: 'name',
+                                  ),
+                                  _buildEditableField(
+                                    label: 'Surname',
+                                    value: user.surname,
+                                    field: 'surname',
+                                  ),
+                                  _buildEditableField(
+                                    label: 'Gender',
+                                    value: user.gender,
+                                    field: 'gender',
+                                  ),
+                                  _buildEditableField(
+                                    label: 'Email',
+                                    value: user.email,
+                                    field: 'email',
+                                  ),
+                                  _buildEditableField(
+                                    label: 'Phone',
+                                    value: user.phone,
+                                    field: 'phone',
+                                  ),
+                                  _buildEditableField(
+                                    label: 'Address',
+                                    value: user.address,
+                                    field: 'address',
+                                  ),
+                                  _buildEditableField(
+                                    label: 'Postal Code',
+                                    value: user.postalCode,
+                                    field: 'postalCode',
+                                  ),
+                                  _buildEditableField(
+                                    label: 'City',
+                                    value: user.city,
+                                    field: 'city',
+                                  ),
+                                  const SizedBox(height: 16.0),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      //TODO: Change username logic
+                                    },
+                                    icon: const Icon(Icons.person),
+                                    label: const Text('Change Username'),
+                                  ),
+                                  const SizedBox(height: 8.0),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      //TODO: Change password logic
+                                    },
+                                    icon: const Icon(Icons.lock),
+                                    label: const Text('Change Password'),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

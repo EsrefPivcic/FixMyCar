@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using FixMyCar.Services.Utilities;
 using FixMyCar.Model.Utilities;
+using System.Formats.Asn1;
 
 namespace FixMyCar.Services.Services
 {
@@ -17,6 +18,49 @@ namespace FixMyCar.Services.Services
         public UserService(FixMyCarContext context, IMapper mapper, ILogger<UserService> logger) : base(context, mapper)
         {
             _logger = logger;
+        }
+
+        public async Task<UserGetDTO> UpdateByToken(UserUpdateDTO request)
+        {
+            var set = _context.Set<User>();
+
+            var entity = await set.FirstOrDefaultAsync(u => u.Username == request.Username);
+
+            if (entity != null)
+            {
+                _mapper.Map(request, entity);
+
+                if (!string.IsNullOrEmpty(request.City))
+                {
+                    City city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+
+                    if (city != null)
+                    {
+                        entity.CityId = city.Id;
+                    }
+                    else
+                    {
+                        var citySet = _context.Set<City>();
+                        City newCity = new City
+                        {
+                            Name = request.City
+                        };
+                        await citySet.AddAsync(newCity);
+                        await _context.SaveChangesAsync();
+
+                        newCity = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+                        entity.CityId = newCity.Id;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return _mapper.Map<UserGetDTO>(entity);
+            }
+            else
+            {
+                throw new UserException("Entity doesn't exist");
+            }
         }
 
         public override IQueryable<User> AddInclude(IQueryable<User> query, UserSearchObject? search = null)

@@ -2,6 +2,7 @@
 using FixMyCar.Model.DTOs;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -37,11 +38,18 @@ namespace FixMyCar.Services.Services
 
             var entity = await set.FindAsync(id);
 
-            _mapper.Map(request, entity);
+            if (entity != null)
+            {
+                _mapper.Map(request, entity);
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            return _mapper.Map<TGet>(entity);
+                return _mapper.Map<TGet>(entity);
+            }
+            else
+            {
+                throw new UserException("Entity doesn't exist");
+            }
         }
 
         public virtual async Task<string> Delete(int id)

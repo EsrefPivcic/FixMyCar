@@ -27,6 +27,13 @@ class MasterScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: Image.asset('lib/src/assets/images/car-service-icon.png'),
             ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text.rich(TextSpan(
+                text: "FixMyCar",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              )),
+            ),
             if (isLoggedIn)
               Expanded(
                 child: Row(

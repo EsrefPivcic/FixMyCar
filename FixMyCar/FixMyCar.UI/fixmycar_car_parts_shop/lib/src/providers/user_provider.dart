@@ -1,7 +1,10 @@
 import 'package:fixmycar_car_parts_shop/src/models/user/user.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_register.dart';
+import 'package:fixmycar_car_parts_shop/src/models/user/user_update.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class UserProvider extends BaseProvider<User, UserRegister> {
   UserProvider() : super('User');
@@ -33,6 +36,42 @@ class UserProvider extends BaseProvider<User, UserRegister> {
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> updateByToken(
+      {required UserUpdate user,
+      required Map<String, dynamic> Function(UserUpdate) toJson}) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdateByToken'),
+        headers: await createHeaders(),
+        body: jsonEncode(toJson(user)),
+      );
+      if (response.statusCode == 200) {
+        print('Update successful.');
+        notifyListeners();
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

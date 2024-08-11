@@ -11,5 +11,6 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface IUserService : IBaseService<User, UserGetDTO, UserInsertDTO, UserUpdateDTO, UserSearchObject>
     {
+        Task<UserGetDTO> UpdateByToken(UserUpdateDTO request);
     }
 }

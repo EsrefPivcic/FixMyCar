@@ -18,7 +18,9 @@ namespace FixMyCar.Services.Mapping
                 .ForMember(dest => dest.City, opt => opt.Ignore())
                 .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Image != null ? Convert.FromBase64String(src.Image!) : null));
             CreateMap<UserUpdateDTO, User>()
-            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                .ForMember(dest => dest.Username, opt => opt.Ignore())
+                .ForMember(dest => dest.City, opt => opt.Ignore())
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<UserGetDTO, User>();
             CreateMap<User, UserInsertDTO>();
             CreateMap<User, UserUpdateDTO>();
