@@ -1,4 +1,9 @@
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update.dart';
+import 'package:fixmycar_car_parts_shop/src/models/user/user_update_image.dart';
+import 'package:fixmycar_car_parts_shop/src/models/user/user_update_password.dart';
+import 'package:fixmycar_car_parts_shop/src/models/user/user_update_username.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
@@ -101,9 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (_editValue != null && _editValue!.isNotEmpty) {
                     _updateUser(field);
                     await Provider.of<UserProvider>(context, listen: false)
-                        .updateByToken(
-                            user: _userUpdate!,
-                            toJson: (UserUpdate user) => user.toJson())
+                        .updateByToken(user: _userUpdate!)
                         .then((_) {
                       Provider.of<UserProvider>(context, listen: false)
                           .getByToken();
@@ -133,12 +136,217 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  UserUpdateImage? _updateImage;
+
   Future<void> _pickImage() async {
-    FilePickerResult? result =
-        await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
-      //TODO: Logic to handle file upload
+    final FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
+    if (pickedFile != null && pickedFile.files.single.bytes != null) {
+      setState(() {
+        _updateImage =
+            UserUpdateImage(base64Encode(pickedFile.files.single.bytes!));
+        _editingField = 'image';
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No image selected!')),
+      );
     }
+  }
+
+  final _oldPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmNewPasswordController = TextEditingController();
+
+  void _showChangePasswordForm() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Change Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _oldPasswordController,
+                decoration: const InputDecoration(labelText: 'Old Password'),
+                obscureText: true,
+              ),
+              TextField(
+                controller: _newPasswordController,
+                decoration: const InputDecoration(labelText: 'New Password'),
+                obscureText: true,
+              ),
+              TextField(
+                controller: _confirmNewPasswordController,
+                decoration:
+                    const InputDecoration(labelText: 'Confirm New Password'),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _oldPasswordController.clear();
+                _newPasswordController.clear();
+                _confirmNewPasswordController.clear();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_oldPasswordController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Old password is required!'),
+                    ),
+                  );
+                } else if (_newPasswordController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('New password is required!'),
+                    ),
+                  );
+                } else if (_confirmNewPasswordController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter your new password again!'),
+                    ),
+                  );
+                } else {
+                  UserUpdatePassword updatePassword = UserUpdatePassword(
+                      _oldPasswordController.text,
+                      _newPasswordController.text,
+                      _confirmNewPasswordController.text);
+                  try {
+                    await Provider.of<UserProvider>(context, listen: false)
+                        .updatePassword(updatePassword: updatePassword)
+                        .then((_) {
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .logout();
+                      _oldPasswordController.clear();
+                      _newPasswordController.clear();
+                      _confirmNewPasswordController.clear();
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Password changed successfully! Please log in again.'),
+                        ),
+                      );
+                    });
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  final _passwordController = TextEditingController();
+  final _usernameController = TextEditingController();
+
+  void _showChangeUsernameForm() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Change Username'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(labelText: 'New Username'),
+              ),
+              TextField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Your Password'),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _usernameController.clear();
+                _passwordController.clear();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_usernameController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('New username is required!'),
+                    ),
+                  );
+                } else if (_passwordController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Password is required!'),
+                    ),
+                  );
+                } else {
+                  UserUpdateUsername updateUsername = UserUpdateUsername(
+                      _usernameController.text, _passwordController.text);
+                  try {
+                    await Provider.of<UserProvider>(context, listen: false)
+                        .updateUsername(updateUsername: updateUsername)
+                        .then((_) {
+                      Provider.of<AuthProvider>(context, listen: false)
+                          .logout();
+                      _usernameController.clear();
+                      _passwordController.clear();
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Username changed successfully! Please log in again.'),
+                        ),
+                      );
+                    });
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -146,178 +354,239 @@ class _HomeScreenState extends State<HomeScreen> {
     return MasterScreen(
       child: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
-          if (userProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
           final user = userProvider.user;
-          if (user != null) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  bool isWideScreen = constraints.maxWidth > 600;
-                  return Flex(
-                    direction: isWideScreen ? Axis.horizontal : Axis.vertical,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      SizedBox(
-                        width: 350,
-                        child: Card(
-                          elevation: 4.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.0),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      if (user.image != null &&
-                                          user.image != '')
-                                        CircleAvatar(
-                                          backgroundImage: MemoryImage(
-                                              base64Decode(user.image!)),
-                                          radius: 50,
-                                        )
-                                      else
-                                        const CircleAvatar(
-                                          radius: 50,
-                                          child: Icon(Icons.person, size: 50),
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                bool isWideScreen = constraints.maxWidth > 600;
+                return Flex(
+                  direction: isWideScreen ? Axis.horizontal : Axis.vertical,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    SizedBox(
+                      width: 350,
+                      child: Card(
+                        elevation: 4.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.0),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (userProvider.isLoading)
+                                  const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                else ...[
+                                  if (user != null) ...[
+                                    Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        if (_editingField == 'image' &&
+                                            _updateImage != null &&
+                                            _updateImage!.image.isNotEmpty)
+                                          CircleAvatar(
+                                            backgroundImage: MemoryImage(
+                                                base64Decode(
+                                                    _updateImage!.image)),
+                                            radius: 50,
+                                          )
+                                        else if (user.image != null &&
+                                            user.image!.isNotEmpty)
+                                          CircleAvatar(
+                                            backgroundImage: MemoryImage(
+                                                base64Decode(user.image!)),
+                                            radius: 50,
+                                          )
+                                        else
+                                          const CircleAvatar(
+                                            radius: 50,
+                                            child: Icon(Icons.person, size: 50),
+                                          ),
+                                        Positioned(
+                                          bottom: 0,
+                                          right: 0,
+                                          child: IconButton(
+                                            icon: const Icon(Icons.camera_alt),
+                                            onPressed: _pickImage,
+                                          ),
                                         ),
-                                      Positioned(
-                                        bottom: 0,
-                                        right: 0,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.camera_alt),
-                                          onPressed: _pickImage,
-                                        ),
+                                      ],
+                                    ),
+                                    if (_editingField == 'image' &&
+                                        _updateImage?.image != null)
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          TextButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _updateImage?.image = "";
+                                                _editingField = null;
+                                              });
+                                            },
+                                            child: const Text('Cancel'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              if (_updateImage?.image != null) {
+                                                try {
+                                                  await Provider.of<
+                                                              UserProvider>(
+                                                          context,
+                                                          listen: false)
+                                                      .updateImage(
+                                                          updateImage:
+                                                              _updateImage!)
+                                                      .then((_) {
+                                                    Provider.of<UserProvider>(
+                                                            context,
+                                                            listen: false)
+                                                        .getByToken();
+                                                  });
+                                                  setState(() {
+                                                    _editingField = null;
+                                                  });
+                                                } catch (e) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                        content:
+                                                            Text(e.toString())),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                            child: const Text('Save Changes'),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  Text.rich(TextSpan(
-                                    text: user.username,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  )),
-                                  const SizedBox(height: 16.0),
-                                  _buildEditableField(
-                                    label: 'Name',
-                                    value: user.name,
-                                    field: 'name',
-                                  ),
-                                  _buildEditableField(
-                                    label: 'Surname',
-                                    value: user.surname,
-                                    field: 'surname',
-                                  ),
-                                  _buildEditableField(
-                                    label: 'Gender',
-                                    value: user.gender,
-                                    field: 'gender',
-                                  ),
-                                  _buildEditableField(
-                                    label: 'Email',
-                                    value: user.email,
-                                    field: 'email',
-                                  ),
-                                  _buildEditableField(
-                                    label: 'Phone',
-                                    value: user.phone,
-                                    field: 'phone',
-                                  ),
-                                  _buildEditableField(
-                                    label: 'Address',
-                                    value: user.address,
-                                    field: 'address',
-                                  ),
-                                  _buildEditableField(
-                                    label: 'Postal Code',
-                                    value: user.postalCode,
-                                    field: 'postalCode',
-                                  ),
-                                  _buildEditableField(
-                                    label: 'City',
-                                    value: user.city,
-                                    field: 'city',
-                                  ),
-                                  const SizedBox(height: 16.0),
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      //TODO: Change username logic
-                                    },
-                                    icon: const Icon(Icons.person),
-                                    label: const Text('Change Username'),
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      //TODO: Change password logic
-                                    },
-                                    icon: const Icon(Icons.lock),
-                                    label: const Text('Change Password'),
-                                  ),
+                                    const SizedBox(height: 8.0),
+                                    Text.rich(TextSpan(
+                                      text: user.username,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    )),
+                                    const SizedBox(height: 16.0),
+                                    _buildEditableField(
+                                      label: 'Name',
+                                      value: user.name,
+                                      field: 'name',
+                                    ),
+                                    _buildEditableField(
+                                      label: 'Surname',
+                                      value: user.surname,
+                                      field: 'surname',
+                                    ),
+                                    _buildEditableField(
+                                      label: 'Gender',
+                                      value: user.gender,
+                                      field: 'gender',
+                                    ),
+                                    _buildEditableField(
+                                      label: 'Email',
+                                      value: user.email,
+                                      field: 'email',
+                                    ),
+                                    _buildEditableField(
+                                      label: 'Phone',
+                                      value: user.phone,
+                                      field: 'phone',
+                                    ),
+                                    _buildEditableField(
+                                      label: 'Address',
+                                      value: user.address,
+                                      field: 'address',
+                                    ),
+                                    _buildEditableField(
+                                      label: 'Postal Code',
+                                      value: user.postalCode,
+                                      field: 'postalCode',
+                                    ),
+                                    _buildEditableField(
+                                      label: 'City',
+                                      value: user.city,
+                                      field: 'city',
+                                    ),
+                                    const SizedBox(height: 16.0),
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        _showChangeUsernameForm();
+                                      },
+                                      icon: const Icon(Icons.person),
+                                      label: const Text('Change Username'),
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        _showChangePasswordForm();
+                                      },
+                                      icon: const Icon(Icons.lock),
+                                      label: const Text('Change Password'),
+                                    ),
+                                  ] else ...[
+                                    const Card(
+                                      child: Center(
+                                        child: Text(
+                                            'Failed loading user information.'),
+                                      ),
+                                    ),
+                                  ],
                                 ],
-                              ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16.0, height: 16.0),
-                      Expanded(
-                        child: Card(
-                          elevation: 4.0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.0),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.bar_chart,
-                                    size: 100,
-                                    color: Colors.grey,
-                                  ),
-                                  const SizedBox(height: 16.0),
-                                  Text(
-                                    'Business Reports',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall,
-                                  ),
-                                  const SizedBox(height: 8.0),
-                                  Text(
-                                    'In development...',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge
-                                        ?.copyWith(color: Colors.grey),
-                                  ),
-                                ],
-                              ),
+                    ),
+                    const SizedBox(width: 16.0, height: 16.0),
+                    Expanded(
+                      child: Card(
+                        elevation: 4.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.0),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.bar_chart,
+                                  size: 100,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(height: 16.0),
+                                Text(
+                                  'Business Reports',
+                                  style:
+                                      Theme.of(context).textTheme.headlineSmall,
+                                ),
+                                const SizedBox(height: 8.0),
+                                Text(
+                                  'In development...',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.copyWith(color: Colors.grey),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  );
-                },
-              ),
-            );
-          } else {
-            return const Card(
-              child: Center(
-                child: Text('Failed loading user information.'),
-              ),
-            );
-          }
+                    ),
+                  ],
+                );
+              },
+            ),
+          );
         },
       ),
     );

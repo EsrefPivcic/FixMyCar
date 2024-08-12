@@ -62,6 +62,30 @@ namespace FixMyCar.Controllers
             return await (_service as IUserService).UpdateByToken(request);
         }
 
+        [HttpPut("UpdatePasswordByToken")]
+        public async Task UpdatePasswordByToken(UserUpdatePasswordDTO request)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.Username = username;
+            await (_service as IUserService).UpdatePasswordByToken(request);
+        }
+
+        [HttpPut("UpdateUsernameByToken")]
+        public async Task UpdateUsernameByToken(UserUpdateUsernameDTO request)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.Username = username;
+            await (_service as IUserService).UpdateUsernameByToken(request);
+        }
+
+        [HttpPut("UpdateImageByToken")]
+        public async Task UpdateImageByToken(UserUpdateImageDTO request)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.Username = username;
+            await (_service as IUserService).UpdateImageByToken(request);
+        }
+
         [HttpGet("GetByToken")]
         public async Task<PagedResult<UserGetDTO>> GetByCarPartsShop([FromQuery] UserSearchObject? search = null)
         {

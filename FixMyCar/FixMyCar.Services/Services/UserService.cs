@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using FixMyCar.Services.Utilities;
 using FixMyCar.Model.Utilities;
 using System.Formats.Asn1;
+using Microsoft.AspNetCore.Connections.Features;
 
 namespace FixMyCar.Services.Services
 {
@@ -18,6 +19,98 @@ namespace FixMyCar.Services.Services
         public UserService(FixMyCarContext context, IMapper mapper, ILogger<UserService> logger) : base(context, mapper)
         {
             _logger = logger;
+        }
+
+        public async Task UpdateImageByToken(UserUpdateImageDTO request)
+        {
+            var set = _context.Set<User>();
+            var entity = await set.FirstOrDefaultAsync(u => u.Username == request.Username);
+
+            if (entity != null)
+            {
+                byte[] newImage = Convert.FromBase64String(request.Image);
+                entity.Image = ImageHelper.Resize(newImage, 100);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new UserException("User doesn't exist");
+            }
+        }
+
+        public async Task UpdateUsernameByToken(UserUpdateUsernameDTO request)
+        {
+            if (request.Username == request.NewUsername)
+            {
+                throw new UserException("New username can't be the same as the old one.");
+            }
+
+            var set = _context.Set<User>();
+
+            var user = await set.FirstOrDefaultAsync(u => u.Username == request.NewUsername);
+
+            if (user != null)
+            {
+                throw new UserException("This username is already taken.");
+            }
+            else
+            {
+                var entity = await set.FirstOrDefaultAsync(u => u.Username == request.Username);
+
+                if (entity != null)
+                {
+                    string passwordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
+                    if (passwordHash != entity.PasswordHash)
+                    {
+                        throw new UserException("Wrong password.");
+                    }
+                    else
+                    {
+                        entity.Username = request.NewUsername!;
+                    }
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    throw new UserException("User doesn't exist");
+                }
+            }
+        }
+
+        public async Task UpdatePasswordByToken(UserUpdatePasswordDTO request)
+        {
+            var set = _context.Set<User>();
+
+            var entity = await set.FirstOrDefaultAsync(u => u.Username == request.Username);
+
+            if (entity != null)
+            {
+                if (request.NewPassword != request.ConfirmNewPassword)
+                {
+                    throw new UserException("New password values don't match.");
+                }
+                string newPasswordHashOldSalt = Hashing.GenerateHash(entity.PasswordSalt, request.NewPassword);
+                if (newPasswordHashOldSalt == entity.PasswordHash)
+                {
+                    throw new UserException("New password can't be the same as the old one.");
+                }
+                string oldPasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.OldPassword);
+                if (oldPasswordHash != entity.PasswordHash)
+                {
+                    throw new UserException("Wrong old password.");
+                }
+                else
+                {
+                    entity.PasswordSalt = Hashing.GenerateSalt();
+                    entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.NewPassword);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new UserException("User doesn't exist");
+            }
         }
 
         public async Task<UserGetDTO> UpdateByToken(UserUpdateDTO request)
@@ -52,14 +145,13 @@ namespace FixMyCar.Services.Services
                         entity.CityId = newCity.Id;
                     }
                 }
-
                 await _context.SaveChangesAsync();
 
                 return _mapper.Map<UserGetDTO>(entity);
             }
             else
             {
-                throw new UserException("Entity doesn't exist");
+                throw new UserException("User doesn't exist");
             }
         }
 
