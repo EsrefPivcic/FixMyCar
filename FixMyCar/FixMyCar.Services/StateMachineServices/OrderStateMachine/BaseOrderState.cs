@@ -4,7 +4,7 @@ using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
-using FixMyCar.Services.StateMachineServices.ProductStateMachine;
+using FixMyCar.Services.StateMachineServices.StoreItemStateMachine;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;

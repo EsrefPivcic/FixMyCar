@@ -276,7 +276,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
                       child: discounts.isEmpty
                           ? const Center(
                               child: Padding(
-                                padding: EdgeInsets.only(top: 20),
+                                padding: EdgeInsets.only(top: 200),
                                 child: Text('No discounts available.'),
                               ),
                             )

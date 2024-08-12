@@ -731,9 +731,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 _buildFilterMenu(),
                 orders.isEmpty
                     ? const Expanded(
-                        child: Center(
-                            child: Text('No orders available',
-                                style: TextStyle(fontSize: 18))))
+                        child: Center(child: Text('No orders available.')))
                     : Expanded(
                         child: ListView.builder(
                           itemCount: orders.length,

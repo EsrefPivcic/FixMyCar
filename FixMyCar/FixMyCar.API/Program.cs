@@ -5,7 +5,7 @@ using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Mapping;
 using FixMyCar.Services.Services;
 using FixMyCar.Services.StateMachineServices.OrderStateMachine;
-using FixMyCar.Services.StateMachineServices.ProductStateMachine;
+using FixMyCar.Services.StateMachineServices.StoreItemStateMachine;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

@@ -5,7 +5,7 @@ using FixMyCar.Model.SearchObjects;
 using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
-using FixMyCar.Services.StateMachineServices.ProductStateMachine;
+using FixMyCar.Services.StateMachineServices.StoreItemStateMachine;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

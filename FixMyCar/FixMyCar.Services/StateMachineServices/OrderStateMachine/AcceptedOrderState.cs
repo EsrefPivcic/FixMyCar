@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FixMyCar.Services.Database;
-using FixMyCar.Services.StateMachineServices.ProductStateMachine;
+using FixMyCar.Services.StateMachineServices.StoreItemStateMachine;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,3 +1,4 @@
+import 'package:fixmycar_car_parts_shop/constants.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_image.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_password.dart';
@@ -9,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
 import 'master_screen.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,8 +21,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String? _editingField;
   UserUpdate? _userUpdate;
+  String? _editingField;
   String? _editValue;
 
   @override
@@ -69,11 +71,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  String? _dropdownValue;
   Widget _buildEditableField({
     required String label,
     required String value,
     required String field,
   }) {
+    if (field == 'gender') {
+      _dropdownValue ??=
+          (value == 'Female' || value == 'Male') ? value : 'Custom';
+
+      if (_editValue == null && _dropdownValue == 'Custom') {
+        _editValue = value;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -82,41 +94,110 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_editingField == field)
           Row(
             children: [
-              Expanded(
-                child: TextFormField(
-                  initialValue: value,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
+              if (field == 'gender') ...[
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    value: _dropdownValue,
+                    items: ['Female', 'Male', 'Custom'].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        _dropdownValue = newValue;
+                        if (_dropdownValue == 'Custom') {
+                          _editValue = value;
+                        } else {
+                          _editValue = _dropdownValue;
+                        }
+                      });
+                    },
+                    decoration: InputDecoration(
+                      labelText: AppConstants.genderLabel,
+                      border: OutlineInputBorder(
+                        borderRadius:
+                            BorderRadius.circular(AppRadius.textFieldRadius),
+                      ),
+                    ),
+                    validator: (_dropdownValue) {
+                      if (_dropdownValue == null || _dropdownValue.isEmpty) {
+                        return AppConstants.genderError;
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                if (_dropdownValue == 'Custom') ...[
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: '',
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      onChanged: (newValue) {
+                        _editValue = newValue;
+                      },
                     ),
                   ),
-                  onChanged: (newValue) {
-                    _editValue = newValue;
-                  },
+                ]
+              ] else ...[
+                Expanded(
+                  child: TextFormField(
+                    initialValue: value,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    onChanged: (newValue) {
+                      _editValue = newValue;
+                    },
+                  ),
                 ),
-              ),
+              ],
               const SizedBox(width: 8.0),
               TextButton(
-                onPressed: () => _toggleEdit(field),
+                onPressed: () {
+                  _toggleEdit(field);
+                  setState(() {
+                    _editValue = null;
+                    _dropdownValue = null;
+                  });
+                },
                 child: const Text('Cancel'),
               ),
               ElevatedButton(
                 onPressed: () async {
-                  _toggleEdit(field);
-                  if (_editValue != null && _editValue!.isNotEmpty) {
+                  if (_editValue != null &&
+                      _editValue!.isNotEmpty &&
+                      (_editValue != value)) {
                     _updateUser(field);
                     await Provider.of<UserProvider>(context, listen: false)
                         .updateByToken(user: _userUpdate!)
                         .then((_) {
                       Provider.of<UserProvider>(context, listen: false)
                           .getByToken();
+                      setState(() {
+                        _editValue = null;
+                        _dropdownValue = null;
+                      });
+                      _toggleEdit(field);
                     });
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Input required!"),
-                      ),
-                    );
+                    setState(() {
+                      _editValue = null;
+                      _dropdownValue = null;
+                    });
+                    _toggleEdit(field);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text(
+                          "This value can't be empty or the same as the old one!"),
+                    ));
                   }
                 },
                 child: const Text('Apply'),
@@ -142,17 +223,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
       type: FileType.image,
     );
-    if (pickedFile != null && pickedFile.files.single.bytes != null) {
+
+    if (pickedFile != null && pickedFile.files.single.path != null) {
       setState(() {
+        String selectedImagePath = pickedFile.files.single.path!;
         _updateImage =
-            UserUpdateImage(base64Encode(pickedFile.files.single.bytes!));
-        _editingField = 'image';
+            UserUpdateImage(_convertImageToBase64(selectedImagePath)!);
       });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No image selected!')),
-      );
     }
+  }
+
+  String? _convertImageToBase64(String? imagePath) {
+    if (imagePath == null) return null;
+    final bytes = File(imagePath).readAsBytesSync();
+    return base64Encode(bytes);
   }
 
   final _oldPasswordController = TextEditingController();
@@ -365,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     SizedBox(
-                      width: 350,
+                      width: 450,
                       child: Card(
                         elevation: 4.0,
                         shape: RoundedRectangleBorder(
@@ -386,9 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Stack(
                                       alignment: Alignment.center,
                                       children: [
-                                        if (_editingField == 'image' &&
-                                            _updateImage != null &&
-                                            _updateImage!.image.isNotEmpty)
+                                        if (_updateImage != null)
                                           CircleAvatar(
                                             backgroundImage: MemoryImage(
                                                 base64Decode(
@@ -417,8 +499,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ],
                                     ),
-                                    if (_editingField == 'image' &&
-                                        _updateImage?.image != null)
+                                    if (_updateImage != null) ...[
+                                      const SizedBox(height: 8.0),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
@@ -426,8 +508,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           TextButton(
                                             onPressed: () {
                                               setState(() {
-                                                _updateImage?.image = "";
-                                                _editingField = null;
+                                                _updateImage = null;
                                               });
                                             },
                                             child: const Text('Cancel'),
@@ -444,13 +525,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           updateImage:
                                                               _updateImage!)
                                                       .then((_) {
+                                                    setState(() {
+                                                      _updateImage = null;
+                                                    });
                                                     Provider.of<UserProvider>(
                                                             context,
                                                             listen: false)
                                                         .getByToken();
-                                                  });
-                                                  setState(() {
-                                                    _editingField = null;
                                                   });
                                                 } catch (e) {
                                                   ScaffoldMessenger.of(context)
@@ -466,6 +547,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         ],
                                       ),
+                                    ],
                                     const SizedBox(height: 8.0),
                                     Text.rich(TextSpan(
                                       text: user.username,
@@ -473,6 +555,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                           fontWeight: FontWeight.bold),
                                     )),
                                     const SizedBox(height: 16.0),
+                                    const Text.rich(TextSpan(
+                                        text: 'Personal Details',
+                                        style: TextStyle(fontSize: 18))),
+                                    const SizedBox(height: 8.0),
                                     _buildEditableField(
                                       label: 'Name',
                                       value: user.name,
@@ -488,6 +574,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       value: user.gender,
                                       field: 'gender',
                                     ),
+                                    const SizedBox(height: 16.0),
+                                    const Text.rich(TextSpan(
+                                        text: 'Company Details',
+                                        style: TextStyle(fontSize: 18))),
+                                    const SizedBox(height: 8.0),
                                     _buildEditableField(
                                       label: 'Email',
                                       value: user.email,
@@ -519,7 +610,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         _showChangeUsernameForm();
                                       },
                                       icon: const Icon(Icons.person),
-                                      label: const Text('Change Username'),
+                                      label: const Text(
+                                          'Change Username (Company Name)'),
                                     ),
                                     const SizedBox(height: 8.0),
                                     ElevatedButton.icon(

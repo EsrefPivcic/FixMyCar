@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Services.StateMachineServices.ProductStateMachine
+namespace FixMyCar.Services.StateMachineServices.StoreItemStateMachine
 {
     public class ActiveStoreItemState : BaseStoreItemState
     {

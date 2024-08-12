@@ -29,7 +29,7 @@ namespace FixMyCar.Services.Services
             if (entity != null)
             {
                 byte[] newImage = Convert.FromBase64String(request.Image);
-                entity.Image = ImageHelper.Resize(newImage, 100);
+                entity.Image = ImageHelper.Resize(newImage, 150);
                 await _context.SaveChangesAsync();
             }
             else
@@ -125,7 +125,7 @@ namespace FixMyCar.Services.Services
 
                 if (!string.IsNullOrEmpty(request.City))
                 {
-                    City city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+                    City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
 
                     if (city != null)
                     {
@@ -141,7 +141,6 @@ namespace FixMyCar.Services.Services
                         await citySet.AddAsync(newCity);
                         await _context.SaveChangesAsync();
 
-                        newCity = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
                         entity.CityId = newCity.Id;
                     }
                 }
@@ -181,8 +180,6 @@ namespace FixMyCar.Services.Services
 
             if (user == null)
             {
-                _logger.LogInformation($"Adding user: {entity.Username}");
-
                 if (request.Password != request.PasswordConfirm)
                 {
                     throw new UserException("Passwords must match.");
@@ -192,8 +189,7 @@ namespace FixMyCar.Services.Services
                 entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
                 entity.Created = DateTime.Now.Date;
 
-                using var transaction = await _context.Database.BeginTransactionAsync();
-                City city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
 
                 if (city != null)
                 {
@@ -209,14 +205,18 @@ namespace FixMyCar.Services.Services
                     await citySet.AddAsync(newCity);
                     await _context.SaveChangesAsync();
 
-                    newCity = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
                     entity.CityId = newCity.Id;
                 }
 
-                await _context.SaveChangesAsync();
-
-                await transaction.CommitAsync();
-
+                if (request.Image != null)
+                {
+                    byte[] newImage = Convert.FromBase64String(request.Image);
+                    entity.Image = ImageHelper.Resize(newImage, 150);
+                }
+                else
+                {
+                    entity.Image = null;
+                }
                 await base.BeforeInsert(entity, request);
             }
             else
