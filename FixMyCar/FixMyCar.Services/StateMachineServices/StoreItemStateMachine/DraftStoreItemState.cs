@@ -17,10 +17,8 @@ namespace FixMyCar.Services.StateMachineServices.StoreItemStateMachine
 {
     public class DraftStoreItemState : BaseStoreItemState
     {
-        protected ILogger<DraftStoreItemState> _logger;
-        public DraftStoreItemState(ILogger<DraftStoreItemState> logger, FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        public DraftStoreItemState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
-            _logger = logger;
         }
 
         public async override Task<StoreItemGetDTO> Update(StoreItem entity, StoreItemUpdateDTO request)

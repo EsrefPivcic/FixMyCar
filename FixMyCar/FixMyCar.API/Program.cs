@@ -4,6 +4,7 @@ using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Mapping;
 using FixMyCar.Services.Services;
+using FixMyCar.Services.StateMachineServices.CarRepairShopServiceStateMachine;
 using FixMyCar.Services.StateMachineServices.OrderStateMachine;
 using FixMyCar.Services.StateMachineServices.StoreItemStateMachine;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,6 +17,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddTransient<IStoreItemService, StoreItemService>();
+builder.Services.AddTransient<ICarRepairShopServiceService, CarRepairShopServiceService>();
 builder.Services.AddTransient<IUserService, UserService>();
 builder.Services.AddTransient<IRoleService, RoleService>();
 builder.Services.AddTransient<IOrderService, OrderService>();
@@ -33,6 +35,11 @@ builder.Services.AddTransient<BaseStoreItemState>();
 builder.Services.AddTransient<InitialStoreItemState>();
 builder.Services.AddTransient<DraftStoreItemState>();
 builder.Services.AddTransient<ActiveStoreItemState>();
+
+builder.Services.AddTransient<BaseCarRepairShopServiceState>();
+builder.Services.AddTransient<InitiralCarRepairShopServiceState>();
+builder.Services.AddTransient<DraftCarRepairShopServiceState>();
+builder.Services.AddTransient<ActiveCarRepairShopServiceState>();
 
 builder.Services.AddTransient<BaseOrderState>();
 builder.Services.AddTransient<InitialOrderState>();

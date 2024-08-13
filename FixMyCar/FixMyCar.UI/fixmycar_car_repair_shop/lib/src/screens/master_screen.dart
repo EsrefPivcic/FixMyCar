@@ -4,6 +4,7 @@ import 'package:fixmycar_car_repair_shop/src/screens/home_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/orders_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/services_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/discounts_screen.dart';
+import 'package:fixmycar_car_repair_shop/src/screens/car_parts_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/login_screen.dart';
 
@@ -43,6 +44,7 @@ class MasterScreen extends StatelessWidget {
                     _buildNavButton(context, 'Orders'),
                     _buildNavButton(context, 'Services'),
                     _buildNavButton(context, 'Discounts'),
+                    _buildNavButton(context, 'Car Parts'),
                   ],
                 ),
               ),
@@ -81,14 +83,17 @@ class MasterScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => const OrdersScreen()),
           );
-        } 
-        else if (label == 'Services') {
+        } else if (label == 'Car Parts') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CarPartsScreen()),
+          );
+        } else if (label == 'Services') {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ServicesScreen()),
           );
-        } 
-        else {
+        } else {
           print('$label button pressed');
         }
       },

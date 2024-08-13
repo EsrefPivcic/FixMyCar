@@ -31,6 +31,8 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<CarManufacturer> CarManufacturers { get; set; }
         public virtual DbSet<StoreItemCategory> StoreItemCategory { get; set; }
         public virtual DbSet<CarPartsShopClientDiscount> CarPartsShopClientDiscounts { get; set; }
+        public virtual DbSet<CarRepairShopService> CarRepairShopServices { get; set; }
+        public virtual DbSet<ServiceType> ServiceTypes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -109,6 +111,29 @@ namespace FixMyCar.Services.Database
                     {
                         j.HasKey(t => new { t.StoreItemId, t.CarModelId });
                     });
+
+            var repairs = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "repairs.png");
+            var diagnostics = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "diagnostics.png");
+            byte[] repairsImage = ImageHelper.GetImageData(repairs);
+            byte[] diagnosticsImage = ImageHelper.GetImageData(diagnostics);
+
+            modelBuilder.Entity<ServiceType>().HasData(
+                new ServiceType
+                {
+                    Id = 1,
+                    Name = "Repairs",
+                    Image = ImageHelper.Resize(repairsImage, 150)
+                }
+            );
+
+            modelBuilder.Entity<ServiceType>().HasData(
+                new ServiceType
+                {
+                    Id = 2,
+                    Name = "Diagnostics",
+                    Image = ImageHelper.Resize(diagnosticsImage, 150)
+                }
+            );
 
             modelBuilder.Entity<City>().HasData(
                 new City
