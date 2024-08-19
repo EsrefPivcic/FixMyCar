@@ -10,7 +10,8 @@ class CarPartsShopClientDiscountInsertUpdate {
 
   CarPartsShopClientDiscountInsertUpdate.n();
 
-  CarPartsShopClientDiscountInsertUpdate(this.username, this.value, this.revoked);
+  CarPartsShopClientDiscountInsertUpdate(
+      this.username, this.value, this.revoked);
 
   factory CarPartsShopClientDiscountInsertUpdate.fromJson(
           Map<String, dynamic> json) =>

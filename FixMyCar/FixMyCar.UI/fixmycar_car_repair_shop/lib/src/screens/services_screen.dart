@@ -241,8 +241,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       serviceTypeId = service.serviceTypeId;
       selectedServiceType =
           _serviceTypes.firstWhere((type) => type.id == service.serviceTypeId);
-      selectedDuration =
-          _parseDuration(service.duration);
+      selectedDuration = _parseDuration(service.duration);
     }
 
     showDialog(
@@ -329,8 +328,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                           cursor: SystemMouseCursors.click,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                vertical: 16.0,
-                                horizontal: 12.0),
+                                vertical: 16.0, horizontal: 12.0),
                             decoration: BoxDecoration(
                               border: Border.all(
                                   color: Theme.of(context).colorScheme.outline),
@@ -395,29 +393,31 @@ class _ServicesScreenState extends State<ServicesScreen> {
                           ),
                           ElevatedButton(
                             onPressed: () async {
-                              newService.name = nameController.text.isNotEmpty
-                                  ? nameController.text
-                                  : service!.name;
-                              newService.price = priceController.text.isNotEmpty
-                                  ? double.tryParse(priceController.text) ??
-                                      service!.price
-                                  : service!.price;
-                              newService.discount = discountController
-                                      .text.isNotEmpty
-                                  ? double.tryParse(discountController.text)! /
-                                      100
-                                  : service!.discount;
-                              newService.imageData = base64Image;
-                              newService.details =
-                                  detailsController.text.isNotEmpty
-                                      ? detailsController.text
-                                      : service!.details;
-                              newService.duration =
-                                  _durationToISO8601(selectedDuration);
-                              newService.serviceTypeId =
-                                  newService.serviceTypeId ??
-                                      service!.serviceTypeId;
                               if (edit) {
+                                newService.name = nameController.text.isNotEmpty
+                                    ? nameController.text
+                                    : service!.name;
+                                newService.price = priceController
+                                        .text.isNotEmpty
+                                    ? double.tryParse(priceController.text) ??
+                                        service!.price
+                                    : service!.price;
+                                newService.discount =
+                                    discountController.text.isNotEmpty
+                                        ? double.tryParse(
+                                                discountController.text)! /
+                                            100
+                                        : service!.discount;
+                                newService.imageData = base64Image;
+                                newService.details =
+                                    detailsController.text.isNotEmpty
+                                        ? detailsController.text
+                                        : service!.details;
+                                newService.duration =
+                                    _durationToISO8601(selectedDuration);
+                                newService.serviceTypeId =
+                                    newService.serviceTypeId ??
+                                        service!.serviceTypeId;
                                 await Provider.of<CarRepairShopServiceProvider>(
                                         context,
                                         listen: false)
@@ -460,7 +460,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                           listen: false)
                                       .insertService(newService)
                                       .then((_) {
-                                    Provider.of<CarRepairShopServiceProvider>(context,
+                                    Provider.of<CarRepairShopServiceProvider>(
+                                            context,
                                             listen: false)
                                         .getByCarRepairShop();
                                   });
@@ -525,7 +526,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                     child: Center(
                       child: Text(_isFilterApplied
                           ? 'No results found for your search.'
-                          : 'No items available.'),
+                          : 'No services available.'),
                     ),
                   )
                 else

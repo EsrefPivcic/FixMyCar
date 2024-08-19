@@ -31,6 +31,7 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<CarManufacturer> CarManufacturers { get; set; }
         public virtual DbSet<StoreItemCategory> StoreItemCategory { get; set; }
         public virtual DbSet<CarPartsShopClientDiscount> CarPartsShopClientDiscounts { get; set; }
+        public virtual DbSet<CarRepairShopDiscount> CarRepairShopDiscounts { get; set; }
         public virtual DbSet<CarRepairShopService> CarRepairShopServices { get; set; }
         public virtual DbSet<ServiceType> ServiceTypes { get; set; }
 
@@ -57,6 +58,12 @@ namespace FixMyCar.Services.Database
                 .HasOne(o => o.CarPartsShop)
                 .WithMany()
                 .HasForeignKey(o => o.CarPartsShopId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CarRepairShopDiscount>()
+                .HasOne(o => o.Client)
+                .WithMany()
+                .HasForeignKey(o => o.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Order>()
