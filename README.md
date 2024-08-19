@@ -67,7 +67,7 @@ Start the API by running the solution.
 
 #### Navigate to the UI Folder:
 
-In the solution folder (`FixMyCar`), navigate to `FixMyCar.UI/fixmycar_car_parts_shop`. This is the Windows app for car parts shops (other apps will be added later as the project develops).
+In the solution folder (`FixMyCar`), navigate to `FixMyCar.UI/fixmycar_car_parts_shop` or `FixMyCar.UI/fixmycar_car_repair_shop`. Those are the Windows apps for car parts shops and car repair shops (other apps will be added later as the project develops).
 
 #### Open the folder with Visual Studio Code:
 
@@ -91,6 +91,11 @@ Use the following credentials to test the car parts shop app:
 
 - Username: carpartsshop
 - Password: carpartsshop
+
+Use the following credentials to test the car parts shop app:
+
+- Username: carrepairshop
+- Password: carrepairshop
 
 Feel free to explore and test the current features of the app.
 
