@@ -12,6 +12,7 @@ namespace FixMyCar.Model.DTOs.CarRepairShopService
     {
         public int Id { get; set; }
         public string CarRepairShopName { get; set; }
+        public int ServiceTypeId { get; set; }
         public string ServiceTypeName { get; set; }
         public string Name { get; set; }
         public double Price { get; set; }

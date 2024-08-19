@@ -25,7 +25,7 @@ namespace FixMyCar.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<TGet> Update(int id, TUpdate request)
+        public async Task<TGet> Update(int id, [FromBody] TUpdate request)
         {
             return await _service.Update(id, request);
         }

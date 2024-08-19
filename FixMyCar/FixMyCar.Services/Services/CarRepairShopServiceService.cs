@@ -37,12 +37,35 @@ namespace FixMyCar.Services.Services
                 {
                     query = query.Where(x => x.CarRepairShop.Username == search.CarRepairShopName);
                 }
+                if (!string.IsNullOrEmpty(search?.Name))
+                {
+                    query = query.Where(x => x.Name.Contains(search.Name));
+                }
+                if (!string.IsNullOrEmpty(search?.State))
+                {
+                    query = query.Where(x => x.State.Contains(search.State));
+                }
+                if (search?.WithDiscount != null)
+                {
+                    if (search.WithDiscount == false)
+                    {
+                        query = query.Where(x => x.Discount == 0);
+                    }
+                    else
+                    {
+                        query = query.Where(x => x.Discount != 0);
+                    }
+                }
+                if (search?.ServiceType != null) 
+                {
+                    query = query.Where(x => x.ServiceType.Name == search.ServiceType);
+                }
             }
             return base.AddFilter(query, search);
         }
         public override async Task<CarRepairShopServiceGetDTO> Insert(CarRepairShopServiceInsertDTO request)
         {
-            if (request.ServiceTypeId != null && request.Name != null && request.Discount != null && request.Price != null && request.Duration != null)
+            if (request.ServiceTypeId != null && request.Name != null && request.Price != null && request.Duration != null)
             {
                var state = _baseCarRepairShopServiceState.CreateState("initial");
                return await state.Insert(request);

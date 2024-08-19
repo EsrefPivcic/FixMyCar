@@ -16,7 +16,7 @@ namespace FixMyCar.API.Controllers
         }
 
         [HttpPost()]
-        public async override Task<CarRepairShopServiceGetDTO> Insert(CarRepairShopServiceInsertDTO request)
+        public async override Task<CarRepairShopServiceGetDTO> Insert([FromBody] CarRepairShopServiceInsertDTO request)
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             request.CarRepairShopName = username;

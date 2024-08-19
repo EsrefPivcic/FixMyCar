@@ -507,8 +507,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               await Provider.of<StoreItemProvider>(context, listen: false)
                   .deleteStoreItem(item.id)
                   .then((_) {
-                Provider.of<StoreItemProvider>(context, listen: false)
-                    .getStoreItems();
+                _applyFilters();
               });
             }
           },
@@ -547,8 +546,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               await Provider.of<StoreItemProvider>(context, listen: false)
                   .activate(item.id)
                   .then((_) {
-                Provider.of<StoreItemProvider>(context, listen: false)
-                    .getStoreItems();
+                _applyFilters();
               });
             }
           },
@@ -590,8 +588,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               await Provider.of<StoreItemProvider>(context, listen: false)
                   .hide(item.id)
                   .then((_) {
-                Provider.of<StoreItemProvider>(context, listen: false)
-                    .getStoreItems();
+                _applyFilters();
               });
             }
           },
@@ -843,9 +840,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                         listen: false)
                                     .updateStoreItem(item!.id, newStoreItem)
                                     .then((_) {
-                                  Provider.of<StoreItemProvider>(context,
-                                          listen: false)
-                                      .getStoreItems();
+                                  _applyFilters();
                                 });
                                 Navigator.of(context).pop();
                               } else {
