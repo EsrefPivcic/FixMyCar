@@ -13,11 +13,6 @@ namespace FixMyCar.Services.Mapping
     {
         public OrderDetailProfile() 
         {
-            CreateMap<OrderDetailInsertDTO, OrderDetail>();
-            CreateMap<OrderDetailUpdateDTO, OrderDetail>();
-            CreateMap<OrderDetailGetDTO, OrderDetail>();
-            CreateMap<OrderDetail, OrderDetailInsertDTO>();
-            CreateMap<OrderDetail, OrderDetailUpdateDTO>();
             CreateMap<OrderDetail, OrderDetailGetDTO>()
                 .ForMember(dest => dest.StoreItemName, opt => opt.MapFrom(src => src.StoreItem != null ? src.StoreItem.Name : "Unknown"));
         }

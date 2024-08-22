@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/home_screen.dart';
-import 'package:fixmycar_car_repair_shop/src/screens/orders_screen.dart';
+import 'package:fixmycar_car_repair_shop/src/screens/reservations_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/services_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/discounts_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/car_parts_screen.dart';
@@ -41,7 +41,7 @@ class MasterScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildNavButton(context, 'Home'),
-                    _buildNavButton(context, 'Orders'),
+                    _buildNavButton(context, 'Reservations'),
                     _buildNavButton(context, 'Services'),
                     _buildNavButton(context, 'Discounts'),
                     _buildNavButton(context, 'Car Parts'),
@@ -78,10 +78,10 @@ class MasterScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => const DiscountsScreen()),
           );
-        } else if (label == 'Orders') {
+        } else if (label == 'Reservations') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const OrdersScreen()),
+            MaterialPageRoute(builder: (context) => const ReservationsScreen()),
           );
         } else if (label == 'Car Parts') {
           Navigator.push(

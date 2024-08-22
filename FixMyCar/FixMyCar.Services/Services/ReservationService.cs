@@ -37,7 +37,7 @@ namespace FixMyCar.Services.Services
             {
                 if (search?.CarRepairShopName != null)
                 {
-                    query = query.Where(x => x.CarRepairShop.Name == search.CarRepairShopName);
+                    query = query.Where(x => x.CarRepairShop.Username == search.CarRepairShopName);
                 }
 
                 if (search?.Discount != null)

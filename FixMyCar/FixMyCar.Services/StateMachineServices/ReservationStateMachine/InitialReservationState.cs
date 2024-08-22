@@ -38,6 +38,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             }
 
             entity.TotalAmount = 0;
+            entity.TotalDuration = new TimeSpan();
 
             foreach (var serviceId in request.Services)
             {
@@ -45,6 +46,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 if (service != null)
                 {
                     entity.TotalAmount += service.DiscountedPrice;
+                    entity.TotalDuration += service.Duration;
                 }
             }
 
