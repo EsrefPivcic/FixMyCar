@@ -68,20 +68,15 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             {
                 case "initial":
                 case null:
-                    return _serviceProvider.GetService<InitialOrderState>();
-                    break;
+                    return _serviceProvider.GetService<InitialOrderState>()!;
                 case "onhold":
-                    return _serviceProvider.GetService<OnHoldOrderState>();
-                    break;
+                    return _serviceProvider.GetService<OnHoldOrderState>()!;
                 case "accepted":
-                    return _serviceProvider.GetService<AcceptedOrderState>();
-                    break;
+                    return _serviceProvider.GetService<AcceptedOrderState>()!;
                 case "rejected":
-                    return _serviceProvider.GetService<RejectedOrderState>();
-                    break;
+                    return _serviceProvider.GetService<RejectedOrderState>()!;
                 case "cancelled":
-                    return _serviceProvider.GetService<CancelledOrderState>();
-                    break;
+                    return _serviceProvider.GetService<CancelledOrderState>()!;
 
                 default:
                     throw new UserException("Action not allowed.");

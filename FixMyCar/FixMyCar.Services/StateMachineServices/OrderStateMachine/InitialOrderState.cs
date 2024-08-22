@@ -37,7 +37,7 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             }
             else
             {
-                throw new UserException("Invalid user type for discount");
+                throw new UserException("Invalid user role.");
             }
 
             entity.State = "onhold";
@@ -50,13 +50,15 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
                 entity.TotalAmount = entity.TotalAmount + (storeItemDetails.DiscountedPrice * storeItem.Quantity);
             }
 
-            var discount = await _context.CarPartsShopClientDiscounts.FirstOrDefaultAsync(d => ((d.ClientId == user.Id || d.CarRepairShopId == user.Id) && d.CarPartsShopId == entity.CarPartsShopId) && d.Revoked != null);
+            var discount = await _context.CarPartsShopClientDiscounts.FirstOrDefaultAsync(d => ((d.ClientId == user.Id || d.CarRepairShopId == user.Id) && d.CarPartsShopId == entity.CarPartsShopId) && d.Revoked == null);
 
             if (discount != null)
             {
                 entity.ClientDiscountId = discount.Id;
                 entity.TotalAmount = entity.TotalAmount - (entity.TotalAmount * discount.Value);
             }
+
+            entity.OrderDate = DateTime.Now;
 
             set.Add(entity);
 

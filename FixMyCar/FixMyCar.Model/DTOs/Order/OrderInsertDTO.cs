@@ -13,7 +13,6 @@ namespace FixMyCar.Model.DTOs.Order
     {
         public int CarPartsShopId { get; set; }
         public string? Username { get; set; }
-        public DateTime OrderDate { get; set; }
         public int CityId { get; set; }
         public string ShippingAddress { get; set; }
         public string ShippingPostalCode { get; set; }

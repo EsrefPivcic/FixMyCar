@@ -32,6 +32,7 @@ builder.Services.AddTransient<IStoreItemCategoryService, StoreItemCategoryServic
 builder.Services.AddTransient<ICarPartsShopClientDiscountService, CarPartsShopClientDiscountService>();
 builder.Services.AddTransient<ICarRepairShopDiscountService, CarRepairShopDiscountService>();
 builder.Services.AddTransient<IServiceTypeService, ServiceTypeService>();
+builder.Services.AddTransient<IReservationService, ReservationService>();
 
 builder.Services.AddTransient<BaseStoreItemState>();
 builder.Services.AddTransient<InitialStoreItemState>();

@@ -34,6 +34,8 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<CarRepairShopDiscount> CarRepairShopDiscounts { get; set; }
         public virtual DbSet<CarRepairShopService> CarRepairShopServices { get; set; }
         public virtual DbSet<ServiceType> ServiceTypes { get; set; }
+        public virtual DbSet<Reservation> Reservations { get; set; }
+        public virtual DbSet<ReservationDetail> ReservationDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
