@@ -6,6 +6,7 @@ using FixMyCar.Services.Mapping;
 using FixMyCar.Services.Services;
 using FixMyCar.Services.StateMachineServices.CarRepairShopServiceStateMachine;
 using FixMyCar.Services.StateMachineServices.OrderStateMachine;
+using FixMyCar.Services.StateMachineServices.ReservationStateMachine;
 using FixMyCar.Services.StateMachineServices.StoreItemStateMachine;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,15 @@ builder.Services.AddTransient<OnHoldOrderState>();
 builder.Services.AddTransient<AcceptedOrderState>();
 builder.Services.AddTransient<RejectedOrderState>();
 builder.Services.AddTransient<CancelledOrderState>();
+
+builder.Services.AddTransient<BaseReservationState>();
+builder.Services.AddTransient<InitialReservationState>();
+builder.Services.AddTransient<OnHoldWithoutOrderReservationState>();
+builder.Services.AddTransient<OnHoldWithOrderReservationState>();
+builder.Services.AddTransient<AcceptedReservationState>();
+builder.Services.AddTransient<RejectedReservationState>();
+builder.Services.AddTransient<CancelledReservationState>();
+builder.Services.AddTransient<CompletedReservationState>();
 
 builder.Services.AddTransient<SeedService>();
 

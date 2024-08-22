@@ -73,7 +73,7 @@ namespace FixMyCar.Services.Services
                     {
                         if (search?.MinShippingDate != null && search?.MaxShippingDate != null)
                         {
-                            query = query.Where(x => x.ShippingDate >= search.MinShippingDate && x.OrderDate <= search.MaxShippingDate);
+                            query = query.Where(x => x.ShippingDate >= search.MinShippingDate && x.ShippingDate <= search.MaxShippingDate);
                         }
 
                         if (search?.MinShippingDate != null && search?.MaxShippingDate == null)

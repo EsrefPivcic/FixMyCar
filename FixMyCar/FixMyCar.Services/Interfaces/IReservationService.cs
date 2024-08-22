@@ -11,5 +11,12 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface IReservationService : IBaseService<Reservation, ReservationGetDTO, ReservationInsertDTO, ReservationUpdateDTO, ReservationSearchObject>
     {
+        Task<ReservationGetDTO> AddOrder(int id, ReservationUpdateDTO request);
+        Task<ReservationGetDTO> Accept(int id);
+        Task<ReservationGetDTO> Reject(int id);
+        Task<ReservationGetDTO> Cancel(int id);
+        Task<ReservationGetDTO> Resend(int id);
+        Task<ReservationGetDTO> Complete(int id);
+        Task<List<string>> AllowedActions(int id);
     }
 }

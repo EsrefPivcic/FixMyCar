@@ -68,6 +68,18 @@ namespace FixMyCar.Services.Database
                 .HasForeignKey(o => o.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Reservation>()
+                .HasOne(o => o.Client)
+                .WithMany()
+                .HasForeignKey(o => o.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReservationDetail>()
+                .HasOne(rd => rd.Reservation)
+                .WithMany(r => r.ReservationDetails)
+                .HasForeignKey(rd => rd.ReservationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.CarRepairShop)
                 .WithMany()

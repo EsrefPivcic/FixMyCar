@@ -10,7 +10,6 @@ namespace FixMyCar.Model.SearchObjects
     {
         public string? CarRepairShopName { get; set; }
         public bool? Discount { get; set; }
-        public bool? WithOrder { get; set; }
         public string? State { get; set; }
         public double? MinTotalAmount { get; set; }
         public double? MaxTotalAmount { get; set; }
