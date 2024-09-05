@@ -20,15 +20,29 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
         public override async Task<ReservationGetDTO> AddOrder(Reservation entity, int orderId, string username)
         {
-            var order = await _context.Orders.Include("CarRepairShop")
-                .FirstOrDefaultAsync(x => x.Id == orderId) ?? 
+            var order = await _context.Orders.Include("CarRepairShop").Include("Client")
+                .FirstOrDefaultAsync(x => x.Id == orderId) ??
                 throw new UserException($"Order #{orderId} doesn't exist!");
-            
-            if (order.CarRepairShop == null || order.CarRepairShop!.Username != username)
+
+            if (order.CarRepairShop != null)
             {
-                throw new UserException($"Order #{orderId} is not made by {username}!");
+                if (order.CarRepairShop.Username != username)
+                {
+                    throw new UserException($"Order #{orderId} is not made by {username}!");
+                }
             }
-            else
+
+            if (order.Client != null)
+            {
+                if (order.Client.Username != username)
+                {
+                    throw new UserException($"Order #{orderId} is not made by {username}!");
+                }
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username) ?? throw new UserException("User not found");
+
+            if ((entity.ClientOrder == true && user is Client) || (entity.ClientOrder == false && user is CarRepairShop))
             {
                 entity.OrderId = order.Id;
 
@@ -37,6 +51,10 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 await _context.SaveChangesAsync();
 
                 return _mapper.Map<ReservationGetDTO>(entity);
+            }
+            else
+            {
+                throw new UserException("Not allowed!");
             }
         }
 

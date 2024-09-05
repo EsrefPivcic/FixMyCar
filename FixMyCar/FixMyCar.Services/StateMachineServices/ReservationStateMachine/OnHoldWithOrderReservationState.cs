@@ -25,8 +25,10 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             return _mapper.Map<ReservationGetDTO>(entity);
         }
 
-        public override async Task<ReservationGetDTO> Accept(Reservation entity)
+        public override async Task<ReservationGetDTO> Accept(Reservation entity, DateTime estimatedCompletionDate)
         {
+            entity.EstimatedCompletionDate = estimatedCompletionDate;
+
             entity.State = "accepted";
 
             await _context.SaveChangesAsync();

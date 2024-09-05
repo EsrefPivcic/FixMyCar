@@ -14,8 +14,10 @@ namespace FixMyCar.Model.DTOs.Reservation
         public string CarRepairShopName { get; set; }
         public string ClientUsername { get; set; }
         public int? OrderId { get; set; }
+        public bool? ClientOrder { get; set; }
         public DateTime ReservationCreatedDate { get; set; }
         public DateTime ReservationDate { get; set; }
+        public DateTime? EstimatedCompletionDate { get; set; }
         public DateTime? CompletionDate { get; set; }
         public double TotalAmount { get; set; }
         public TimeSpan TotalDuration { get; set; }

@@ -60,6 +60,7 @@ builder.Services.AddTransient<OnHoldWithOrderReservationState>();
 builder.Services.AddTransient<AcceptedReservationState>();
 builder.Services.AddTransient<RejectedReservationState>();
 builder.Services.AddTransient<CancelledReservationState>();
+builder.Services.AddTransient<OngoingReservationState>();
 builder.Services.AddTransient<CompletedReservationState>();
 
 builder.Services.AddTransient<SeedService>();

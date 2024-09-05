@@ -5,6 +5,7 @@ using FixMyCar.Model.SearchObjects;
 using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using System.Security.Claims;
 
 namespace FixMyCar.API.Controllers
@@ -31,10 +32,10 @@ namespace FixMyCar.API.Controllers
             return await (_service as IReservationService)!.AddOrder(id, orderId, username);
         }
 
-        [HttpPut("Accept/{id}")]
-        public virtual async Task<ReservationGetDTO> Accept(int id)
+        [HttpPut("Accept/{id}/{estimatedCompletionDate}")]
+        public virtual async Task<ReservationGetDTO> Accept(int id, DateTime estimatedCompletionDate)
         {
-            return await (_service as IReservationService)!.Accept(id);
+            return await (_service as IReservationService)!.Accept(id, estimatedCompletionDate);
         }
 
         [HttpPut("Reject/{id}")]
@@ -53,6 +54,18 @@ namespace FixMyCar.API.Controllers
         public virtual async Task<ReservationGetDTO> Resend(int id)
         {
             return await (_service as IReservationService)!.Resend(id);
+        }
+
+        [HttpPut("Start/{id}")]
+        public virtual async Task<ReservationGetDTO> Start(int id)
+        {
+            return await (_service as IReservationService)!.Start(id);
+        }
+
+        [HttpPut("UpdateEstimatedDate/{id}/{newEstimatedCompletion}")]
+        public virtual async Task<ReservationGetDTO> UpdateEstimatedDate(int id, DateTime newEstimatedCompletion)
+        {
+            return await (_service as IReservationService)!.UpdateEstimatedDate(id, newEstimatedCompletion);
         }
 
         [HttpPut("Complete/{id}")]

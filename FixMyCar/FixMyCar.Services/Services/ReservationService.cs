@@ -2,6 +2,7 @@
 using FixMyCar.Model.DTOs.Reservation;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.StateMachineServices.OrderStateMachine;
@@ -134,63 +135,117 @@ namespace FixMyCar.Services.Services
         {
             var entity = await _context.Reservations.FindAsync(id);
 
-            var state = _baseReservationState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
 
-            return await state.Update(entity, request);
+                return await state.Update(entity, request);
+            }
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<ReservationGetDTO> AddOrder(int id, int orderId, string username)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
-            var state = _baseReservationState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
 
-            return await state.AddOrder(entity, orderId, username);
+                return await state.AddOrder(entity, orderId, username);
+            }
+            throw new UserException("Entity doesn't exist!");
         }
 
-        public async Task<ReservationGetDTO> Accept(int id)
+        public async Task<ReservationGetDTO> Accept(int id, DateTime estimatedCompletionDate)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
-            var state = _baseReservationState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
 
-            return await state.Accept(entity);
+                return await state.Accept(entity, estimatedCompletionDate);
+            }
+            throw new UserException("Entity doesn't exist!");
+        }
+
+        public async Task<ReservationGetDTO> UpdateEstimatedDate(int id, DateTime newEstimatedCompletion)
+        {
+            var entity = await _context.Reservations.FindAsync(id);
+
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
+
+                return await state.UpdateEstimatedDate(entity, newEstimatedCompletion);
+            }
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<ReservationGetDTO> Reject(int id)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
-            var state = _baseReservationState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
 
-            return await state.Reject(entity);
+                return await state.Reject(entity);
+            }
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<ReservationGetDTO> Cancel(int id)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
-            var state = _baseReservationState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
 
-            return await state.Cancel(entity);
+                return await state.Cancel(entity);
+            }
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<ReservationGetDTO> Resend(int id)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
-            var state = _baseReservationState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
 
-            return await state.Resend(entity);
+                return await state.Resend(entity);
+            }
+            throw new UserException("Entity doesn't exist!");
+        }
+
+        public async Task<ReservationGetDTO> Start(int id)
+        {
+            var entity = await _context.Reservations.FindAsync(id);
+
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
+
+                return await state.Start(entity);
+            }
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<ReservationGetDTO> Complete(int id)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
-            var state = _baseReservationState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
 
-            return await state.Complete(entity);
+                return await state.Complete(entity);
+            }
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<List<string>> AllowedActions(int id)

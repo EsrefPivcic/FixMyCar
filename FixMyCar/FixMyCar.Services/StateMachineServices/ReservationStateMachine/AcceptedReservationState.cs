@@ -16,11 +16,9 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
         {
         }
 
-        public override async Task<ReservationGetDTO> Complete(Reservation entity)
+        public override async Task<ReservationGetDTO> Start(Reservation entity)
         {
-            entity.State = "completed";
-
-            entity.CompletionDate = DateTime.Now;
+            entity.State = "ongoing";
 
             await _context.SaveChangesAsync();
 
@@ -31,7 +29,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
         {
             var list = await base.AllowedActions();
 
-            list.Add("Complete");
+            list.Add("Ongoing");
 
             return list;
         }

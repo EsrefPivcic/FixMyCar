@@ -40,7 +40,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             throw new UserException("Action not allowed.");
         }
 
-        public virtual async Task<ReservationGetDTO> Accept(Reservation entity)
+        public virtual async Task<ReservationGetDTO> Accept(Reservation entity, DateTime estimatedCompletionDate)
         {
             throw new UserException("Action not allowed.");
         }
@@ -60,7 +60,17 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             throw new UserException("Action not allowed.");
         }
 
+        public virtual async Task<ReservationGetDTO> Start(Reservation entity)
+        {
+            throw new UserException("Action not allowed.");
+        }
+
         public virtual async Task<ReservationGetDTO> Complete(Reservation entity)
+        {
+            throw new UserException("Action not allowed.");
+        }
+
+        public virtual async Task<ReservationGetDTO> UpdateEstimatedDate(Reservation entity, DateTime newEstimatedCompletion)
         {
             throw new UserException("Action not allowed.");
         }
@@ -80,6 +90,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 "accepted" => _serviceProvider.GetService<AcceptedReservationState>()!,
                 "rejected" => _serviceProvider.GetService<RejectedReservationState>()!,
                 "cancelled" => _serviceProvider.GetService<CancelledReservationState>()!,
+                "ongoing" => _serviceProvider.GetService<OngoingReservationState>()!,
                 "completed" => _serviceProvider.GetService<CompletedReservationState>()!,
                 _ => throw new UserException("Action not allowed."),
             };
