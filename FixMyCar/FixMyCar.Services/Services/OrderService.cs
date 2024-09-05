@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using FixMyCar.Services.StateMachineServices.OrderStateMachine;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using FixMyCar.Model.Utilities;
 
 namespace FixMyCar.Services.Services
 {
@@ -119,6 +121,33 @@ namespace FixMyCar.Services.Services
                 }
             }
             return base.AddFilter(query, search);
+        }
+
+        public async Task<OrderBasicInfoGetDTO> GetBasicOrderInfo(int id)
+        {
+            var entity = await _context.Orders
+                .Include("CarRepairShop")
+                .Include("CarPartsShop")
+                .Include("Client").FirstOrDefaultAsync(o => o.Id == id)
+                ?? throw new UserException($"Order #{id} doesn't exist!");
+
+            OrderBasicInfoGetDTO orderInfo = _mapper.Map<OrderBasicInfoGetDTO>(entity);
+
+            List<OrderDetail>? details = await _context.OrderDetails.Where(od => od.OrderId == entity.Id).Include("StoreItem").ToListAsync();
+
+            if (details != null)
+            {
+                orderInfo.Items = new List<string>();
+                foreach (var detail in details)
+                {
+                    orderInfo.Items.Add(detail.StoreItem.Name);
+                }
+                return orderInfo;
+            }
+            else
+            {
+                throw new UserException("No order details found!");
+            }
         }
 
         public override async Task<OrderGetDTO> Insert(OrderInsertDTO request)

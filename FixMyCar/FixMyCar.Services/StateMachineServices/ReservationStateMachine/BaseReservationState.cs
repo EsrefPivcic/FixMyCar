@@ -35,7 +35,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             throw new UserException("Action not allowed.");
         }
 
-        public virtual async Task<ReservationGetDTO> AddOrder(Reservation entity, ReservationUpdateDTO request)
+        public virtual async Task<ReservationGetDTO> AddOrder(Reservation entity, int orderId, string username)
         {
             throw new UserException("Action not allowed.");
         }

@@ -21,49 +21,50 @@ namespace FixMyCar.API.Controllers
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             request.ClientUsername = username;
-            return await (_service as IReservationService).Insert(request);
+            return await (_service as IReservationService)!.Insert(request);
         }
 
-        [HttpPut("AddOrder/{id}")]
-        public virtual async Task<ReservationGetDTO> AddOrder(int id, ReservationUpdateDTO request)
+        [HttpPut("AddOrder/{id}/{orderId}")]
+        public virtual async Task<ReservationGetDTO> AddOrder(int id, int orderId)
         {
-            return await (_service as IReservationService).AddOrder(id, request);
+            string username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value!;
+            return await (_service as IReservationService)!.AddOrder(id, orderId, username);
         }
 
         [HttpPut("Accept/{id}")]
         public virtual async Task<ReservationGetDTO> Accept(int id)
         {
-            return await (_service as IReservationService).Accept(id);
+            return await (_service as IReservationService)!.Accept(id);
         }
 
         [HttpPut("Reject/{id}")]
         public virtual async Task<ReservationGetDTO> Reject(int id)
         {
-            return await (_service as IReservationService).Reject(id);
+            return await (_service as IReservationService)!.Reject(id);
         }
 
         [HttpPut("Cancel/{id}")]
         public virtual async Task<ReservationGetDTO> Cancel(int id)
         {
-            return await (_service as IReservationService).Cancel(id);
+            return await (_service as IReservationService)!.Cancel(id);
         }
 
         [HttpPut("Resend/{id}")]
         public virtual async Task<ReservationGetDTO> Resend(int id)
         {
-            return await (_service as IReservationService).Resend(id);
+            return await (_service as IReservationService)!.Resend(id);
         }
 
         [HttpPut("Complete/{id}")]
         public virtual async Task<ReservationGetDTO> Complete(int id)
         {
-            return await (_service as IReservationService).Complete(id);
+            return await (_service as IReservationService)!.Complete(id);
         }
 
         [HttpGet("AllowedActions/{id}")]
         public virtual async Task<List<string>> AllowedActions(int id)
         {
-            return await (_service as IReservationService).AllowedActions(id);
+            return await (_service as IReservationService)!.AllowedActions(id);
         }
 
         [HttpGet("GetByCarRepairShop")]
@@ -71,7 +72,7 @@ namespace FixMyCar.API.Controllers
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             search.CarRepairShopName = username;
-            return await (_service as IReservationService).Get(search);
+            return await (_service as IReservationService)!.Get(search);
         }
     }
 }

@@ -24,6 +24,13 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.ClientUsername) ?? throw new UserException("User not found");
 
+            var order = await _context.Orders.Include("Client").FirstOrDefaultAsync(x => x.Id == request.OrderId) ?? throw new UserException($"Order #{request.OrderId} doesn't exist!");
+
+            if (order.Client == null || order.Client!.Username != user.Username)
+            {
+                throw new UserException($"Order #{request.OrderId} is not made by {user.Username}!");
+            }
+
             Reservation entity = _mapper.Map<Reservation>(request);
 
             entity.ClientId = user.Id;

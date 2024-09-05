@@ -139,13 +139,13 @@ namespace FixMyCar.Services.Services
             return await state.Update(entity, request);
         }
 
-        public async Task<ReservationGetDTO> AddOrder(int id, ReservationUpdateDTO request)
+        public async Task<ReservationGetDTO> AddOrder(int id, int orderId, string username)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
             var state = _baseReservationState.CreateState(entity.State);
 
-            return await state.AddOrder(entity, request);
+            return await state.AddOrder(entity, orderId, username);
         }
 
         public async Task<ReservationGetDTO> Accept(int id)

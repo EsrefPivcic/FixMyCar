@@ -17,5 +17,6 @@ namespace FixMyCar.Services.Interfaces
         Task<OrderGetDTO> Cancel(int id);
         Task<OrderGetDTO> Resend(int id);
         Task<List<string>> AllowedActions(int id);
+        Task<OrderBasicInfoGetDTO> GetBasicOrderInfo(int id);
     }
 }

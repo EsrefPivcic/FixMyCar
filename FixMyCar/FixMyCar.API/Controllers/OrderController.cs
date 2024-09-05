@@ -55,6 +55,12 @@ namespace FixMyCar.API.Controllers
             return await (_service as IOrderService).AllowedActions(id);
         }
 
+        [HttpGet("GetBasicOrderInfo/{id}")]
+        public virtual async Task<OrderBasicInfoGetDTO> GetBasicOrderInfo(int id)
+        {
+            return await (_service as IOrderService).GetBasicOrderInfo(id);
+        }
+
         [HttpGet("GetByCarPartsShop")]
         public async Task<PagedResult<OrderGetDTO>> GetByCarPartsShop([FromQuery] OrderSearchObject? search = null)
         {
