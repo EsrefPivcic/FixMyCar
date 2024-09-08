@@ -53,9 +53,37 @@ namespace FixMyCar.Services.Services
                     }
                 }
 
-                if (!string.IsNullOrEmpty(search?.State))
+                if (search?.ClientOrder != null)
+                {
+                    query = query.Where(x => x.ClientOrder == search.ClientOrder);
+                }
+
+                if (!string.IsNullOrEmpty(search?.Type))
+                {
+                    query = query.Where(x => x.Type.Contains(search.Type));
+                }
+
+                    if (!string.IsNullOrEmpty(search?.State))
                 {
                     query = query.Where(x => x.State.Contains(search.State));
+
+                    if ((search?.State == "accepted" || search?.State == "ongoing" || search?.State == "completed") && (search.MinEstimatedCompletionDate != null || search?.MaxEstimatedCompletionDate != null))
+                    {
+                        if (search?.MinEstimatedCompletionDate != null && search?.MaxEstimatedCompletionDate != null)
+                        {
+                            query = query.Where(x => x.CompletionDate >= search.MinEstimatedCompletionDate && x.CompletionDate <= search.MaxEstimatedCompletionDate);
+                        }
+
+                        if (search?.MinEstimatedCompletionDate != null && search?.MaxEstimatedCompletionDate == null)
+                        {
+                            query = query.Where(x => x.CompletionDate >= search.MinEstimatedCompletionDate);
+                        }
+
+                        if (search?.MinEstimatedCompletionDate == null && search?.MaxEstimatedCompletionDate != null)
+                        {
+                            query = query.Where(x => x.CompletionDate <= search.MaxEstimatedCompletionDate);
+                        }
+                    }
 
                     if (search?.State == "completed" && (search.MinCompletionDate != null || search?.MaxCompletionDate != null))
                     {

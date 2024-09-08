@@ -3,6 +3,7 @@ import 'package:fixmycar_car_repair_shop/src/providers/reservation_detail_provid
 import 'package:fixmycar_car_repair_shop/src/providers/reservation_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/models/reservation/reservation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +41,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
         return "On hold (With Order)";
       case "accepted":
         return "Accepted";
+      case "ongoing":
+        return "Ongoing";
       case "completed":
         return "Completed";
       case "rejected":
@@ -59,6 +62,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
         return Colors.blue.shade500;
       case 'accepted':
         return Colors.green.shade300;
+      case 'ongoing':
+        return Colors.orange.shade600;
       case 'completed':
         return Colors.green.shade500;
       case 'rejected':
@@ -75,7 +80,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Reject'),
-        content: const Text('Are you sure you want to reject this reservation?'),
+        content:
+            const Text('Are you sure you want to reject this reservation?'),
         actions: [
           TextButton(
             onPressed: () async {
@@ -110,18 +116,19 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     );
   }
 
-  Future _confirmAccept(int reservationId) async {
+  Future _confirmStart(int reservationId) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirm Accept'),
-        content: const Text('Are you sure you want to accept this reservation?'),
+        title: const Text('Confirm Start'),
+        content:
+            const Text('Are you sure you want to start this reservation?'),
         actions: [
           TextButton(
             onPressed: () async {
               try {
                 await Provider.of<ReservationProvider>(context, listen: false)
-                    .accept(reservationId)
+                    .start(reservationId)
                     .then((_) {
                   Provider.of<ReservationProvider>(context, listen: false)
                       .getByCarRepairShop(reservationSearch: filterCriteria);
@@ -150,7 +157,90 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     );
   }
 
-  Future<void> _showReservationDetails(BuildContext context, Reservation reservation) async {
+  Future _confirmComplete(int reservationId) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Completion'),
+        content:
+            const Text('Are you sure you want to complete this reservation?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<ReservationProvider>(context, listen: false)
+                    .complete(reservationId)
+                    .then((_) {
+                  Provider.of<ReservationProvider>(context, listen: false)
+                      .getByCarRepairShop(reservationSearch: filterCriteria);
+                });
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future _confirmAccept(int reservationId, String date) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Accept'),
+        content:
+            const Text('Are you sure you want to accept this reservation?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<ReservationProvider>(context, listen: false)
+                    .accept(reservationId, date)
+                    .then((_) {
+                  Provider.of<ReservationProvider>(context, listen: false)
+                      .getByCarRepairShop(reservationSearch: filterCriteria);
+                });
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showReservationDetails(
+      BuildContext context, Reservation reservation) async {
     final reservationDetailProvider =
         Provider.of<ReservationDetailProvider>(context, listen: false);
 
@@ -199,7 +289,9 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                               text: 'Reservation Created On: ',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            TextSpan(text: _formatDate(reservation.reservationCreatedDate)),
+                            TextSpan(
+                                text: _formatDate(
+                                    reservation.reservationCreatedDate)),
                           ],
                         ),
                       ),
@@ -210,7 +302,24 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                               text: 'Reservation Date: ',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            TextSpan(text: _formatDate(reservation.reservationDate)),
+                            TextSpan(
+                                text: _formatDate(reservation.reservationDate)),
+                          ],
+                        ),
+                      ),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            const TextSpan(
+                              text: 'Estimated Completion Date: ',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(
+                              text: reservation.estimatedCompletionDate == null
+                                  ? "Not accepted"
+                                  : _formatDate(
+                                      reservation.estimatedCompletionDate!),
+                            ),
                           ],
                         ),
                       ),
@@ -266,6 +375,33 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                           ],
                         ),
                       ),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            const TextSpan(
+                              text: 'Type: ',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(text: reservation.type),
+                          ],
+                        ),
+                      ),
+                      if (reservation.type != "Diagnostics") ...[
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Parts order handled by: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                  text: reservation.clientOrder == true
+                                      ? "Client"
+                                      : "Shop"),
+                            ],
+                          ),
+                        ),
+                      ],
                       Text.rich(
                         TextSpan(
                           children: [
@@ -341,7 +477,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                             child: const Text("Close"),
                           ),
                           const SizedBox(width: 8.0),
-                          if (reservation.state == "onholdwithoutorder" || reservation.state == "onholdwithorder") ...[
+                          if (reservation.state == "onholdwithoutorder" ||
+                              reservation.state == "onholdwithorder") ...[
                             ElevatedButton(
                               onPressed: () async {
                                 await _confirmReject(reservation.id);
@@ -354,14 +491,46 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                             const SizedBox(width: 8.0),
                             ElevatedButton(
                               onPressed: () async {
-                                await _confirmAccept(reservation.id);
+                                final DateTime? selectedDate =
+                                    await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime.now(),
+                                  lastDate: DateTime(2100),
+                                );
+                                if (selectedDate != null) {
+                                  await await _confirmAccept(reservation.id,
+                                      selectedDate.toIso8601String());
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Theme.of(context).hoverColor,
                               ),
                               child: const Text("Accept Reservation"),
                             ),
-                          ]
+                          ],
+                          if (reservation.state == "accepted") ...[
+                            ElevatedButton(
+                              onPressed: () async {
+                                await _confirmStart(reservation.id);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 47, 121, 51),
+                              ),
+                              child: const Text('Start Reservation'),
+                            ),
+                          ],
+                          if (reservation.state == "ongoing") ...[
+                            ElevatedButton(
+                              onPressed: () async {
+                                await _confirmComplete(reservation.id);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 47, 121, 51),
+                              ),
+                              child: const Text('Complete Reservation'),
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -376,6 +545,13 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     setState(() {
       filterCriteria.maxCompletionDate = null;
       filterCriteria.minCompletionDate = null;
+    });
+  }
+
+  void _clearEstimatedCompletionDates() {
+    setState(() {
+      filterCriteria.maxEstimatedCompletionDate = null;
+      filterCriteria.minEstimatedCompletionDate = null;
     });
   }
 
@@ -399,19 +575,23 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     filterCriteria.state = value;
                   });
                   _clearCompletionDates();
+                  _clearEstimatedCompletionDates();
                 },
               ),
-              RadioListTile(
-                title: const Text("On hold (Without Order)"),
-                value: "onholdwithoutorder",
-                groupValue: filterCriteria.state,
-                onChanged: (value) {
-                  setState(() {
-                    filterCriteria.state = value;
-                  });
-                  _clearCompletionDates();
-                },
-              ),
+              if (filterCriteria.type != "Diagnostics") ...[
+                RadioListTile(
+                  title: const Text("On hold (Without Order)"),
+                  value: "onholdwithoutorder",
+                  groupValue: filterCriteria.state,
+                  onChanged: (value) {
+                    setState(() {
+                      filterCriteria.state = value;
+                    });
+                    _clearCompletionDates();
+                    _clearEstimatedCompletionDates();
+                  },
+                ),
+              ],
               RadioListTile(
                 title: const Text("On hold (With Order)"),
                 value: "onholdwithorder",
@@ -421,11 +601,23 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     filterCriteria.state = value;
                   });
                   _clearCompletionDates();
+                  _clearEstimatedCompletionDates();
                 },
               ),
               RadioListTile(
                 title: const Text("Accepted"),
                 value: "accepted",
+                groupValue: filterCriteria.state,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.state = value;
+                  });
+                  _clearCompletionDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Ongoing"),
+                value: "ongoing",
                 groupValue: filterCriteria.state,
                 onChanged: (value) {
                   setState(() {
@@ -453,6 +645,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     filterCriteria.state = value;
                   });
                   _clearCompletionDates();
+                  _clearEstimatedCompletionDates();
                 },
               ),
               RadioListTile(
@@ -464,13 +657,59 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     filterCriteria.state = value;
                   });
                   _clearCompletionDates();
+                  _clearEstimatedCompletionDates();
+                },
+              ),
+            ],
+          ),
+          ExpansionTile(
+            title: const Text("Type"),
+            children: [
+              RadioListTile(
+                title: const Text("All"),
+                value: null,
+                groupValue: filterCriteria.type,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.type = value;
+                  });
+                },
+              ),
+              RadioListTile(
+                title: const Text("Repairs"),
+                value: "Repairs",
+                groupValue: filterCriteria.type,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.type = value;
+                  });
+                },
+              ),
+              RadioListTile(
+                title: const Text("Diagnostics"),
+                value: "Diagnostics",
+                groupValue: filterCriteria.type,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.type = value;
+                  });
+                },
+              ),
+              RadioListTile(
+                title: const Text("Repairs and Diagnostics"),
+                value: "Repairs and Diagnostics",
+                groupValue: filterCriteria.type,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.type = value;
+                  });
                 },
               ),
             ],
           ),
           if (filterCriteria.state == "completed") ...[
             ExpansionTile(
-              title: const Text("Completion period"),
+              title: const Text("Completion Period"),
               children: [
                 ListTile(
                   title: const Text('Start Completion Date'),
@@ -539,6 +778,94 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                           onPressed: () {
                             setState(() {
                               filterCriteria.maxCompletionDate = null;
+                            });
+                          },
+                          icon: const Icon(Icons.clear),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]
+              ],
+            )
+          ],
+          if (filterCriteria.state == "accepted" ||
+              filterCriteria.state == "ongoing" ||
+              filterCriteria.state == "completed") ...[
+            ExpansionTile(
+              title: const Text("Estimated Completion Period"),
+              children: [
+                ListTile(
+                  title: const Text('Start Estimated Completion Date'),
+                  subtitle: Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          final selectedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2100),
+                          );
+                          if (selectedDate != null) {
+                            setState(() {
+                              filterCriteria.minEstimatedCompletionDate =
+                                  selectedDate;
+                              filterCriteria.maxEstimatedCompletionDate = null;
+                            });
+                          }
+                        },
+                        child: Text(
+                          filterCriteria.minEstimatedCompletionDate != null
+                              ? DateFormat('dd.MM.yyyy').format(
+                                  filterCriteria.minEstimatedCompletionDate!)
+                              : "Select Date",
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            filterCriteria.minEstimatedCompletionDate = null;
+                          });
+                        },
+                        icon: const Icon(Icons.clear),
+                      ),
+                    ],
+                  ),
+                ),
+                if (filterCriteria.minEstimatedCompletionDate != null) ...[
+                  ListTile(
+                    title: const Text('End Estimated Completion Date'),
+                    subtitle: Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            final selectedDate = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  filterCriteria.minEstimatedCompletionDate!,
+                              firstDate:
+                                  filterCriteria.minEstimatedCompletionDate!,
+                              lastDate: DateTime(2100),
+                            );
+                            if (selectedDate != null) {
+                              setState(() {
+                                filterCriteria.maxEstimatedCompletionDate =
+                                    selectedDate;
+                              });
+                            }
+                          },
+                          child: Text(
+                            filterCriteria.maxEstimatedCompletionDate != null
+                                ? DateFormat('dd.MM.yyyy').format(
+                                    filterCriteria.maxEstimatedCompletionDate!)
+                                : "Select Date",
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              filterCriteria.maxEstimatedCompletionDate = null;
                             });
                           },
                           icon: const Icon(Icons.clear),
@@ -741,6 +1068,43 @@ class _ReservationsScreen extends State<ReservationsScreen> {
               ),
             ],
           ),
+          ExpansionTile(
+            title: const Text("Parts order handled by"),
+            children: [
+              RadioListTile(
+                title: const Text("All"),
+                value: null,
+                groupValue: filterCriteria.clientOrder,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.clientOrder = value;
+                  });
+                  _clearCompletionDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Client"),
+                value: true,
+                groupValue: filterCriteria.clientOrder,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.clientOrder = value;
+                  });
+                  _clearCompletionDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Shop"),
+                value: false,
+                groupValue: filterCriteria.clientOrder,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.clientOrder = value;
+                  });
+                },
+              ),
+            ],
+          ),
           ExpansionTile(title: const Text("Reservation price"), children: [
             RangeSlider(
               values: RangeValues(
@@ -795,7 +1159,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                 _buildFilterMenu(),
                 reservations.isEmpty
                     ? const Expanded(
-                        child: Center(child: Text('No reservations available.')))
+                        child:
+                            Center(child: Text('No reservations available.')))
                     : Expanded(
                         child: ListView.builder(
                           itemCount: reservations.length,
@@ -824,20 +1189,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold),
                                         ),
-                                        TextSpan(text: reservation.clientUsername)
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Reservation Created Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
                                         TextSpan(
-                                            text: _formatDate(reservation.reservationCreatedDate))
+                                            text: reservation.clientUsername)
                                       ],
                                     ),
                                   ),
@@ -850,7 +1203,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                               fontWeight: FontWeight.bold),
                                         ),
                                         TextSpan(
-                                            text: _formatDate(reservation.reservationDate))
+                                            text: _formatDate(
+                                                reservation.reservationDate))
                                       ],
                                     ),
                                   ),
@@ -863,10 +1217,11 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                               fontWeight: FontWeight.bold),
                                         ),
                                         TextSpan(
-                                            text: reservation.completionDate == null
+                                            text: reservation.completionDate ==
+                                                    null
                                                 ? "Not completed"
-                                                : _formatDate(
-                                                    reservation.completionDate!))
+                                                : _formatDate(reservation
+                                                    .completionDate!))
                                       ],
                                     ),
                                   ),
@@ -879,8 +1234,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                               fontWeight: FontWeight.bold),
                                         ),
                                         TextSpan(
-                                            text:
-                                                '€${reservation.totalDuration}')
+                                            text: reservation.totalDuration)
                                       ],
                                     ),
                                   ),
@@ -921,7 +1275,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                               fontWeight: FontWeight.bold),
                                         ),
                                         TextSpan(
-                                            text: _getDisplayState(reservation.state),
+                                            text: _getDisplayState(
+                                                reservation.state),
                                             style: TextStyle(
                                                 color: _getStateColor(
                                                     reservation.state))),
@@ -934,11 +1289,15 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: reservation.state == "onholdwithoutorder"
+                                    icon: reservation.state ==
+                                            "onholdwithoutorder"
                                         ? const Icon(Icons.settings)
-                                        : reservation.state == "onholdwithorder" ? const Icon(Icons.settings) : const Icon(Icons.info_outline),
+                                        : reservation.state == "onholdwithorder"
+                                            ? const Icon(Icons.settings)
+                                            : const Icon(Icons.info_outline),
                                     onPressed: () {
-                                      _showReservationDetails(context, reservation);
+                                      _showReservationDetails(
+                                          context, reservation);
                                     },
                                   ),
                                 ],

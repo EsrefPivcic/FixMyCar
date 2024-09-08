@@ -11,8 +11,10 @@ ReservationSearchObject _$ReservationSearchObjectFromJson(
     ReservationSearchObject(
       json['discount'] as bool?,
       json['state'] as String?,
+      json['type'] as String?,
       (json['minTotalAmount'] as num?)?.toDouble(),
       (json['maxTotalAmount'] as num?)?.toDouble(),
+      json['clientOrder'] as bool?,
       json['minCreatedDate'] == null
           ? null
           : DateTime.parse(json['minCreatedDate'] as String),
@@ -25,6 +27,12 @@ ReservationSearchObject _$ReservationSearchObjectFromJson(
       json['maxReservationDate'] == null
           ? null
           : DateTime.parse(json['maxReservationDate'] as String),
+      json['minEstimatedCompletionDate'] == null
+          ? null
+          : DateTime.parse(json['minEstimatedCompletionDate'] as String),
+      json['maxEstimatedCompletionDate'] == null
+          ? null
+          : DateTime.parse(json['maxEstimatedCompletionDate'] as String),
       json['minCompletionDate'] == null
           ? null
           : DateTime.parse(json['minCompletionDate'] as String),
@@ -38,12 +46,18 @@ Map<String, dynamic> _$ReservationSearchObjectToJson(
     <String, dynamic>{
       'discount': instance.discount,
       'state': instance.state,
+      'type': instance.type,
       'minTotalAmount': instance.minTotalAmount,
       'maxTotalAmount': instance.maxTotalAmount,
+      'clientOrder': instance.clientOrder,
       'minCreatedDate': instance.minCreatedDate?.toIso8601String(),
       'maxCreatedDate': instance.maxCreatedDate?.toIso8601String(),
       'minReservationDate': instance.minReservationDate?.toIso8601String(),
       'maxReservationDate': instance.maxReservationDate?.toIso8601String(),
+      'minEstimatedCompletionDate':
+          instance.minEstimatedCompletionDate?.toIso8601String(),
+      'maxEstimatedCompletionDate':
+          instance.maxEstimatedCompletionDate?.toIso8601String(),
       'minCompletionDate': instance.minCompletionDate?.toIso8601String(),
       'maxCompletionDate': instance.maxCompletionDate?.toIso8601String(),
     };

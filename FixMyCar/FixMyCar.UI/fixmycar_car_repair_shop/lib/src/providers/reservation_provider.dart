@@ -22,9 +22,17 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
       if (reservationSearch.discount != null) {
         queryParams['Discount'] = reservationSearch.discount.toString();
       }
+      if (reservationSearch.clientOrder != null) {
+        queryParams['ClientOrder'] = reservationSearch.clientOrder.toString();
+      }
       if (reservationSearch.state != null) {
         if (reservationSearch.state!.isNotEmpty) {
           queryParams['State'] = reservationSearch.state;
+        }
+      }
+      if (reservationSearch.type != null) {
+        if (reservationSearch.type!.isNotEmpty) {
+          queryParams['Type'] = reservationSearch.type;
         }
       }
       if (reservationSearch.minTotalAmount != null) {
@@ -44,6 +52,12 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
       }
       if (reservationSearch.maxReservationDate != null) {
         queryParams['MaxReservationDate'] = reservationSearch.maxReservationDate.toString();
+      }
+      if (reservationSearch.minEstimatedCompletionDate != null) {
+        queryParams['MinEstimatedCompletionDate'] = reservationSearch.minEstimatedCompletionDate.toString();
+      }
+      if (reservationSearch.maxEstimatedCompletionDate != null) {
+        queryParams['MaxEstimatedCompletionDate'] = reservationSearch.maxEstimatedCompletionDate.toString();
       }
       if (reservationSearch.minCompletionDate != null) {
         queryParams['MinCompletionDate'] = reservationSearch.minCompletionDate.toString();
@@ -74,13 +88,77 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
     }
   }
 
-  Future<void> accept(int id) async {
+  Future<void> accept(int id, String estimatedCompletionDate) async {
     try {
       final response = await http.put(
-          Uri.parse('${BaseProvider.baseUrl}/$endpoint/Accept/$id'),
+          Uri.parse('${BaseProvider.baseUrl}/$endpoint/Accept/$id/$estimatedCompletionDate'),
           headers: await createHeaders());
       if (response.statusCode == 200) {
         print('Accepting reservation successful.');
+        notifyListeners();
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> complete(int id) async {
+    try {
+      final response = await http.put(
+          Uri.parse('${BaseProvider.baseUrl}/$endpoint/Complete/$id'),
+          headers: await createHeaders());
+      if (response.statusCode == 200) {
+        print('Completing reservation successful.');
+        notifyListeners();
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+  
+  Future<void> start(int id) async {
+    try {
+      final response = await http.put(
+          Uri.parse('${BaseProvider.baseUrl}/$endpoint/Start/$id'),
+          headers: await createHeaders());
+      if (response.statusCode == 200) {
+        print('Reservation started successfully.');
         notifyListeners();
       } else {
         final responseBody = jsonDecode(response.body);

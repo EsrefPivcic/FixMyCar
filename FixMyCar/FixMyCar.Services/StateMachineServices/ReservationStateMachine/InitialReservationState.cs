@@ -34,26 +34,61 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 }
             }
 
+            bool repairs = false;
+            bool diagnostics = false;
+
+            foreach (var serviceId in request.Services)
+            {
+                var service = await _context.CarRepairShopServices.Include("ServiceType").FirstOrDefaultAsync(s => s.Id == serviceId) ?? throw new UserException($"Repair shop service #{serviceId} not found");
+                if (service.ServiceType.Name == "Repairs")
+                {
+                    repairs = true;
+                }
+                if (service.ServiceType.Name == "Diagnostics")
+                {
+                    diagnostics = true;
+                }
+            }
+
             Reservation entity = _mapper.Map<Reservation>(request);
 
-            entity.ClientId = user.Id;
-
-            if (request.OrderId == null) 
+            if (repairs)
             {
-                if (request.ClientOrder == null)
+                if (diagnostics)
                 {
-                    throw new UserException("Please specify who is responsible for ordering car parts!");
+                    entity.Type = "Repairs and Diagnostics";
                 }
                 else
                 {
-                    entity.State = "onholdwithoutorder";
+                    entity.Type = "Repairs";
+                }
+
+                if (request.OrderId == null)
+                {
+                    if (request.ClientOrder == null)
+                    {
+                        throw new UserException("Please specify who is responsible for ordering car parts!");
+                    }
+                    else
+                    {
+                        entity.State = "onholdwithoutorder";
+                    }
+                }
+                else
+                {
+                    entity.State = "onholdwithorder";
+                    entity.ClientOrder = true;
                 }
             }
             else
             {
+                entity.Type = "Diagnostics";
                 entity.State = "onholdwithorder";
-                entity.ClientOrder = true;
+                entity.ClientOrder = null;
+                entity.OrderId = null;
             }
+
+            entity.ClientId = user.Id;
 
             entity.TotalAmount = 0;
             entity.TotalDuration = new TimeSpan();
