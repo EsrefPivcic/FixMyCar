@@ -92,7 +92,7 @@ Use the following credentials to test the car parts shop app:
 - Username: carpartsshop
 - Password: carpartsshop
 
-Use the following credentials to test the car parts shop app:
+Use the following credentials to test the car repair shop app:
 
 - Username: carrepairshop
 - Password: carrepairshop
