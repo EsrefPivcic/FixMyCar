@@ -40,11 +40,15 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             foreach (var serviceId in request.Services)
             {
                 var service = await _context.CarRepairShopServices.Include("ServiceType").FirstOrDefaultAsync(s => s.Id == serviceId) ?? throw new UserException($"Repair shop service #{serviceId} not found");
+                if (service.State != "active")
+                {
+                    throw new UserException($"Can't make a reservation with inactive repair shop service (#{service.Id} - {service.Name}).");
+                }
                 if (service.ServiceType.Name == "Repairs")
                 {
                     repairs = true;
                 }
-                if (service.ServiceType.Name == "Diagnostics")
+                else
                 {
                     diagnostics = true;
                 }

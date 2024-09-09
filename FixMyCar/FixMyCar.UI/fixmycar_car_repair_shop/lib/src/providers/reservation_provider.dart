@@ -12,7 +12,8 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
 
   ReservationProvider() : super('Reservation');
 
-  Future<void> getByCarRepairShop({ReservationSearchObject? reservationSearch}) async {
+  Future<void> getByCarRepairShop(
+      {ReservationSearchObject? reservationSearch}) async {
     isLoading = true;
     notifyListeners();
 
@@ -36,34 +37,44 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
         }
       }
       if (reservationSearch.minTotalAmount != null) {
-        queryParams['MinTotalAmount'] = reservationSearch.minTotalAmount.toString();
+        queryParams['MinTotalAmount'] =
+            reservationSearch.minTotalAmount.toString();
       }
       if (reservationSearch.maxTotalAmount != null) {
-        queryParams['MaxTotalAmount'] = reservationSearch.maxTotalAmount.toString();
+        queryParams['MaxTotalAmount'] =
+            reservationSearch.maxTotalAmount.toString();
       }
       if (reservationSearch.minCreatedDate != null) {
-        queryParams['MinCreatedDate'] = reservationSearch.minCreatedDate.toString();
+        queryParams['MinCreatedDate'] =
+            reservationSearch.minCreatedDate.toString();
       }
       if (reservationSearch.maxCreatedDate != null) {
-        queryParams['MaxCreatedDate'] = reservationSearch.maxCreatedDate.toString();
+        queryParams['MaxCreatedDate'] =
+            reservationSearch.maxCreatedDate.toString();
       }
       if (reservationSearch.minReservationDate != null) {
-        queryParams['MinReservationDate'] = reservationSearch.minReservationDate.toString();
+        queryParams['MinReservationDate'] =
+            reservationSearch.minReservationDate.toString();
       }
       if (reservationSearch.maxReservationDate != null) {
-        queryParams['MaxReservationDate'] = reservationSearch.maxReservationDate.toString();
+        queryParams['MaxReservationDate'] =
+            reservationSearch.maxReservationDate.toString();
       }
       if (reservationSearch.minEstimatedCompletionDate != null) {
-        queryParams['MinEstimatedCompletionDate'] = reservationSearch.minEstimatedCompletionDate.toString();
+        queryParams['MinEstimatedCompletionDate'] =
+            reservationSearch.minEstimatedCompletionDate.toString();
       }
       if (reservationSearch.maxEstimatedCompletionDate != null) {
-        queryParams['MaxEstimatedCompletionDate'] = reservationSearch.maxEstimatedCompletionDate.toString();
+        queryParams['MaxEstimatedCompletionDate'] =
+            reservationSearch.maxEstimatedCompletionDate.toString();
       }
       if (reservationSearch.minCompletionDate != null) {
-        queryParams['MinCompletionDate'] = reservationSearch.minCompletionDate.toString();
+        queryParams['MinCompletionDate'] =
+            reservationSearch.minCompletionDate.toString();
       }
       if (reservationSearch.maxCompletionDate != null) {
-        queryParams['MaxCompletionDate'] = reservationSearch.maxCompletionDate.toString();
+        queryParams['MaxCompletionDate'] =
+            reservationSearch.maxCompletionDate.toString();
       }
     }
 
@@ -91,10 +102,43 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
   Future<void> accept(int id, String estimatedCompletionDate) async {
     try {
       final response = await http.put(
-          Uri.parse('${BaseProvider.baseUrl}/$endpoint/Accept/$id/$estimatedCompletionDate'),
+          Uri.parse(
+              '${BaseProvider.baseUrl}/$endpoint/Accept/$id/$estimatedCompletionDate'),
           headers: await createHeaders());
       if (response.statusCode == 200) {
         print('Accepting reservation successful.');
+        notifyListeners();
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> addOrder(int id, int orderId) async {
+    try {
+      final response = await http.put(
+          Uri.parse('${BaseProvider.baseUrl}/$endpoint/AddOrder/$id/$orderId'),
+          headers: await createHeaders());
+      if (response.statusCode == 200) {
+        print('Adding order successful.');
         notifyListeners();
       } else {
         final responseBody = jsonDecode(response.body);
@@ -151,7 +195,7 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
       rethrow;
     }
   }
-  
+
   Future<void> start(int id) async {
     try {
       final response = await http.put(

@@ -3,7 +3,6 @@ import 'package:fixmycar_car_repair_shop/src/providers/reservation_detail_provid
 import 'package:fixmycar_car_repair_shop/src/providers/reservation_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/models/reservation/reservation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
 import 'package:intl/intl.dart';
@@ -28,29 +27,35 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     });
   }
 
+  final _orderController = TextEditingController();
+
   String _formatDate(String dateTimeString) {
     final dateTime = DateTime.parse(dateTimeString);
     return DateFormat('dd.MM.yyyy').format(dateTime);
   }
 
-  String _getDisplayState(String state) {
-    switch (state) {
-      case "onholdwithoutorder":
-        return "On hold (Without Order)";
-      case "onholdwithorder":
-        return "On hold (With Order)";
-      case "accepted":
-        return "Accepted";
-      case "ongoing":
-        return "Ongoing";
-      case "completed":
-        return "Completed";
-      case "rejected":
-        return "Rejected";
-      case "cancelled":
-        return "Cancelled";
-      default:
-        return state;
+  String _getDisplayState(String state, String type) {
+    if (state == "onholdwithorder" && type == "Diagnostics") {
+      return "On hold (Diagnostics)";
+    } else {
+      switch (state) {
+        case "onholdwithoutorder":
+          return "On hold (Without Order)";
+        case "onholdwithorder":
+          return "On hold (With Order)";
+        case "accepted":
+          return "Accepted";
+        case "ongoing":
+          return "Ongoing";
+        case "completed":
+          return "Completed";
+        case "rejected":
+          return "Rejected";
+        case "cancelled":
+          return "Cancelled";
+        default:
+          return state;
+      }
     }
   }
 
@@ -121,8 +126,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Start'),
-        content:
-            const Text('Are you sure you want to start this reservation?'),
+        content: const Text('Are you sure you want to start this reservation?'),
         actions: [
           TextButton(
             onPressed: () async {
@@ -195,6 +199,70 @@ class _ReservationsScreen extends State<ReservationsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future _addOrder(int reservationId) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Add Order'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _orderController,
+                decoration: const InputDecoration(labelText: 'Order number'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _orderController.clear();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final orderIdText = _orderController.text;
+                final orderId = int.tryParse(orderIdText);
+
+                if (orderId == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a valid order number!'),
+                    ),
+                  );
+                } else {
+                  try {
+                    await Provider.of<ReservationProvider>(context,
+                            listen: false)
+                        .addOrder(reservationId, orderId);
+                    await Provider.of<ReservationProvider>(context,
+                            listen: false)
+                        .getByCarRepairShop();
+                    _orderController.clear();
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Add Order'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -371,7 +439,9 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                               text: 'State: ',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            TextSpan(text: _getDisplayState(reservation.state)),
+                            TextSpan(
+                                text: _getDisplayState(
+                                    reservation.state, reservation.type)),
                           ],
                         ),
                       ),
@@ -489,6 +559,22 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                               child: const Text('Reject Reservation'),
                             ),
                             const SizedBox(width: 8.0),
+                          ],
+                          if (reservation.state == "onholdwithoutorder" &&
+                              reservation.clientOrder == false) ...[
+                            ElevatedButton(
+                              onPressed: () async {
+                                await _addOrder(reservation.id);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Color.fromARGB(255, 26, 115, 156),
+                              ),
+                              child: const Text('Add Order'),
+                            ),
+                            const SizedBox(width: 8.0),
+                          ],
+                          if (reservation.state == "onholdwithorder") ...[
                             ElevatedButton(
                               onPressed: () async {
                                 final DateTime? selectedDate =
@@ -515,7 +601,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                 await _confirmStart(reservation.id);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 47, 121, 51),
+                                backgroundColor:
+                                    const Color.fromARGB(255, 47, 121, 51),
                               ),
                               child: const Text('Start Reservation'),
                             ),
@@ -526,7 +613,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                 await _confirmComplete(reservation.id);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(255, 47, 121, 51),
+                                backgroundColor:
+                                    const Color.fromARGB(255, 47, 121, 51),
                               ),
                               child: const Text('Complete Reservation'),
                             ),
@@ -1276,7 +1364,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                         ),
                                         TextSpan(
                                             text: _getDisplayState(
-                                                reservation.state),
+                                                reservation.state,
+                                                reservation.type),
                                             style: TextStyle(
                                                 color: _getStateColor(
                                                     reservation.state))),
