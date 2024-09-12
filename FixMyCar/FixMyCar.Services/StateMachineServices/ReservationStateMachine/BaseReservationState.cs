@@ -85,8 +85,10 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             return state switch
             {
                 "initial" or null => _serviceProvider.GetService<InitialReservationState>()!,
-                "onholdwithoutorder" => _serviceProvider.GetService<OnHoldWithoutOrderReservationState>()!,
-                "onholdwithorder" => _serviceProvider.GetService<OnHoldWithOrderReservationState>()!,
+                "awaitingorder" => _serviceProvider.GetService<AwaitingOrderReservationState>()!,
+                "orderpendingapproval" => _serviceProvider.GetService<OrderPendingApprovalReservationState>()!,
+                "orderdateconflict" => _serviceProvider.GetService<OrderDateConflictReservationState>()!,
+                "ready" => _serviceProvider.GetService<ReadyReservationState>()!,
                 "accepted" => _serviceProvider.GetService<AcceptedReservationState>()!,
                 "rejected" => _serviceProvider.GetService<RejectedReservationState>()!,
                 "cancelled" => _serviceProvider.GetService<CancelledReservationState>()!,

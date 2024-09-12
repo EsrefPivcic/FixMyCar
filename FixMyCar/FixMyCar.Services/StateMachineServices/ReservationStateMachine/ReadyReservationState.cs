@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 {
-    public class OnHoldWithOrderReservationState : BaseReservationState
+    public class ReadyReservationState : BaseReservationState
     {
-        public OnHoldWithOrderReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        public ReadyReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
         }
 

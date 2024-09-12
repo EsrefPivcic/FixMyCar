@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 {
-    public class CancelledReservationState : BaseReservationState
+    public class OrderPendingApprovalReservationState : BaseReservationState
     {
-        public CancelledReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        public OrderPendingApprovalReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
         }
 
@@ -25,16 +25,18 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             return _mapper.Map<ReservationGetDTO>(entity);
         }
 
-        public override async Task<ReservationGetDTO> Resend(Reservation entity)
+        public override async Task<ReservationGetDTO> Reject(Reservation entity)
         {
-            if (entity.OrderId != null)
-            {
-                entity.State = "ready";
-            }
-            else
-            {
-                entity.State = "awaitingorder";
-            }
+            entity.State = "rejected";
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<ReservationGetDTO>(entity);
+        }
+
+        public override async Task<ReservationGetDTO> Cancel(Reservation entity)
+        {
+            entity.State = "cancelled";
 
             await _context.SaveChangesAsync();
 
@@ -45,8 +47,9 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
         {
             var list = await base.AllowedActions();
 
-            list.Add("Resend");
             list.Add("Update");
+            list.Add("Reject");
+            list.Add("Cancel");
 
             return list;
         }

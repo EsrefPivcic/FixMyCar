@@ -343,7 +343,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                               orderSearch: filterCriteria);
                                     });
                                     Navigator.of(context).pop();
-                                    Navigator.of(context).pop();
                                   } catch (e) {
                                     Navigator.of(context).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(

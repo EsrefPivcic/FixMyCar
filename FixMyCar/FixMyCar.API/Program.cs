@@ -55,8 +55,10 @@ builder.Services.AddTransient<CancelledOrderState>();
 
 builder.Services.AddTransient<BaseReservationState>();
 builder.Services.AddTransient<InitialReservationState>();
-builder.Services.AddTransient<OnHoldWithoutOrderReservationState>();
-builder.Services.AddTransient<OnHoldWithOrderReservationState>();
+builder.Services.AddTransient<AwaitingOrderReservationState>();
+builder.Services.AddTransient<OrderPendingApprovalReservationState>();
+builder.Services.AddTransient<OrderDateConflictReservationState>();
+builder.Services.AddTransient<ReadyReservationState>();
 builder.Services.AddTransient<AcceptedReservationState>();
 builder.Services.AddTransient<RejectedReservationState>();
 builder.Services.AddTransient<CancelledReservationState>();

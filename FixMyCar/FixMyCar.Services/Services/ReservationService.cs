@@ -63,7 +63,7 @@ namespace FixMyCar.Services.Services
                     query = query.Where(x => x.Type.Contains(search.Type));
                 }
 
-                    if (!string.IsNullOrEmpty(search?.State))
+                if (!string.IsNullOrEmpty(search?.State))
                 {
                     query = query.Where(x => x.State.Contains(search.State));
 

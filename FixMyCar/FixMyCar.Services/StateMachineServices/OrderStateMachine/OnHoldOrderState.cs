@@ -3,6 +3,7 @@ using FixMyCar.Model.DTOs.Order;
 using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Services.Database;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,23 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
         {
             _mapper.Map(request, entity);
 
+            if (entity.State == "accepted")
+            {
+                var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.OrderId == entity.Id);
+
+                if (reservation != null)
+                {
+                    if (entity.ShippingDate > reservation.ReservationDate)
+                    {
+                        reservation.State = "orderdateconflict";
+                    }
+                    else
+                    {
+                        reservation.State = "ready";
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return _mapper.Map<OrderGetDTO>(entity);
@@ -33,6 +51,20 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
 
             entity.ShippingDate = orderAccept.shippingDate;
 
+            var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.OrderId == entity.Id);
+
+            if (reservation != null) 
+            {
+                if (entity.ShippingDate > reservation.ReservationDate)
+                {
+                    reservation.State = "orderdateconflict";
+                }
+                else
+                {
+                    reservation.State = "ready";
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return _mapper.Map<OrderGetDTO>(entity);
@@ -42,6 +74,14 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
         {
             entity.State = "rejected";
 
+            var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.OrderId == entity.Id);
+
+            if (reservation != null)
+            {
+                reservation.OrderId = null;
+                reservation.State = "awaitingorder";
+            }
+
             await _context.SaveChangesAsync();
 
             return _mapper.Map<OrderGetDTO>(entity);
@@ -50,6 +90,14 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
         public async override Task<OrderGetDTO> Cancel(Order entity)
         {
             entity.State = "cancelled";
+
+            var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.OrderId == entity.Id);
+
+            if (reservation != null)
+            {
+                reservation.OrderId = null;
+                reservation.State = "awaitingorder";
+            }
 
             await _context.SaveChangesAsync();
 

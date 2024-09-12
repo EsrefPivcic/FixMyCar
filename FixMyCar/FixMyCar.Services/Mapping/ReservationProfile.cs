@@ -13,9 +13,10 @@ namespace FixMyCar.Services.Mapping
     {
         public ReservationProfile()
         {
-            CreateMap<ReservationUpdateDTO, Reservation>();
+            CreateMap<ReservationUpdateDTO, Reservation>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<ReservationInsertDTO, Reservation>()
-                 .ForMember(dest => dest.ClientId, opt => opt.Ignore());
+                .ForMember(dest => dest.ClientId, opt => opt.Ignore());
             CreateMap<Reservation, ReservationGetDTO>()
                 .ForMember(dest => dest.ClientUsername, opt => opt.MapFrom(src => src.Client != null ? src.Client.Username : "Unknown"))
                 .ForMember(dest => dest.CarRepairShopName, opt => opt.MapFrom(src => src.CarRepairShop != null ? src.CarRepairShop.Username : "Unknown"))

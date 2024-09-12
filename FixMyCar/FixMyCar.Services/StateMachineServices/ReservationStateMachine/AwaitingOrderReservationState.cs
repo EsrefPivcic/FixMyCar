@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 {
-    public class OnHoldWithoutOrderReservationState : BaseReservationState
+    public class AwaitingOrderReservationState : BaseReservationState
     {
-        public OnHoldWithoutOrderReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        public AwaitingOrderReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
         }
 
@@ -40,13 +40,31 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 }
             }
 
+            var alreadyUsed = await _context.Reservations.FirstOrDefaultAsync(x => x.OrderId == orderId);
+
+            if (alreadyUsed != null) 
+            {
+                throw new UserException($"This order is already used for reservation #{alreadyUsed.Id}.");
+            }
+
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username) ?? throw new UserException("User not found");
 
             if ((entity.ClientOrder == true && user is Client) || (entity.ClientOrder == false && user is CarRepairShop))
             {
-                entity.OrderId = order.Id;
+                if (order!.State == "accepted")
+                {
+                    entity.State = "ready";
+                }
+                else if (order!.State == "onhold")
+                {
+                    entity.State = "orderpendingapproval";
+                }
+                else
+                {
+                    throw new UserException($"Invalid order state ({order.State})! Please verify your order is either accepted or on hold!");
+                }
 
-                entity.State = "onholdwithorder";
+                entity.OrderId = order.Id;
 
                 await _context.SaveChangesAsync();
 

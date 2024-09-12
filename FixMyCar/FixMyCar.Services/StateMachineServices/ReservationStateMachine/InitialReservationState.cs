@@ -32,6 +32,13 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 {
                     throw new UserException($"Order #{request.OrderId} is not made by {user.Username}!");
                 }
+
+                var alreadyUsed = await _context.Reservations.FirstOrDefaultAsync(x => x.OrderId == order.Id);
+
+                if (alreadyUsed != null)
+                {
+                    throw new UserException($"This order is already used for reservation #{alreadyUsed.Id}.");
+                }
             }
 
             bool repairs = false;
@@ -75,19 +82,31 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                     }
                     else
                     {
-                        entity.State = "onholdwithoutorder";
+                        entity.State = "awaitingorder";
                     }
                 }
                 else
                 {
-                    entity.State = "onholdwithorder";
+                    var order = await _context.Orders.FindAsync(request.OrderId);
+                    if (order!.State == "accepted")
+                    {
+                        entity.State = "ready";
+                    }
+                    else if (order!.State == "onhold")
+                    {
+                        entity.State = "orderpendingapproval";
+                    }
+                    else
+                    {
+                        throw new UserException($"Invalid order state ({order.State})! Please verify your order is either accepted or on hold!");
+                    }
                     entity.ClientOrder = true;
                 }
             }
             else
             {
                 entity.Type = "Diagnostics";
-                entity.State = "onholdwithorder";
+                entity.State = "ready";
                 entity.ClientOrder = null;
                 entity.OrderId = null;
             }

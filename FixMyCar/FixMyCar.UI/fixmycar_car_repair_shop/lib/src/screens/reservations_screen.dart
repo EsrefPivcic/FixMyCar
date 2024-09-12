@@ -1,4 +1,6 @@
+import 'package:fixmycar_car_repair_shop/src/models/order/order_essential.dart';
 import 'package:fixmycar_car_repair_shop/src/models/reservation/reservation_search_object.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/order_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/reservation_detail_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/reservation_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/models/reservation/reservation.dart';
@@ -34,47 +36,81 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     return DateFormat('dd.MM.yyyy').format(dateTime);
   }
 
-  String _getDisplayState(String state, String type) {
-    if (state == "onholdwithorder" && type == "Diagnostics") {
-      return "On hold (Diagnostics)";
-    } else {
-      switch (state) {
-        case "onholdwithoutorder":
-          return "On hold (Without Order)";
-        case "onholdwithorder":
-          return "On hold (With Order)";
-        case "accepted":
-          return "Accepted";
-        case "ongoing":
-          return "Ongoing";
-        case "completed":
-          return "Completed";
-        case "rejected":
-          return "Rejected";
-        case "cancelled":
-          return "Cancelled";
-        default:
-          return state;
-      }
+  String _getOrderDisplayState(String state) {
+    switch (state) {
+      case "onhold":
+        return "On hold";
+      case "accepted":
+        return "Accepted";
+      case "rejected":
+        return "Rejected";
+      case "cancelled":
+        return "Cancelled";
+      default:
+        return state;
+    }
+  }
+
+  Color _getOrderStateColor(String state) {
+    switch (state) {
+      case 'onhold':
+        return Colors.blue.shade300;
+      case 'accepted':
+        return Colors.green.shade400;
+      case 'rejected':
+        return Colors.red.shade700;
+      case 'cancelled':
+        return Colors.red.shade400;
+      default:
+        return Colors.white;
+    }
+  }
+
+  String _getDisplayState(String state) {
+    switch (state) {
+      case "awaitingorder":
+        return "Awaiting Order";
+      case "orderpendingapproval":
+        return "Order Pending Approval";
+      case "orderdateconflict":
+        return "Order Date Conflict";
+      case "ready":
+        return "Ready";
+      case "accepted":
+        return "Accepted";
+      case "ongoing":
+        return "Ongoing";
+      case "completed":
+        return "Completed";
+      case "rejected":
+        return "Rejected";
+      case "cancelled":
+        return "Cancelled";
+      default:
+        return state;
     }
   }
 
   Color _getStateColor(String state) {
     switch (state) {
-      case 'onholdwithoutorder':
-        return Colors.blue.shade300;
-      case 'onholdwithorder':
-        return Colors.blue.shade500;
+      case 'awaitingorder':
+        return Colors.yellow.shade200;
+      case 'orderpendingapproval':
+        return Colors.yellow.shade600;
+      case 'orderdateconflict':
+        return Colors.red.shade400;
+      case 'ready':
+        return Colors.blue.shade600;
       case 'accepted':
         return Colors.green.shade300;
       case 'ongoing':
         return Colors.orange.shade600;
       case 'completed':
-        return Colors.green.shade500;
+        return Colors.green.shade600;
       case 'rejected':
         return Colors.red.shade700;
       case 'cancelled':
-        return Colors.red.shade400;
+        return Colors.red.shade700;
       default:
         return Colors.white;
     }
@@ -243,7 +279,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                         .addOrder(reservationId, orderId);
                     await Provider.of<ReservationProvider>(context,
                             listen: false)
-                        .getByCarRepairShop();
+                        .getByCarRepairShop(reservationSearch: filterCriteria);
                     _orderController.clear();
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
@@ -312,7 +348,19 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     final reservationDetailProvider =
         Provider.of<ReservationDetailProvider>(context, listen: false);
 
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+
     await reservationDetailProvider.getByReservation(id: reservation.id);
+
+    OrderEssential? order;
+
+    if (reservation.orderId != null) {
+      await orderProvider.getOrderEssentialById(orderId: reservation.orderId!);
+      final isOrderLoading = orderProvider.isLoading;
+      if (isOrderLoading == false) {
+        order = orderProvider.orderEssential;
+      }
+    }
 
     if (!mounted) return;
 
@@ -440,8 +488,9 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             TextSpan(
-                                text: _getDisplayState(
-                                    reservation.state, reservation.type)),
+                                text: _getDisplayState(reservation.state),
+                                style: TextStyle(
+                                    color: _getStateColor(reservation.state))),
                           ],
                         ),
                       ),
@@ -471,6 +520,47 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                             ],
                           ),
                         ),
+                        if (order != null) ...[
+                          Card(
+                            margin: const EdgeInsets.symmetric(vertical: 4.0),
+                            child: ExpansionTile(
+                              title: Text(
+                                  'Ordered from: ${order.carPartsShopName}'),
+                              subtitle: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    const TextSpan(
+                                      text: 'State: ',
+                                    ),
+                                    TextSpan(
+                                      text: _getOrderDisplayState(order.state),
+                                      style: TextStyle(
+                                          color: _getOrderStateColor(order
+                                              .state)), // Color for the state
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          'Order date: ${_formatDate(order.orderDate)}'),
+                                      Text(
+                                          'Shipping date: ${order.shippingDate != null ? _formatDate(order.shippingDate!) : 'Not accepted'}'),
+                                      Text('Items: ${order.items.join(', ')}'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
                       Text.rich(
                         TextSpan(
@@ -547,8 +637,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                             child: const Text("Close"),
                           ),
                           const SizedBox(width: 8.0),
-                          if (reservation.state == "onholdwithoutorder" ||
-                              reservation.state == "onholdwithorder") ...[
+                          if (reservation.state == "awaitingorder" ||
+                              reservation.state == "ready" ||
+                              reservation.state == "orderpendingapproval" ||
+                              reservation.state == "orderdateconflict") ...[
                             ElevatedButton(
                               onPressed: () async {
                                 await _confirmReject(reservation.id);
@@ -560,7 +652,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                             ),
                             const SizedBox(width: 8.0),
                           ],
-                          if (reservation.state == "onholdwithoutorder" &&
+                          if (reservation.state == "awaitingorder" &&
                               reservation.clientOrder == false) ...[
                             ElevatedButton(
                               onPressed: () async {
@@ -568,22 +660,25 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
-                                    Color.fromARGB(255, 26, 115, 156),
+                                    const Color.fromARGB(255, 26, 115, 156),
                               ),
                               child: const Text('Add Order'),
                             ),
                             const SizedBox(width: 8.0),
                           ],
-                          if (reservation.state == "onholdwithorder") ...[
+                          if (reservation.state == "ready") ...[
                             ElevatedButton(
                               onPressed: () async {
                                 final DateTime? selectedDate =
                                     await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime(2100),
-                                );
+                                        context: context,
+                                        initialDate:
+                                            DateTime.parse(
+                                                reservation.reservationDate),
+                                        firstDate: DateTime.parse(
+                                            reservation.reservationDate),
+                                        lastDate: DateTime(2100),
+                                        helpText: "Estimated completion");
                                 if (selectedDate != null) {
                                   await await _confirmAccept(reservation.id,
                                       selectedDate.toIso8601String());
@@ -668,8 +763,32 @@ class _ReservationsScreen extends State<ReservationsScreen> {
               ),
               if (filterCriteria.type != "Diagnostics") ...[
                 RadioListTile(
-                  title: const Text("On hold (Without Order)"),
-                  value: "onholdwithoutorder",
+                  title: const Text("Awaiting Order"),
+                  value: "awaitingorder",
+                  groupValue: filterCriteria.state,
+                  onChanged: (value) {
+                    setState(() {
+                      filterCriteria.state = value;
+                    });
+                    _clearCompletionDates();
+                    _clearEstimatedCompletionDates();
+                  },
+                ),
+                RadioListTile(
+                  title: const Text("Order Pending Approval"),
+                  value: "orderpendingapproval",
+                  groupValue: filterCriteria.state,
+                  onChanged: (value) {
+                    setState(() {
+                      filterCriteria.state = value;
+                    });
+                    _clearCompletionDates();
+                    _clearEstimatedCompletionDates();
+                  },
+                ),
+                RadioListTile(
+                  title: const Text("Order Date Conflict"),
+                  value: "orderdateconflict",
                   groupValue: filterCriteria.state,
                   onChanged: (value) {
                     setState(() {
@@ -681,8 +800,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                 ),
               ],
               RadioListTile(
-                title: const Text("On hold (With Order)"),
-                value: "onholdwithorder",
+                title: const Text("Ready"),
+                value: "ready",
                 groupValue: filterCriteria.state,
                 onChanged: (value) {
                   setState(() {
@@ -1364,8 +1483,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                         ),
                                         TextSpan(
                                             text: _getDisplayState(
-                                                reservation.state,
-                                                reservation.type),
+                                                reservation.state),
                                             style: TextStyle(
                                                 color: _getStateColor(
                                                     reservation.state))),
@@ -1378,10 +1496,9 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: reservation.state ==
-                                            "onholdwithoutorder"
+                                    icon: reservation.state == "awaitingorder"
                                         ? const Icon(Icons.settings)
-                                        : reservation.state == "onholdwithorder"
+                                        : reservation.state == "ready"
                                             ? const Icon(Icons.settings)
                                             : const Icon(Icons.info_outline),
                                     onPressed: () {

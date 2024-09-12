@@ -55,12 +55,40 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
     }
   }
 
+  Future<T> getById({
+    String customEndpoint = '',
+    required int id,
+    required T Function(Map<String, dynamic>) fromJson,
+  }) async {
+    try {
+      String url =
+          '$baseUrl/$endpoint${customEndpoint.isNotEmpty ? '/$customEndpoint' : ''}/$id';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: await createHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        T result = fromJson(data);
+
+        return result;
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      rethrow;
+    }
+  }
+
   Future<void> insert(TInsertUpdate item,
       {String customEndpoint = '',
-        required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
+      required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/$endpoint${customEndpoint.isNotEmpty ? '/$customEndpoint' : ''}'),
+        Uri.parse(
+            '$baseUrl/$endpoint${customEndpoint.isNotEmpty ? '/$customEndpoint' : ''}'),
         headers: await createHeaders(),
         body: jsonEncode(item),
       );
