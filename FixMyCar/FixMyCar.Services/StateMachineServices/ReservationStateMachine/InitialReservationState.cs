@@ -51,13 +51,16 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 {
                     throw new UserException($"Can't make a reservation with inactive repair shop service (#{service.Id} - {service.Name}).");
                 }
-                if (service.ServiceType.Name == "Repairs")
-                {
-                    repairs = true;
-                }
                 else
                 {
-                    diagnostics = true;
+                    if (service.ServiceType.Name == "Repairs")
+                    {
+                        repairs = true;
+                    }
+                    else
+                    {
+                        diagnostics = true;
+                    }
                 }
             }
 

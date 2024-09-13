@@ -34,7 +34,7 @@ namespace FixMyCar.Services.Services
             }
             else
             {
-                throw new UserException("User doesn't exist");
+                throw new UserException($"User {request.Username} doesn't exist");
             }
         }
 

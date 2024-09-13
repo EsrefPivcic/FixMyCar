@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Model.SearchObjects
 {
-    public class CarRepairShopSearchObject : BaseSearchObject
+    public class CarRepairShopSearchObject : UserSearchObject
     {
     }
 }

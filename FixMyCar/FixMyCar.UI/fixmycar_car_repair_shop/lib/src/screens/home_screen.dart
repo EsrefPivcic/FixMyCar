@@ -3,7 +3,9 @@ import 'package:fixmycar_car_repair_shop/src/models/user/user_update.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update_image.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update_password.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update_username.dart';
+import 'package:fixmycar_car_repair_shop/src/models/user/user_update_work_details.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/auth_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -25,11 +27,16 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _editingField;
   String? _editValue;
 
+  List<int> _selectedWorkDays = [];
+  TimeOfDay _openingTime = TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _closingTime = TimeOfDay(hour: 16, minute: 0);
+  bool _isInitialized = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Provider.of<UserProvider>(context, listen: false).getByToken();
+      Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
     });
   }
 
@@ -180,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     await Provider.of<UserProvider>(context, listen: false)
                         .updateByToken(user: _userUpdate!)
                         .then((_) {
-                      Provider.of<UserProvider>(context, listen: false)
+                      Provider.of<CarRepairShopProvider>(context, listen: false)
                           .getByToken();
                       setState(() {
                         _editValue = null;
@@ -345,6 +352,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  int parseWorkDay(String day) {
+    switch (day) {
+      case "Monday":
+        return DateTime.monday;
+      case "Tuesday":
+        return DateTime.tuesday;
+      case "Wednesday":
+        return DateTime.wednesday;
+      case "Thursday":
+        return DateTime.thursday;
+      case "Friday":
+        return DateTime.friday;
+      case "Saturday":
+        return DateTime.saturday;
+      case "Sunday":
+        return DateTime.sunday;
+      default:
+        throw ArgumentError("Invalid day of the week");
+    }
+  }
+
+  List<int> parseWorkDays(List<String> workDays) {
+    return workDays.map((day) => parseWorkDay(day)).toList();
+  }
+
+  TimeOfDay parseTimeOfDay(String timeString) {
+    final parts = timeString.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
   final _passwordController = TextEditingController();
   final _usernameController = TextEditingController();
 
@@ -433,12 +472,116 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildTimePicker(String label, TimeOfDay time, VoidCallback onSelect) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            '$label: ${time.format(context)}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: onSelect,
+          child: const Text('Select Time'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selectOpeningTime() async {
+    final TimeOfDay? newTime = await showTimePicker(
+      context: context,
+      initialTime: _openingTime,
+    );
+    if (newTime != null &&
+        (newTime.hour < _closingTime.hour ||
+            (newTime.hour == _closingTime.hour &&
+                newTime.minute < _closingTime.minute))) {
+      setState(() {
+        _openingTime = newTime;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+            "Please pick a valid opening time! - It must be before the closing time!"),
+      ));
+    }
+  }
+
+  Future<void> _selectClosingTime() async {
+    final TimeOfDay? newTime = await showTimePicker(
+      context: context,
+      initialTime: _closingTime,
+    );
+    if (newTime != null &&
+        (newTime.hour > _openingTime.hour ||
+            (newTime.hour == _openingTime.hour &&
+                newTime.minute > _openingTime.minute))) {
+      setState(() {
+        _closingTime = newTime;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+            "Please pick a valid closing time! - It must be after the opening time!"),
+      ));
+    }
+  }
+
+  Widget _buildWorkDaysSelector(List<int> workDays) {
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: List.generate(7, (index) {
+        final day = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index];
+        final dayIndex = index + 1;
+        return ChoiceChip(
+          label: Text(day),
+          selected: workDays.contains(dayIndex),
+          onSelected: (selected) {
+            setState(() {
+              if (selected) {
+                _selectedWorkDays.add(dayIndex);
+              } else {
+                _selectedWorkDays.remove(dayIndex);
+              }
+            });
+          },
+        );
+      }),
+    );
+  }
+
+  Future<void> _updateWorkDetails() async {
+    final updateWorkDetails = UserUpdateWorkDetails(
+      _selectedWorkDays,
+      'PT${_openingTime.hour}H${_openingTime.minute}M',
+      'PT${_closingTime.hour}H${_closingTime.minute}M',
+    );
+
+    await Provider.of<CarRepairShopProvider>(context, listen: false)
+        .updateWorkDetails(updateWorkDetails: updateWorkDetails)
+        .then((_) {
+      Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
+    });
+    ;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
-      child: Consumer<UserProvider>(
+      child: Consumer<CarRepairShopProvider>(
         builder: (context, userProvider, child) {
           final user = userProvider.user;
+
+          if (user != null && !_isInitialized) {
+            _selectedWorkDays = parseWorkDays(user.workDays);
+            _openingTime = parseTimeOfDay(user.openingTime);
+            _closingTime = parseTimeOfDay(user.closingTime);
+            _isInitialized = true;
+          }
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: LayoutBuilder(
@@ -528,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     setState(() {
                                                       _updateImage = null;
                                                     });
-                                                    Provider.of<UserProvider>(
+                                                    Provider.of<CarRepairShopProvider>(
                                                             context,
                                                             listen: false)
                                                         .getByToken();
@@ -605,6 +748,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                       field: 'city',
                                     ),
                                     const SizedBox(height: 16.0),
+                                    const Text.rich(TextSpan(
+                                        text: 'Work Details',
+                                        style: TextStyle(fontSize: 18))),
+                                    const SizedBox(height: 8.0),
+                                    const Text.rich(TextSpan(
+                                        text: 'Work Days:',
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500))),
+                                    const SizedBox(height: 8.0),
+                                    _buildWorkDaysSelector(_selectedWorkDays),
+                                    const SizedBox(height: 8.0),
+                                    Text.rich(TextSpan(
+                                        text:
+                                            'Working time: ${user.workingHours}',
+                                        style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400))),
+                                    _buildTimePicker('Opening Time',
+                                        _openingTime, _selectOpeningTime),
+                                    const SizedBox(height: 8.0),
+                                    _buildTimePicker('Closing Time',
+                                        _closingTime, _selectClosingTime),
+                                    const SizedBox(height: 5.0),
+                                    ElevatedButton.icon(
+                                      onPressed: _updateWorkDetails,
+                                      icon: const Icon(
+                                          Icons.work_history_outlined),
+                                      label: const Text('Update Work Details'),
+                                    ),
+                                    const SizedBox(height: 16.0),
+                                    const Text.rich(TextSpan(
+                                        text: 'Account',
+                                        style: TextStyle(fontSize: 18))),
+                                    const SizedBox(height: 8.0),
                                     ElevatedButton.icon(
                                       onPressed: () {
                                         _showChangeUsernameForm();

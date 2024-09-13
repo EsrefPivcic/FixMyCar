@@ -39,14 +39,6 @@ namespace FixMyCar.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("InsertCarRepairShop")]
-        public async Task<UserGetDTO> InsertCarRepairShop(UserInsertDTO request)
-        {
-            request.RoleId = 3;
-            return await (_service as IUserService).Insert(request);
-        }
-
-        [AllowAnonymous]
         [HttpPost("InsertClient")]
         public async Task<UserGetDTO> InsertClient(UserInsertDTO request)
         {
@@ -87,7 +79,7 @@ namespace FixMyCar.Controllers
         }
 
         [HttpGet("GetByToken")]
-        public async Task<PagedResult<UserGetDTO>> GetByCarPartsShop([FromQuery] UserSearchObject? search = null)
+        public async Task<PagedResult<UserGetDTO>> GetByToken([FromQuery] UserSearchObject? search = null)
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             search.Username = username;

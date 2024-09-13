@@ -11,5 +11,9 @@ namespace FixMyCar.Model.DTOs.CarRepairShop
 {
     public class CarRepairShopGetDTO : UserGetDTO
     {
+        public List<string> WorkDays { get; set; }
+        public TimeSpan OpeningTime { get; set; }
+        public TimeSpan ClosingTime { get; set; }
+        public TimeSpan WorkingHours { get; set; }
     }
 }

@@ -5,7 +5,6 @@ import 'package:fixmycar_car_repair_shop/src/models/user/user_update_image.dart'
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update_password.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update_username.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/base_provider.dart';
-import 'package:fixmycar_car_repair_shop/src/models/search_result.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -14,33 +13,6 @@ class UserProvider extends BaseProvider<User, UserRegister> {
 
   User? user;
   bool isLoading = false;
-
-  Future<void> insertUser(UserRegister user) async {
-    await insert(
-      user,
-      customEndpoint: 'InsertCarRepairShop',
-      toJson: (user) => user.toJson(),
-    );
-  }
-
-  Future<void> getByToken() async {
-    isLoading = true;
-    notifyListeners();
-
-    try {
-      SearchResult<User> searchResult = await get(
-        customEndpoint: 'GetByToken',
-        fromJson: (json) => User.fromJson(json),
-      );
-
-      user = searchResult.result[0];
-    } catch (e) {
-      user = null;
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
 
   Future<void> updateByToken({required UserUpdate user}) async {
     toJson(UserUpdate user) => user.toJson();
@@ -79,7 +51,7 @@ class UserProvider extends BaseProvider<User, UserRegister> {
 
   Future<void> updatePassword(
       {required UserUpdatePassword updatePassword}) async {
-      toJson(UserUpdatePassword updatePassword) => updatePassword.toJson();
+    toJson(UserUpdatePassword updatePassword) => updatePassword.toJson();
     try {
       final response = await http.put(
         Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdatePasswordByToken'),
@@ -114,7 +86,7 @@ class UserProvider extends BaseProvider<User, UserRegister> {
 
   Future<void> updateUsername(
       {required UserUpdateUsername updateUsername}) async {
-      toJson(UserUpdateUsername updateUsername) => updateUsername.toJson();
+    toJson(UserUpdateUsername updateUsername) => updateUsername.toJson();
     try {
       final response = await http.put(
         Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdateUsernameByToken'),
@@ -147,9 +119,8 @@ class UserProvider extends BaseProvider<User, UserRegister> {
     }
   }
 
-  Future<void> updateImage(
-      {required UserUpdateImage updateImage}) async {
-      toJson(UserUpdateImage updateImage) => updateImage.toJson();
+  Future<void> updateImage({required UserUpdateImage updateImage}) async {
+    toJson(UserUpdateImage updateImage) => updateImage.toJson();
     try {
       final response = await http.put(
         Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdateImageByToken'),

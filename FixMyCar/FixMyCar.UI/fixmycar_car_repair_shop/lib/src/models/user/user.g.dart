@@ -19,6 +19,10 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       json['image'] as String?,
       json['role'] as String,
       json['city'] as String,
+      (json['workDays'] as List<dynamic>).map((e) => e as String).toList(),
+      json['openingTime'] as String,
+      json['closingTime'] as String,
+      json['workingHours'] as String,
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -34,4 +38,8 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'image': instance.image,
       'role': instance.role,
       'city': instance.city,
+      'workDays': instance.workDays,
+      'openingTime': instance.openingTime,
+      'closingTime': instance.closingTime,
+      'workingHours': instance.workingHours,
     };

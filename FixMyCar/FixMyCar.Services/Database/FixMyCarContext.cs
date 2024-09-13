@@ -263,7 +263,11 @@ namespace FixMyCar.Services.Database
                     CityId = 1,
                     PasswordSalt = salt2,
                     PasswordHash = Hashing.GenerateHash(salt2, "carrepairshop"),
-                    RoleId = 3
+                    RoleId = 3,
+                    WorkDaysAsString = string.Join(",", new[] { (int)DayOfWeek.Monday, (int)DayOfWeek.Tuesday, (int)DayOfWeek.Wednesday, (int)DayOfWeek.Thursday, (int)DayOfWeek.Friday }),
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    WorkingHours = new TimeSpan(8, 0, 0)
                 }
             );
 
