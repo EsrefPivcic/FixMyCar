@@ -11,5 +11,6 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface ICarPartsShopService : IBaseService<CarPartsShop, CarPartsShopGetDTO, CarPartsShopInsertDTO, CarPartsShopUpdateDTO, CarPartsShopSearchObject>
     {
+        Task UpdateWorkDetails(CarPartsShopWorkDetailsUpdateDTO request);
     }
 }

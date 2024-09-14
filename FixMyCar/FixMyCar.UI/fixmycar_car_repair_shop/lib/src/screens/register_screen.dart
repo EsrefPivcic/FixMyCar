@@ -328,7 +328,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       spacing: 8.0,
       runSpacing: 4.0,
       children: List.generate(7, (index) {
-        final day = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index];
+        final day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index];
         final dayIndex = index;
         return ChoiceChip(
           label: Text(day),

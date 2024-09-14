@@ -12,10 +12,9 @@ namespace FixMyCar.Services.Mapping
     public class OrderProfile : Profile
     {
         public OrderProfile() {
-            CreateMap<OrderUpdateDTO, Order>();
-            CreateMap<OrderInsertDTO, Order>()
-                .ForMember(dest => dest.ClientId, opt => opt.Ignore())
-                .ForMember(dest => dest.CarRepairShopId, opt => opt.Ignore());
+            CreateMap<OrderUpdateDTO, Order>()
+                .ForMember(dest => dest.CityId, opt => opt.Ignore())
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Order, OrderGetDTO>()
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Client != null ? src.Client.Username : src.CarRepairShop != null ? src.CarRepairShop.Username : "Unknown"))
                 .ForMember(dest => dest.ClientDiscountValue, opt => opt.MapFrom(src => src.ClientDiscount != null ? src.ClientDiscount.Value : 0))

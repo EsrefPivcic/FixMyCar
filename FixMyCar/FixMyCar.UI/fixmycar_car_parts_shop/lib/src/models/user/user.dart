@@ -16,6 +16,10 @@ class User {
   String? image;
   String role;
   String city;
+  List<String> workDays;
+  String openingTime;
+  String closingTime;
+  String workingHours;
 
   User(
       this.name,
@@ -29,7 +33,11 @@ class User {
       this.postalCode,
       this.image,
       this.role,
-      this.city);
+      this.city,
+      this.workDays,
+      this.openingTime,
+      this.closingTime,
+      this.workingHours);
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 

@@ -1,7 +1,7 @@
+import 'package:fixmycar_car_parts_shop/src/providers/car_parts_shop_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
 import 'package:fixmycar_car_parts_shop/constants.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
@@ -35,6 +35,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _selectedImagePath;
   String _gender = 'Female';
 
+  TimeOfDay _openingTime = TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _closingTime = TimeOfDay(hour: 16, minute: 0);
+  List<int> _selectedWorkDays = [0, 1, 2, 3, 4];
+
   Future<void> _pickImage() async {
     final FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
       type: FileType.image,
@@ -60,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _errorMessage = null;
       });
 
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final userProvider = Provider.of<CarPartsShopProvider>(context, listen: false);
       try {
         final newUser = UserRegister(
           _nameController.text,
@@ -75,6 +79,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _passwordConfirmController.text,
           _convertImageToBase64(_selectedImagePath),
           _cityController.text,
+          _selectedWorkDays,
+          'PT${_openingTime.hour}H${_openingTime.minute}M',
+          'PT${_closingTime.hour}H${_closingTime.minute}M',
         );
         await userProvider.insertUser(newUser);
         Navigator.pushReplacement(
@@ -90,6 +97,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _selectOpeningTime() async {
+    final TimeOfDay? newTime = await showTimePicker(
+      context: context,
+      initialTime: _openingTime,
+    );
+
+    if (newTime != null &&
+        (newTime.hour < _closingTime.hour ||
+            (newTime.hour == _closingTime.hour &&
+                newTime.minute < _closingTime.minute))) {
+      setState(() {
+        _openingTime = newTime;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+            "Please pick a valid opening time! - It must be before the closing time!"),
+      ));
+    }
+  }
+
+  Future<void> _selectClosingTime() async {
+    final TimeOfDay? newTime = await showTimePicker(
+      context: context,
+      initialTime: _closingTime,
+    );
+
+    if (newTime != null &&
+        (newTime.hour > _openingTime.hour ||
+            (newTime.hour == _openingTime.hour &&
+                newTime.minute > _openingTime.minute))) {
+      setState(() {
+        _closingTime = newTime;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+            "Please pick a valid closing time! - It must be after the opening time!"),
+      ));
     }
   }
 
@@ -212,6 +261,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _buildTextField(_cityController, AppConstants.cityLabel,
                             AppConstants.cityError),
                         const SizedBox(height: 24.0),
+                        _buildSectionTitle(context, 'Work Details'),
+                        const SizedBox(height: 16.0),
+                        _buildWorkDaysSelector(),
+                        const SizedBox(height: 16.0),
+                        _buildTimePicker(
+                            'Opening Time', _openingTime, _selectOpeningTime),
+                        const SizedBox(height: 16.0),
+                        _buildTimePicker(
+                            'Closing Time', _closingTime, _selectClosingTime),
+                        const SizedBox(height: 24.0),
                         if (_errorMessage != null)
                           Text(
                             _errorMessage!,
@@ -259,6 +318,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildWorkDaysSelector() {
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: List.generate(7, (index) {
+        final day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index];
+        final dayIndex = index;
+        return ChoiceChip(
+          label: Text(day),
+          selected: _selectedWorkDays.contains(dayIndex),
+          onSelected: (selected) {
+            setState(() {
+              if (selected) {
+                _selectedWorkDays.add(dayIndex);
+              } else {
+                _selectedWorkDays.remove(dayIndex);
+              }
+            });
+          },
+        );
+      }),
+    );
+  }
+
+  Widget _buildTimePicker(String label, TimeOfDay time, VoidCallback onSelect) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            '$label: ${time.format(context)}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ),
+        ElevatedButton(
+          onPressed: onSelect,
+          child: const Text('Select Time'),
+        ),
+      ],
     );
   }
 

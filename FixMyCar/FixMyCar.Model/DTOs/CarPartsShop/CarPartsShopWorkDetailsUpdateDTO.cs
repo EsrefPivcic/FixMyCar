@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FixMyCar.Model.DTOs.CarRepairShop
+namespace FixMyCar.Model.DTOs.CarPartsShop
 {
-    public class CarRepairShopWorkDetailsUpdateDTO
+    public class CarPartsShopWorkDetailsUpdateDTO
     {
         public string? Username { get; set; }
         public List<DayOfWeek>? WorkDays { get; set; }

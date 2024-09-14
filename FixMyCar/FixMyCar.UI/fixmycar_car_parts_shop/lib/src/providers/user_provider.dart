@@ -5,7 +5,6 @@ import 'package:fixmycar_car_parts_shop/src/models/user/user_update_image.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_password.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_username.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
-import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -14,33 +13,6 @@ class UserProvider extends BaseProvider<User, UserRegister> {
 
   User? user;
   bool isLoading = false;
-
-  Future<void> insertUser(UserRegister user) async {
-    await insert(
-      user,
-      customEndpoint: 'InsertCarPartsShop',
-      toJson: (user) => user.toJson(),
-    );
-  }
-
-  Future<void> getByToken() async {
-    isLoading = true;
-    notifyListeners();
-
-    try {
-      SearchResult<User> searchResult = await get(
-        customEndpoint: 'GetByToken',
-        fromJson: (json) => User.fromJson(json),
-      );
-
-      user = searchResult.result[0];
-    } catch (e) {
-      user = null;
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
 
   Future<void> updateByToken({required UserUpdate user}) async {
     toJson(UserUpdate user) => user.toJson();

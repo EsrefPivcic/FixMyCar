@@ -10,7 +10,6 @@ namespace FixMyCar.Model.DTOs.Reservation
 {
     public class ReservationUpdateDTO
     {
-        public int? OrderId { get; set; }
         public DateTime? ReservationDate { get; set; }
         public DateTime? CompletionDate { get; set; }
         public int? CarRepairShopDiscountId { get; set; }

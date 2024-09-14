@@ -354,20 +354,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int parseWorkDay(String day) {
     switch (day) {
-      case "Monday":
-        return DateTime.monday;
-      case "Tuesday":
-        return DateTime.tuesday;
-      case "Wednesday":
-        return DateTime.wednesday;
-      case "Thursday":
-        return DateTime.thursday;
-      case "Friday":
-        return DateTime.friday;
-      case "Saturday":
-        return DateTime.saturday;
       case "Sunday":
-        return DateTime.sunday;
+        return 0;
+      case "Monday":
+        return 1;
+      case "Tuesday":
+        return 2;
+      case "Wednesday":
+        return 3;
+      case "Thursday":
+        return 4;
+      case "Friday":
+        return 5;
+      case "Saturday":
+        return 6;
       default:
         throw ArgumentError("Invalid day of the week");
     }
@@ -534,8 +534,8 @@ class _HomeScreenState extends State<HomeScreen> {
       spacing: 8.0,
       runSpacing: 4.0,
       children: List.generate(7, (index) {
-        final day = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index];
-        final dayIndex = index + 1;
+        final day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index];
+        final dayIndex = index;
         return ChoiceChip(
           label: Text(day),
           selected: workDays.contains(dayIndex),
@@ -762,7 +762,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 8.0),
                                     Text.rich(TextSpan(
                                         text:
-                                            'Working time: ${user.workingHours}',
+                                            'Working time: ${parseTimeOfDay(user.workingHours).hour} hours',
                                         style: const TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w400))),
@@ -776,7 +776,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       onPressed: _updateWorkDetails,
                                       icon: const Icon(
                                           Icons.work_history_outlined),
-                                      label: const Text('Update Work Details'),
+                                      label: const Text('Apply Work Details Changes'),
                                     ),
                                     const SizedBox(height: 16.0),
                                     const Text.rich(TextSpan(

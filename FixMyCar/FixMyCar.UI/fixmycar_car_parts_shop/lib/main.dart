@@ -1,4 +1,5 @@
 import 'package:fixmycar_car_parts_shop/src/providers/car_models_by_manufacturer_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/car_parts_shop_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/order_detail_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/order_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/store_item_category_provider.dart';
@@ -24,6 +25,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => OrderDetailProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => CarPartsShopProvider())
       ],
       child: const MyApp(),
     ),

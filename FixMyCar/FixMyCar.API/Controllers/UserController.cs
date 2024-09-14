@@ -31,14 +31,6 @@ namespace FixMyCar.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("InsertCarPartsShop")]
-        public async Task<UserGetDTO> InsertCarPartsShop(UserInsertDTO request)
-        {
-            request.RoleId = 4;
-            return await (_service as IUserService).Insert(request);
-        }
-
-        [AllowAnonymous]
         [HttpPost("InsertClient")]
         public async Task<UserGetDTO> InsertClient(UserInsertDTO request)
         {

@@ -3,6 +3,7 @@ using FixMyCar.Services.Utilities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -243,7 +244,11 @@ namespace FixMyCar.Services.Database
                     CityId = 1,
                     PasswordSalt = salt2,
                     PasswordHash = Hashing.GenerateHash(salt2, "carpartsshop"),
-                    RoleId = 4
+                    RoleId = 4,
+                    WorkDaysAsString = string.Join(",", new[] { (int)DayOfWeek.Monday, (int)DayOfWeek.Tuesday, (int)DayOfWeek.Wednesday, (int)DayOfWeek.Thursday, (int)DayOfWeek.Friday }),
+                    OpeningTime = new TimeSpan(8, 0, 0),
+                    ClosingTime = new TimeSpan(16, 0, 0),
+                    WorkingHours = new TimeSpan(8, 0, 0)
                 }
             );
 

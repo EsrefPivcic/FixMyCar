@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using FixMyCar.Model.DTOs.CarPartsShop;
+using FixMyCar.Model.DTOs.CarRepairShop;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Utilities;
@@ -12,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace FixMyCar.Services.Services
 {
@@ -29,45 +32,90 @@ namespace FixMyCar.Services.Services
             return base.AddInclude(query, search);
         }
 
-        public override async Task BeforeInsert(CarPartsShop entity, CarPartsShopInsertDTO request)
+        public override IQueryable<CarPartsShop> AddFilter(IQueryable<CarPartsShop> query, CarPartsShopSearchObject? search = null)
         {
-            _logger.LogInformation($"Adding user: {entity.Username}");
-
-            if (request.Password != request.PasswordConfirm)
+            if (search != null)
             {
-                throw new Exception("Passwords must match.");
+                if (search?.Username != null)
+                {
+                    query = query.Where(u => u.Username == search.Username);
+                }
             }
 
-            entity.PasswordSalt = Hashing.GenerateSalt();
-            entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
-            entity.Created = DateTime.Now.Date;
+            return base.AddFilter(query, search);
+        }
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            City city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+        public async Task UpdateWorkDetails(CarPartsShopWorkDetailsUpdateDTO request)
+        {
+            var set = _context.Set<CarPartsShop>();
+            var entity = await set.FirstOrDefaultAsync(u => u.Username == request.Username);
 
-            if (city != null)
+            if (entity != null)
             {
-                entity.CityId = city.Id;
+                entity.WorkDays = request.WorkDays;
+                entity.OpeningTime = XmlConvert.ToTimeSpan(request.OpeningTime);
+                entity.ClosingTime = XmlConvert.ToTimeSpan(request.ClosingTime);
+                entity.WorkingHours = entity.ClosingTime - entity.OpeningTime;
+
+                await _context.SaveChangesAsync();
             }
             else
             {
-                var citySet = _context.Set<City>();
-                City newCity = new City
-                {
-                    Name = request.City
-                };
-                await citySet.AddAsync(newCity);
-                await _context.SaveChangesAsync();
-
-                newCity = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
-                entity.CityId = newCity.Id;
+                throw new UserException($"User {request.Username} doesn't exist");
             }
+        }
 
-            await _context.SaveChangesAsync();
+        public override async Task BeforeInsert(CarPartsShop entity, CarPartsShopInsertDTO request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == request.Username);
 
-            await transaction.CommitAsync();
+            if (user == null)
+            {
+                if (request.Password != request.PasswordConfirm)
+                {
+                    throw new UserException("Passwords must match.");
+                }
 
-            await base.BeforeInsert(entity, request);
+                entity.PasswordSalt = Hashing.GenerateSalt();
+                entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
+                entity.Created = DateTime.Now.Date;
+
+                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
+
+                if (city != null)
+                {
+                    entity.CityId = city.Id;
+                }
+                else
+                {
+                    var citySet = _context.Set<City>();
+                    City newCity = new City
+                    {
+                        Name = request.City
+                    };
+                    await citySet.AddAsync(newCity);
+                    await _context.SaveChangesAsync();
+
+                    entity.CityId = newCity.Id;
+                }
+
+                if (request.Image != null)
+                {
+                    byte[] newImage = Convert.FromBase64String(request.Image);
+                    entity.Image = ImageHelper.Resize(newImage, 150);
+                }
+                else
+                {
+                    entity.Image = null;
+                }
+
+                entity.WorkingHours = XmlConvert.ToTimeSpan(request.ClosingTime) - XmlConvert.ToTimeSpan(request.OpeningTime);
+                await base.BeforeInsert(entity, request);
+            }
+            else
+            {
+                throw new UserException("This username is already in use.");
+            }
         }
     }
 }

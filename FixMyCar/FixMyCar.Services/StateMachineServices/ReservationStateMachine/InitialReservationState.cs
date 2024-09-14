@@ -2,10 +2,13 @@
 using FixMyCar.Model.DTOs.Reservation;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.Utilities;
+using FixMyCar.Services.Utilities;
 using FixMyCar.Services.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +23,19 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
         public override async Task<ReservationGetDTO> Insert(ReservationInsertDTO request)
         {
-            var set = _context.Set<Reservation>();
+            var repairShop = await _context.Users.OfType<CarRepairShop>().FirstOrDefaultAsync(c => c.Id == request.CarRepairShopId);
+
+            if (repairShop == null)
+            {
+                throw new UserException("Car repair shop not valid!"); 
+            }
+
+            bool isOnWorkDay = Validation.IsReservationOnWorkday(request.ReservationDate, repairShop);
+
+            if (!isOnWorkDay)
+            {
+                throw new UserException($"Can't make a reservation on a non-work day! ({request.ReservationDate.DayOfWeek})");
+            }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.ClientUsername) ?? throw new UserException("User not found");
 
@@ -43,6 +58,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
             bool repairs = false;
             bool diagnostics = false;
+            TimeSpan totalDuration = TimeSpan.Zero;
 
             foreach (var serviceId in request.Services)
             {
@@ -53,6 +69,8 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 }
                 else
                 {
+                    totalDuration += service.Duration;
+
                     if (service.ServiceType.Name == "Repairs")
                     {
                         repairs = true;
@@ -61,6 +79,18 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                     {
                         diagnostics = true;
                     }
+                }
+            }
+
+            List<Reservation>? reservations = _context.Reservations.Where(r => r.ReservationDate.Date == request.ReservationDate.Date && r.CarRepairShopId == request.CarRepairShopId).ToList();
+
+            if (reservations != null)
+            {
+                bool isWithinWorkHours = Validation.IsWithinWorkHours(totalDuration, repairShop.WorkingHours, reservations);
+
+                if (!isWithinWorkHours) 
+                {
+                    throw new UserException($"You can't make a reservation on {request.ReservationDate.Day}.{request.ReservationDate.Month}.{request.ReservationDate.Year}. since there is too many reservations on that day.");
                 }
             }
 
@@ -138,6 +168,8 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             }
 
             entity.ReservationCreatedDate = DateTime.Now;
+
+            var set = _context.Set<Reservation>();
 
             set.Add(entity);
 

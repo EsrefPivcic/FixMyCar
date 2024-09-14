@@ -23,20 +23,25 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
         {
             _mapper.Map(request, entity);
 
-            if (entity.State == "accepted")
+            if (request.ShippingCity != null)
             {
-                var reservation = await _context.Reservations.FirstOrDefaultAsync(r => r.OrderId == entity.Id);
+                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.ShippingCity!.ToLower());
 
-                if (reservation != null)
+                if (city != null)
                 {
-                    if (entity.ShippingDate > reservation.ReservationDate)
+                    entity.CityId = city.Id;
+                }
+                else
+                {
+                    var citySet = _context.Set<City>();
+                    City newCity = new City
                     {
-                        reservation.State = "orderdateconflict";
-                    }
-                    else
-                    {
-                        reservation.State = "ready";
-                    }
+                        Name = request.ShippingCity!
+                    };
+                    await citySet.AddAsync(newCity);
+                    await _context.SaveChangesAsync();
+
+                    entity.CityId = newCity.Id;
                 }
             }
 

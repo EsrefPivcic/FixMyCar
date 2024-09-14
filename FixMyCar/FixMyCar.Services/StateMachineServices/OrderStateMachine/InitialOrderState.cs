@@ -25,7 +25,40 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username) ?? throw new UserException("User not found");
 
-            Order entity = _mapper.Map<Order>(request);  
+            Order entity = new Order();
+
+            entity.CarPartsShopId = request.CarPartsShopId;
+            entity.PaymentMethod = request.PaymentMethod;
+
+            if (request.UserAddress)
+            {
+                entity.CityId = user.CityId;
+                entity.ShippingAddress = user.Address;
+                entity.ShippingPostalCode = user.PostalCode;
+            }
+            else
+            {
+                entity.ShippingAddress = request.ShippingAddress!;
+                entity.ShippingPostalCode = request.ShippingPostalCode!;
+                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City!.ToLower());
+
+                if (city != null)
+                {
+                    entity.CityId = city.Id;
+                }
+                else
+                {
+                    var citySet = _context.Set<City>();
+                    City newCity = new City
+                    {
+                        Name = request.City!
+                    };
+                    await citySet.AddAsync(newCity);
+                    await _context.SaveChangesAsync();
+
+                    entity.CityId = newCity.Id;
+                }
+            }
 
             if (user is Client)
             {

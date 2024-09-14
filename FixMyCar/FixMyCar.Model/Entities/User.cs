@@ -26,7 +26,7 @@ namespace FixMyCar.Model.Entities
         public int RoleId { get; set; }
         public Role Role { get; set; }
         [ForeignKey(nameof(City))]
-        public int? CityId { get; set; }
-        public City? City { get; set; }
+        public int CityId { get; set; }
+        public City City { get; set; }
     }
 }

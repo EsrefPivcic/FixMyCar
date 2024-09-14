@@ -16,6 +16,9 @@ class UserRegister {
   String passwordConfirm;
   String? image;
   String city;
+  List<int> workDays;
+  String openingTime;
+  String closingTime;
 
   UserRegister(
       this.name,
@@ -29,7 +32,10 @@ class UserRegister {
       this.password,
       this.passwordConfirm,
       this.image,
-      this.city);
+      this.city,
+      this.workDays,
+      this.openingTime,
+      this.closingTime);
 
   factory UserRegister.fromJson(Map<String, dynamic> json) =>
       _$UserRegisterFromJson(json);
