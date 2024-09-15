@@ -91,59 +91,15 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 {
                     throw new UserException($"Can't make a reservation on a non-work day! ({reservationDate.DayOfWeek})");
                 }
-            }
 
-            if (request.Services != null)
-            {
-                bool repairs = false;
-                bool diagnostics = false;
-
-                TimeSpan totalDuration = TimeSpan.Zero;
-
-                foreach (var serviceId in request.Services)
-                {
-                    var service = await _context.CarRepairShopServices.Include("ServiceType").FirstOrDefaultAsync(s => s.Id == serviceId) ?? throw new UserException($"Repair shop service #{serviceId} not found");
-                    if (service.State != "active")
-                    {
-                        throw new UserException($"Can't make a reservation with inactive repair shop service (#{service.Id} - {service.Name}).");
-                    }
-                    totalDuration += service.Duration;
-
-                    if (service.ServiceType.Name == "Repairs")
-                    {
-                        repairs = true;
-                    }
-                    else
-                    {
-                        diagnostics = true;
-                    }
-                }
-
-                if (repairs)
-                {
-                    if (diagnostics)
-                    {
-                        entity.Type = "Repairs and Diagnostics";
-                    }
-                    else
-                    {
-                        entity.Type = "Repairs";
-                    }
-                }
-                else
-                {
-                    entity.Type = "Diagnostics";
-                    entity.State = "ready";
-                }
-
-                    var reservations = await _context.Reservations
+                var reservations = await _context.Reservations
                     .Where(r => r.ReservationDate.Date == reservationDate.Date && r.CarRepairShopId == entity.CarRepairShopId)
                     .Where(r => r.Id != entity.Id)
                     .ToListAsync();
-                
+
                 if (reservations != null)
                 {
-                    bool isWithinWorkHours = Validation.IsWithinWorkHours(totalDuration, repairShop!.WorkingHours, reservations);
+                    bool isWithinWorkHours = Validation.IsWithinWorkHours(entity.TotalDuration, repairShop!.WorkingHours, reservations);
 
                     if (!isWithinWorkHours)
                     {

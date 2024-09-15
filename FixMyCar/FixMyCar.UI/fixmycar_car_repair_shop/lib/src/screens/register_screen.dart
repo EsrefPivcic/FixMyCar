@@ -146,6 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
+      showBackButton: false,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppPadding.defaultPadding),

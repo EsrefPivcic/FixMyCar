@@ -25,47 +25,13 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
             var repairShop = await _context.Users.OfType<CarRepairShop>().FirstOrDefaultAsync(c => c.Id == entity.CarRepairShopId);
 
-            if (request.Services != null)
+            if (request.ReservationDate != null)
             {
-                bool repairs = false;
-                bool diagnostics = false;
-                TimeSpan totalDuration = TimeSpan.Zero;
+                bool isOnWorkDay = Validation.IsReservationOnWorkday(reservationDate, repairShop!);
 
-                foreach (var serviceId in request.Services)
+                if (!isOnWorkDay)
                 {
-                    var service = await _context.CarRepairShopServices.Include("ServiceType").FirstOrDefaultAsync(s => s.Id == serviceId) ?? throw new UserException($"Repair shop service #{serviceId} not found");
-                    if (service.State != "active")
-                    {
-                        throw new UserException($"Can't make a reservation with inactive repair shop service (#{service.Id} - {service.Name}).");
-                    }
-                    totalDuration += service.Duration;
-
-                    if (service.ServiceType.Name == "Repairs")
-                    {
-                        repairs = true;
-                    }
-                    else
-                    {
-                        diagnostics = true;
-                    }
-                }
-
-                if (repairs)
-                {
-                    if (diagnostics)
-                    {
-                        entity.Type = "Repairs and Diagnostics";
-                    }
-                    else
-                    {
-                        entity.Type = "Repairs";
-                    }
-                }
-                else
-                {
-                    entity.Type = "Diagnostics";
-                    entity.OrderId = null;
-                    entity.State = "ready";
+                    throw new UserException($"Can't make a reservation on a non-work day! ({reservationDate.DayOfWeek})");
                 }
 
                 var reservations = await _context.Reservations
@@ -75,22 +41,12 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
                 if (reservations != null)
                 {
-                    bool isWithinWorkHours = Validation.IsWithinWorkHours(totalDuration, repairShop!.WorkingHours, reservations);
+                    bool isWithinWorkHours = Validation.IsWithinWorkHours(entity.TotalDuration, repairShop!.WorkingHours, reservations);
 
                     if (!isWithinWorkHours)
                     {
                         throw new UserException($"You can't make a reservation on {reservationDate.Day}.{reservationDate.Month}.{reservationDate.Year}. since there is too many reservations on that day.");
                     }
-                }
-            }
-
-            if (request.ReservationDate != null)
-            {
-                bool isOnWorkDay = Validation.IsReservationOnWorkday(reservationDate, repairShop!);
-
-                if (!isOnWorkDay)
-                {
-                    throw new UserException($"Can't make a reservation on a non-work day! ({reservationDate.DayOfWeek})");
                 }
             }
 

@@ -226,7 +226,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           _showEditForm(context, null, false);
         },
         backgroundColor: Theme.of(context).hoverColor,
-        child: Icon(Icons.add, color: Colors.white),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -857,8 +857,11 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                   newStoreItem.price =
                                       double.tryParse(priceController.text) ??
                                           0;
-                                  newStoreItem.discount =
-                                      double.tryParse(discountController.text);
+                                  newStoreItem.discount = discountController.text != ""
+                                        ? double.tryParse(
+                                                discountController.text)! /
+                                            100
+                                        : 0;
                                   newStoreItem.imageData = base64Image;
                                   newStoreItem.details = detailsController.text;
                                   newStoreItem.carModelIds = selectedCarModels

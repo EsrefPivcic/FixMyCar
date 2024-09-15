@@ -4,28 +4,31 @@ import 'package:fixmycar_car_repair_shop/src/screens/home_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/reservations_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/services_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/discounts_screen.dart';
-import 'package:fixmycar_car_repair_shop/src/screens/car_parts_screen.dart';
+import 'package:fixmycar_car_repair_shop/src/screens/car_parts_shops_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/login_screen.dart';
 
 class MasterScreen extends StatelessWidget {
   final Widget child;
+  final bool showBackButton;
 
-  const MasterScreen({super.key, required this.child});
+  const MasterScreen({super.key, required this.child, required this.showBackButton});
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final isLoggedIn = authProvider.isLoggedIn;
 
+    double leftPadding = showBackButton ? 55 : 8;
+
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: showBackButton,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
         flexibleSpace: Row(
           children: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.only(left: leftPadding, top: 8.0, right: 8.0, bottom: 8.0),
               child: Image.asset('lib/src/assets/images/car-service-icon.png'),
             ),
             const Padding(
@@ -86,7 +89,7 @@ class MasterScreen extends StatelessWidget {
         } else if (label == 'Car Parts') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CarPartsScreen()),
+            MaterialPageRoute(builder: (context) => const CarPartsShopsScreen()),
           );
         } else if (label == 'Services') {
           Navigator.push(

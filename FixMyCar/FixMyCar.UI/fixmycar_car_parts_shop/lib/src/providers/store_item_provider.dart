@@ -44,7 +44,7 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItemInsertUpdate> {
       SearchResult<StoreItem> searchResult = await get(
         filter: queryParams,
         fromJson: (json) => StoreItem.fromJson(json),
-        customEndpoint: 'GetByCarPartsShop'
+        customEndpoint: 'GetByToken'
       );
 
       items = searchResult.result;

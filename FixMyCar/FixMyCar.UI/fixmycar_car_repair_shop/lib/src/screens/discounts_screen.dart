@@ -205,6 +205,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
         Provider.of<CarRepairShopDiscountProvider>(context).isLoading;
 
     return MasterScreen(
+      showBackButton: false,
       child: Scaffold(
         body: isLoading
             ? const Center(child: CircularProgressIndicator())

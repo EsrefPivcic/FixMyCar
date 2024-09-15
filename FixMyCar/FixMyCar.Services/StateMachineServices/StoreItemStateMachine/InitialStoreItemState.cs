@@ -33,23 +33,30 @@ namespace FixMyCar.Services.StateMachineServices.StoreItemStateMachine
 
             entity.DiscountedPrice = entity.Price - (entity.Price * entity.Discount);
 
-            if (request.CarModelIds != null)
-            {
-                foreach (var carModelId in request.CarModelIds)
-                {
-                    await _context.StoreItemCarModels.AddAsync(new StoreItemCarModel
-                    {
-                        StoreItemId = entity.Id,
-                        CarModelId = carModelId
-                    });
-                }
-            }
-
             set.Add(entity);
 
             await _context.SaveChangesAsync();
 
+            if (request.CarModelIds != null)
+            {
+                await AddStoreItemCarModels(request.CarModelIds, entity.Id);
+            }
+
+            await _context.SaveChangesAsync();
+
             return _mapper.Map<StoreItemGetDTO>(entity);
+        }
+
+        internal async Task AddStoreItemCarModels(List<int> carModelIds, int storeItemId)
+        {
+            foreach (var carModelId in carModelIds)
+            {
+                await _context.StoreItemCarModels.AddAsync(new StoreItemCarModel
+                {
+                    StoreItemId = storeItemId,
+                    CarModelId = carModelId
+                });
+            }
         }
 
         public override async Task<List<string>> AllowedActions()

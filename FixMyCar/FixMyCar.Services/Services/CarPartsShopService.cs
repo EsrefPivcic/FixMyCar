@@ -36,9 +36,14 @@ namespace FixMyCar.Services.Services
         {
             if (search != null)
             {
-                if (search?.Username != null)
+                if (search!.Username != null)
                 {
                     query = query.Where(u => u.Username == search.Username);
+                }
+
+                if (search!.ContainsUsername != null)
+                {
+                    query = query.Where(u => u.Username.Contains(search.ContainsUsername));
                 }
             }
 
@@ -106,7 +111,9 @@ namespace FixMyCar.Services.Services
                 }
                 else
                 {
-                    entity.Image = null;
+                    var partsshopimgpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "parts-shop.png");
+                    byte[] partsshopimg = ImageHelper.GetImageData(partsshopimgpath);
+                    entity.Image = ImageHelper.Resize(partsshopimg, 150);
                 }
 
                 entity.WorkingHours = XmlConvert.ToTimeSpan(request.ClosingTime) - XmlConvert.ToTimeSpan(request.OpeningTime);

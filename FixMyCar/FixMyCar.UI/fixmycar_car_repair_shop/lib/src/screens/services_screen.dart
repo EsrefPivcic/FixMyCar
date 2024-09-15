@@ -503,6 +503,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: MasterScreen(
+        showBackButton: false,
         child: Consumer<CarRepairShopServiceProvider>(
           builder: (context, provider, child) {
             return Column(

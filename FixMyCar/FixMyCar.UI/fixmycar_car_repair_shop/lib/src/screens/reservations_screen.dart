@@ -1358,6 +1358,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     final isLoading = reservationProvider.isLoading;
 
     return MasterScreen(
+      showBackButton: false,
       child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Row(

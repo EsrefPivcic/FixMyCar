@@ -208,6 +208,12 @@ namespace FixMyCar.Services.Database
             var salt = Hashing.GenerateSalt();
             var salt2 = Hashing.GenerateSalt();
 
+            var repairshopimgpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "repair-shop.png");
+            byte[] repairshopimg = ImageHelper.GetImageData(repairshopimgpath);
+            
+            var partsshopimgpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "parts-shop.png");
+            byte[] partsshopimg = ImageHelper.GetImageData(partsshopimgpath);
+
             modelBuilder.Entity<Admin>().HasData(
                 new Admin
                 {
@@ -244,6 +250,7 @@ namespace FixMyCar.Services.Database
                     CityId = 1,
                     PasswordSalt = salt2,
                     PasswordHash = Hashing.GenerateHash(salt2, "carpartsshop"),
+                    Image = ImageHelper.Resize(partsshopimg, 150),
                     RoleId = 4,
                     WorkDaysAsString = string.Join(",", new[] { (int)DayOfWeek.Monday, (int)DayOfWeek.Tuesday, (int)DayOfWeek.Wednesday, (int)DayOfWeek.Thursday, (int)DayOfWeek.Friday }),
                     OpeningTime = new TimeSpan(8, 0, 0),
@@ -268,6 +275,7 @@ namespace FixMyCar.Services.Database
                     CityId = 1,
                     PasswordSalt = salt2,
                     PasswordHash = Hashing.GenerateHash(salt2, "carrepairshop"),
+                    Image = ImageHelper.Resize(repairshopimg, 150),
                     RoleId = 3,
                     WorkDaysAsString = string.Join(",", new[] { (int)DayOfWeek.Monday, (int)DayOfWeek.Tuesday, (int)DayOfWeek.Wednesday, (int)DayOfWeek.Thursday, (int)DayOfWeek.Friday }),
                     OpeningTime = new TimeSpan(8, 0, 0),

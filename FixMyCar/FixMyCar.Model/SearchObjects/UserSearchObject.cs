@@ -9,5 +9,6 @@ namespace FixMyCar.Model.SearchObjects
     public partial class UserSearchObject : BaseSearchObject
     {
         public string? Username { get; set; }
+        public string? ContainsUsername { get; set; }
     }
 }

@@ -105,7 +105,9 @@ namespace FixMyCar.Services.Services
                 }
                 else
                 {
-                    entity.Image = null;
+                    var repairshopimgpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "repair-shop.png");
+                    byte[] repairshopimg = ImageHelper.GetImageData(repairshopimgpath);
+                    entity.Image = ImageHelper.Resize(repairshopimg, 150);
                 }
 
                 entity.WorkingHours = XmlConvert.ToTimeSpan(request.ClosingTime) - XmlConvert.ToTimeSpan(request.OpeningTime);
