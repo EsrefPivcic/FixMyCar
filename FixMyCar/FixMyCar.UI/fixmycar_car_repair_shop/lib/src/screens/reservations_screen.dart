@@ -1,6 +1,6 @@
 import 'package:fixmycar_car_repair_shop/src/models/order/order_essential.dart';
 import 'package:fixmycar_car_repair_shop/src/models/reservation/reservation_search_object.dart';
-import 'package:fixmycar_car_repair_shop/src/providers/order_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/order_essential_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/reservation_detail_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/reservation_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/models/reservation/reservation.dart';
@@ -348,7 +348,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     final reservationDetailProvider =
         Provider.of<ReservationDetailProvider>(context, listen: false);
 
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    final orderProvider =
+        Provider.of<OrderEssentialProvider>(context, listen: false);
 
     await reservationDetailProvider.getByReservation(id: reservation.id);
 

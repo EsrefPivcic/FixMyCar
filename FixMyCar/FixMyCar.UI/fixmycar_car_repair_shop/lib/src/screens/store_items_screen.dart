@@ -1,10 +1,13 @@
 import 'package:fixmycar_car_repair_shop/src/models/car_manufacturer/car_manufacturer.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_model/car_model.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_model/car_models_by_manufacturer.dart';
+import 'package:fixmycar_car_repair_shop/src/models/order/order_insert_update.dart';
 import 'package:fixmycar_car_repair_shop/src/models/store_item/store_item.dart';
 import 'package:fixmycar_car_repair_shop/src/models/store_item/store_item_order.dart';
 import 'package:fixmycar_car_repair_shop/src/models/store_item_category/store_item_category.dart';
+import 'package:fixmycar_car_repair_shop/src/models/user/user.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_models_by_manufacturer_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/order_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_provider.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +16,7 @@ import 'dart:convert';
 import 'master_screen.dart';
 
 class StoreItemsScreen extends StatefulWidget {
-  final String carPartsShop;
+  final User carPartsShop;
 
   const StoreItemsScreen({super.key, required this.carPartsShop});
 
@@ -22,17 +25,21 @@ class StoreItemsScreen extends StatefulWidget {
 }
 
 class _StoreItemsScreenState extends State<StoreItemsScreen> {
-
   late String carPartsShopFilter;
+  late int carPartsShopId;
+  late List<StoreItem> loadedItems;
 
   @override
   void initState() {
     super.initState();
 
-    carPartsShopFilter = widget.carPartsShop;
+    carPartsShopFilter = widget.carPartsShop.username;
+    carPartsShopId = widget.carPartsShop.id;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Provider.of<StoreItemProvider>(context, listen: false).getStoreItems(carPartsShopName: carPartsShopFilter);
+      Provider.of<StoreItemProvider>(context, listen: false)
+          .getStoreItems(carPartsShopName: carPartsShopFilter);
+
       await _fetchCarModelsAndCategories();
     });
   }
@@ -47,17 +54,281 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   TextEditingController _nameFilterController = TextEditingController();
 
   List<StoreItemOrder> orderedItems = [];
+  bool useProfileAddress = true;
+  TextEditingController cityController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
+  TextEditingController postalCodeController = TextEditingController();
+  String selectedPaymentMethod = 'Cash';
+
+  void _openShoppingCartForm(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              contentPadding: const EdgeInsets.all(16.0),
+              content: SizedBox(
+                width: 500,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Your Cart', style: TextStyle(fontSize: 24)),
+                    const SizedBox(height: 16.0),
+                    if (orderedItems.isEmpty)
+                      const Text('No items in your cart.')
+                    else
+                      SizedBox(
+                        height: 300,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: orderedItems.length,
+                          itemBuilder: (context, index) {
+                            final order = orderedItems[index];
+                            final storeItemName =
+                                'Item ${loadedItems.firstWhere((item) => item.id == order.storeItemId).name}';
+                            return ListTile(
+                              leading: loadedItems
+                                          .firstWhere((item) =>
+                                              item.id == order.storeItemId)
+                                          .imageData !=
+                                      ""
+                                  ? Image.memory(
+                                      base64Decode(loadedItems
+                                          .firstWhere((item) =>
+                                              item.id == order.storeItemId)
+                                          .imageData!),
+                                      fit: BoxFit.contain,
+                                      width: 200,
+                                      height: 200,
+                                    )
+                                  : const SizedBox(
+                                      width: 200,
+                                      height: 200,
+                                      child: Icon(Icons.image, size: 150),
+                                    ),
+                              title: Text(storeItemName),
+                              subtitle: Text('Quantity: ${order.quantity}'),
+                            );
+                          },
+                        ),
+                      ),
+                    const SizedBox(height: 16.0),
+                    Row(
+                      children: [
+                        const Text('Use profile address'),
+                        Switch(
+                          value: useProfileAddress,
+                          onChanged: (bool value) {
+                            setState(() {
+                              useProfileAddress = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    if (!useProfileAddress) ...[
+                      TextField(
+                        controller: cityController,
+                        decoration: const InputDecoration(labelText: 'City'),
+                      ),
+                      TextField(
+                        controller: addressController,
+                        decoration: const InputDecoration(labelText: 'Address'),
+                      ),
+                      TextField(
+                        controller: postalCodeController,
+                        decoration:
+                            const InputDecoration(labelText: 'Postal Code'),
+                      ),
+                    ],
+                    const SizedBox(height: 16.0),
+                    DropdownButton<String>(
+                      value: selectedPaymentMethod,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'Cash',
+                          child: Row(
+                            children: [
+                              Icon(Icons.money_rounded),
+                              SizedBox(width: 8),
+                              Text('Cash'),
+                            ],
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Stripe',
+                          child: Row(
+                            children: [
+                              Icon(Icons.credit_card_rounded),
+                              SizedBox(width: 8),
+                              Text('Stripe'),
+                            ],
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedPaymentMethod = value!;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(18, 255, 255, 255)),
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(18, 255, 255, 255)),
+                          onPressed: () => _confirmDiscard(context),
+                          child: const Text('Discard Order'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromARGB(18, 255, 255, 255)),
+                          onPressed: orderedItems.isNotEmpty
+                              ? () {
+                                  _confirmPlaceOrder(context);
+                                }
+                              : null,
+                          child: const Text('Place Order'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _confirmDiscard(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Discard Order'),
+          content: const Text('Are you sure you want to discard the order?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  orderedItems.clear();
+                  cityController.clear();
+                  addressController.clear();
+                  postalCodeController.clear();
+                });
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmPlaceOrder(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Place Order'),
+          content: const Text('Are you sure you want to place this order?'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                OrderInsertUpdate newOrder;
+                if (useProfileAddress) {
+                  newOrder = OrderInsertUpdate(
+                      carPartsShopId,
+                      useProfileAddress,
+                      "",
+                      "",
+                      "",
+                      selectedPaymentMethod,
+                      orderedItems);
+                } else {
+                  newOrder = OrderInsertUpdate(
+                      carPartsShopId,
+                      useProfileAddress,
+                      cityController.text,
+                      addressController.text,
+                      postalCodeController.text,
+                      selectedPaymentMethod,
+                      orderedItems);
+                }
+                bool validateInputs = cityController.text.trim().isNotEmpty &&
+                    addressController.text.trim().isNotEmpty &&
+                    postalCodeController.text.trim().isNotEmpty;
+                if (useProfileAddress ||
+                    (!useProfileAddress && validateInputs)) {
+                  try {
+                    await Provider.of<OrderProvider>(context, listen: false)
+                        .insertOrder(newOrder);
+                    orderedItems = [];
+                    cityController.clear();
+                    addressController.clear();
+                    postalCodeController.clear();
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                      ),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Please provide shipping details!"),
+                    ),
+                  );
+                }
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   int getItemQuantity(int storeItemId) {
     return orderedItems
-        .firstWhere((order) => order.storeItemId == storeItemId, orElse: () => StoreItemOrder(storeItemId, 0))
+        .firstWhere((order) => order.storeItemId == storeItemId,
+            orElse: () => StoreItemOrder(storeItemId, 0))
         .quantity;
   }
 
   void updateItemQuantity(int storeItemId, int quantity) {
     setState(() {
       if (quantity > 0) {
-        final existingOrder = orderedItems.firstWhere((order) => order.storeItemId == storeItemId, orElse: () => StoreItemOrder(storeItemId, 0));
+        final existingOrder = orderedItems.firstWhere(
+            (order) => order.storeItemId == storeItemId,
+            orElse: () => StoreItemOrder(storeItemId, 0));
         if (existingOrder.quantity == 0) {
           orderedItems.add(StoreItemOrder(storeItemId, quantity));
         } else {
@@ -93,6 +364,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         showBackButton: true,
         child: Consumer<StoreItemProvider>(
           builder: (context, provider, child) {
+            loadedItems = provider.items;
+
             return Column(
               children: [
                 Padding(
@@ -124,9 +397,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 5,
-                        crossAxisSpacing: 8.0,
-                        mainAxisSpacing: 8.0,
-                        childAspectRatio: 0.9,
+                        crossAxisSpacing: 16.0,
+                        mainAxisSpacing: 16.0,
+                        childAspectRatio: 0.80,
                       ),
                       itemCount: provider.items.length,
                       itemBuilder: (context, index) {
@@ -134,7 +407,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         int quantity = getItemQuantity(item.id);
 
                         return Card(
-                          elevation: 2,
+                          elevation: 4,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -161,7 +434,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(5.0),
                                 child: Text(
                                   item.name,
                                   style: Theme.of(context).textTheme.bodyLarge,
@@ -169,7 +442,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(5.0),
                                 child: Text.rich(
                                   TextSpan(
                                     children: [
@@ -203,7 +476,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               ),
                               if (item.discount != 0)
                                 Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(5.0),
                                   child: Text(
                                     'Discount: ${(item.discount * 100).toInt()}%',
                                     style: Theme.of(context)
@@ -218,7 +491,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                   ),
                                 ),
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(5.0),
                                 child: Text(
                                   'Category: ${item.category == "" ? "Unknown" : item.category}',
                                   style: Theme.of(context).textTheme.bodySmall,
@@ -226,7 +499,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.all(8.0),
+                                padding: const EdgeInsets.all(5.0),
                                 child: Text(
                                   'Car models: ${item.carModels?.isNotEmpty == true ? item.carModels!.map((model) => model.name).join(', ') : "Unknown"}',
                                   style: Theme.of(context).textTheme.bodySmall,
@@ -234,28 +507,39 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     IconButton(
-                                      onPressed: quantity > 0 ? () => updateItemQuantity(item.id, quantity - 1) : null,
+                                      onPressed: quantity > 0
+                                          ? () => updateItemQuantity(
+                                              item.id, quantity - 1)
+                                          : null,
                                       icon: const Icon(Icons.remove),
                                     ),
-                                    Text('$quantity', style: Theme.of(context).textTheme.bodyLarge),
+                                    Text('$quantity',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge),
                                     IconButton(
-                                      onPressed: () => updateItemQuantity(item.id, quantity + 1),
+                                      onPressed: () => updateItemQuantity(
+                                          item.id, quantity + 1),
                                       icon: const Icon(Icons.add),
                                     ),
                                   ],
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 8),
                                 child: ElevatedButton(
-                                  onPressed: () {
-                                    //TODO: Implement the logic for the details button
-                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(context).highlightColor,
+                                  ),
+                                  onPressed: () {},
                                   child: const Text('Details'),
                                 ),
                               ),
@@ -271,9 +555,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          //TODO: Shopping cart
-        },
+        onPressed: () => _openShoppingCartForm(context),
         backgroundColor: Theme.of(context).hoverColor,
         child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
       ),

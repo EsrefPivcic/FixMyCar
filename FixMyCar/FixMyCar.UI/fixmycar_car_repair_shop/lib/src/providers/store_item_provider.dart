@@ -23,7 +23,8 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
     Map<String, dynamic> queryParams = {};
 
     queryParams['CarPartsShopName'] = carPartsShopName;
-    
+    queryParams['State'] = "active";
+
     if (nameFilter != null && nameFilter.isNotEmpty) {
       queryParams['Contains'] = nameFilter;
     }
@@ -40,9 +41,7 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
 
     try {
       SearchResult<StoreItem> searchResult = await get(
-        filter: queryParams,
-        fromJson: (json) => StoreItem.fromJson(json)
-      );
+          filter: queryParams, fromJson: (json) => StoreItem.fromJson(json));
 
       items = searchResult.result;
       countOfItems = searchResult.count;

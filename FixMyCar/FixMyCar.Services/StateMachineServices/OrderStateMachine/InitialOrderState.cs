@@ -40,7 +40,7 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             {
                 entity.ShippingAddress = request.ShippingAddress!;
                 entity.ShippingPostalCode = request.ShippingPostalCode!;
-                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City!.ToLower());
+                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.ShippingCity!.ToLower());
 
                 if (city != null)
                 {
@@ -51,7 +51,7 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
                     var citySet = _context.Set<City>();
                     City newCity = new City
                     {
-                        Name = request.City!
+                        Name = request.ShippingCity!
                     };
                     await citySet.AddAsync(newCity);
                     await _context.SaveChangesAsync();

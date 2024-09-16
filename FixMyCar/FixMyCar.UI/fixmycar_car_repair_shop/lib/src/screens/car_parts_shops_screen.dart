@@ -1,4 +1,5 @@
 import 'package:fixmycar_car_repair_shop/src/models/user/user_search_object.dart';
+import 'package:fixmycar_car_repair_shop/src/screens/order_history_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/store_items_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -97,16 +98,33 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
           builder: (context, provider, child) {
             return Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: IconButton(
-                      icon: Icon(Icons.filter_list,
-                          color: Theme.of(context).primaryColorLight),
-                      onPressed: () => _showFilterDialog(context),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: IconButton(
+                        icon: Icon(Icons.filter_list,
+                            color: Theme.of(context).primaryColorLight),
+                        onPressed: () => _showFilterDialog(context),
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.history),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(18, 255, 255, 255)),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrderHistoryScreen(),
+                          ),
+                        ),
+                        label: const Text("Order History"),
+                      ),
+                    ),
+                  ],
                 ),
                 if (provider.isLoading)
                   const Expanded(
@@ -143,9 +161,8 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) =>
-                                      StoreItemsScreen(
-                                          carPartsShop: carPartsShop.username),
+                                  builder: (context) => StoreItemsScreen(
+                                      carPartsShop: carPartsShop),
                                 ),
                               );
                             },
