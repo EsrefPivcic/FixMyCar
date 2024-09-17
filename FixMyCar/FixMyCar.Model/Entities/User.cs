@@ -28,5 +28,6 @@ namespace FixMyCar.Model.Entities
         [ForeignKey(nameof(City))]
         public int CityId { get; set; }
         public City City { get; set; }
+        public bool Active { get; set; }
     }
 }

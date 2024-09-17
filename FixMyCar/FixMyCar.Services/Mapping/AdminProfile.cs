@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace FixMyCar.Services.Mapping
 {
@@ -13,13 +14,18 @@ namespace FixMyCar.Services.Mapping
     {
         public AdminProfile()
         {
-            CreateMap<AdminInsertDTO, Admin>();
+            CreateMap<AdminInsertDTO, Admin>()
+                 .ForMember(dest => dest.CityId, opt => opt.Ignore())
+                .ForMember(dest => dest.City, opt => opt.Ignore())
+                .ForMember(dest => dest.Image, opt => opt.Ignore());
             CreateMap<AdminUpdateDTO, Admin>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null)); ;
             CreateMap<Admin, AdminInsertDTO>();
             CreateMap<Admin, AdminUpdateDTO>();
             CreateMap<Admin, AdminGetDTO>()
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name));
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name))
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City.Name))
+                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Image != null ? Convert.ToBase64String(src.Image) : string.Empty));
         }
     }
 }

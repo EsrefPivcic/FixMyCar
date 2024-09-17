@@ -77,5 +77,11 @@ namespace FixMyCar.Controllers
             search.Username = username;
             return await (_service as IUserService).Get(search);
         }
+
+        [HttpPut("ChangeActiveStatus")]
+        public async Task ChangeActiveStatus(int id)
+        {
+            await (_service as IUserService).ChangeActiveStatus(id);
+        }
     }
 }

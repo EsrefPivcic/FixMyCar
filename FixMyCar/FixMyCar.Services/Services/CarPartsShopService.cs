@@ -7,6 +7,7 @@ using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Utilities;
+using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -44,6 +45,11 @@ namespace FixMyCar.Services.Services
                 if (search!.ContainsUsername != null)
                 {
                     query = query.Where(u => u.Username.Contains(search.ContainsUsername));
+                }
+
+                if (search!.Active != null)
+                {
+                    query = query.Where(u => u.Active == search.Active);
                 }
             }
 
@@ -117,6 +123,8 @@ namespace FixMyCar.Services.Services
                 }
 
                 entity.WorkingHours = XmlConvert.ToTimeSpan(request.ClosingTime) - XmlConvert.ToTimeSpan(request.OpeningTime);
+                entity.Active = false;
+
                 await base.BeforeInsert(entity, request);
             }
             else

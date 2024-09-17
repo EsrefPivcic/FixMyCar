@@ -14,27 +14,45 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
   }
 
   Future<void> login(String username, String password) async {
-    final response = await http.post(
-      Uri.parse('${BaseProvider.baseUrl}/login'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'username': username,
-        'password': password,
-        'role': 'Car Repair Shop'
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseProvider.baseUrl}/login'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'username': username,
+          'password': password,
+          'role': 'Car Repair Shop'
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final responseBody = json.decode(response.body);
-      final token = responseBody['token'];
-      await storage.write(key: 'jwt_token', value: token);
-      isLoggedIn = true;
-      print("Login successful!");
-    } else {
-      final responseBody = json.decode(response.body);
-      throw Exception(responseBody['message']);
+      if (response.statusCode == 200) {
+        final responseBody = json.decode(response.body);
+        final token = responseBody['token'];
+        await storage.write(key: 'jwt_token', value: token);
+        isLoggedIn = true;
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 

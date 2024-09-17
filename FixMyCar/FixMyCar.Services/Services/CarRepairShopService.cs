@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +39,16 @@ namespace FixMyCar.Services.Services
                 if (search?.Username != null)
                 {
                     query = query.Where(u => u.Username == search.Username);
+                }
+
+                if (search!.ContainsUsername != null)
+                {
+                    query = query.Where(u => u.Username.Contains(search.ContainsUsername));
+                }
+
+                if (search!.Active != null)
+                {
+                    query = query.Where(u => u.Active == search.Active);
                 }
             }
 
@@ -111,6 +122,8 @@ namespace FixMyCar.Services.Services
                 }
 
                 entity.WorkingHours = XmlConvert.ToTimeSpan(request.ClosingTime) - XmlConvert.ToTimeSpan(request.OpeningTime);
+                entity.Active = false;
+
                 await base.BeforeInsert(entity, request);
             }
             else

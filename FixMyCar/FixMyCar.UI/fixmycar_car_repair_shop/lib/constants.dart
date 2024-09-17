@@ -1,6 +1,6 @@
 class AppConstants {
   static const String loginLabel = 'Login';
-  static const String usernameLabel = 'Username (Shop Name)';
+  static const String usernameLabel = 'Username (Repair Shop Name)';
   static const String passwordLabel = 'Password';
   static const String loginButtonLabel = 'Login';
   static const String registerLabel = 'Register';

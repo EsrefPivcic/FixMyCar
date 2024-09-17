@@ -3,6 +3,7 @@ using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.DTOs.User;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace FixMyCar.Controllers
 
             if (token == null)
             {
-                return Unauthorized(new {message = "Incorrect login."});
+                throw new UserException("Incorrect login!");
             }
 
             return Ok(new { token });

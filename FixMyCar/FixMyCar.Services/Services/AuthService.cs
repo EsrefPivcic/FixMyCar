@@ -3,6 +3,7 @@ using FixMyCar.Model.DTOs.AuthToken;
 using FixMyCar.Model.DTOs.User;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Utilities;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,16 +34,16 @@ namespace FixMyCar.Services.Services
 
             if (user == null)
             {
-                return null;
+                throw new UserException("Incorrect login!");
             }
             var hash = Hashing.GenerateHash(user.PasswordSalt, password);
-            if (hash != user.PasswordHash)
+            if (hash != user.PasswordHash || user.Role.Name != role)
             {
-                return null;
+                throw new UserException("Incorrect login!");
             }
-            if (user.Role.Name != role && user.Role.Name != "Admin")
+            if (user.Active == false)
             {
-                return null;
+                throw new UserException("Your account is inactive! Please contact the admins!");
             }
 
             var authToken = new AuthToken();

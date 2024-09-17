@@ -357,6 +357,106 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     });
   }
 
+  void _showDetailsDialog(BuildContext context, StoreItem item) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            item.name,
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          content: SingleChildScrollView(
+            child: Container(
+              constraints: const BoxConstraints(
+                maxWidth: 600,
+              ),
+              child: Column(
+                children: [
+                  if (item.imageData != null && item.imageData!.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      height: 150,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.memory(
+                          base64Decode(item.imageData!),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  _buildDetailRow(
+                      'Price', '${item.price.toStringAsFixed(2)}€', context),
+                  if (item.discount != 0)
+                    _buildDetailRow('Discount',
+                        '${(item.discount * 100).toInt()}%', context),
+                  if (item.discount != 0)
+                    _buildDetailRow(
+                      'Discounted Price',
+                      '${item.discountedPrice.toStringAsFixed(2)}€',
+                      context,
+                    ),
+                  _buildDetailRow('State', item.state, context),
+                  _buildDetailRow(
+                      'Category', item.category ?? "Unknown", context),
+                  _buildDetailRow(
+                    'Details',
+                    item.details ?? "No details available",
+                    context,
+                  ),
+                  _buildDetailRow(
+                    'Car Models',
+                    item.carModels != null && item.carModels!.isNotEmpty
+                        ? item.carModels!
+                            .map(
+                                (model) => '${model.name} (${model.modelYear})')
+                            .join(', ')
+                        : "Unknown",
+                    context,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String title, String value, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '$title:',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -397,9 +497,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 5,
-                        crossAxisSpacing: 16.0,
-                        mainAxisSpacing: 16.0,
-                        childAspectRatio: 0.80,
+                        crossAxisSpacing: 8.0,
+                        mainAxisSpacing: 8.0,
+                        childAspectRatio: 0.8,
                       ),
                       itemCount: provider.items.length,
                       itemBuilder: (context, index) {
@@ -407,7 +507,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         int quantity = getItemQuantity(item.id);
 
                         return Card(
-                          elevation: 4,
+                          elevation: 2,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -539,7 +639,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                     backgroundColor:
                                         Theme.of(context).highlightColor,
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    _showDetailsDialog(context, item);
+                                  },
                                   child: const Text('Details'),
                                 ),
                               ),

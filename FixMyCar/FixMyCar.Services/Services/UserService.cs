@@ -21,6 +21,22 @@ namespace FixMyCar.Services.Services
             _logger = logger;
         }
 
+        public async Task ChangeActiveStatus(int id)
+        {
+            var set = _context.Set<User>();
+            var entity = await set.FirstOrDefaultAsync(u => u.Id == id);
+
+            if (entity != null)
+            {
+                entity.Active = !entity.Active;
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new UserException("Wrong entity id!");
+            }
+        }
+
         public async Task UpdateImageByToken(UserUpdateImageDTO request)
         {
             var set = _context.Set<User>();

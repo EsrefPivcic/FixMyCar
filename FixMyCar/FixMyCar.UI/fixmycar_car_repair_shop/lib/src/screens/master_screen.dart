@@ -12,7 +12,8 @@ class MasterScreen extends StatelessWidget {
   final Widget child;
   final bool showBackButton;
 
-  const MasterScreen({super.key, required this.child, required this.showBackButton});
+  const MasterScreen(
+      {super.key, required this.child, required this.showBackButton});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +29,8 @@ class MasterScreen extends StatelessWidget {
         flexibleSpace: Row(
           children: [
             Padding(
-              padding: EdgeInsets.only(left: leftPadding, top: 8.0, right: 8.0, bottom: 8.0),
+              padding: EdgeInsets.only(
+                  left: leftPadding, top: 8.0, right: 8.0, bottom: 8.0),
               child: Image.asset('lib/src/assets/images/car-service-icon.png'),
             ),
             const Padding(
@@ -89,7 +91,8 @@ class MasterScreen extends StatelessWidget {
         } else if (label == 'Car Parts') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CarPartsShopsScreen()),
+            MaterialPageRoute(
+                builder: (context) => const CarPartsShopsScreen()),
           );
         } else if (label == 'Services') {
           Navigator.push(
@@ -120,15 +123,16 @@ class MasterScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                Navigator.of(context).pop();
                 try {
-                  await authProvider.logout();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
-                    ),
-                  );
+                  await authProvider.logout().then((_) {
+                    Navigator.of(context).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
+                  });
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
