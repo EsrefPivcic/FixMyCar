@@ -97,7 +97,7 @@ Use the following credentials to test the car repair shop app:
 - Username: carrepairshop
 - Password: carrepairshop
 
-Use the following credentials to test the admin shop app:
+Use the following credentials to test the admin app:
 
 - Username: admin
 - Password: admin
