@@ -17,6 +17,7 @@ class User {
   String? image;
   String role;
   String city;
+  bool active;
 
   User(
       this.id,
@@ -31,7 +32,8 @@ class User {
       this.postalCode,
       this.image,
       this.role,
-      this.city);
+      this.city,
+      this.active);
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 

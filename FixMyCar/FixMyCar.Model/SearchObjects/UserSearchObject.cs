@@ -11,5 +11,6 @@ namespace FixMyCar.Model.SearchObjects
         public string? Username { get; set; }
         public string? ContainsUsername { get; set; }
         public bool? Active { get; set; }
+        public string? Role { get; set; }
     }
 }

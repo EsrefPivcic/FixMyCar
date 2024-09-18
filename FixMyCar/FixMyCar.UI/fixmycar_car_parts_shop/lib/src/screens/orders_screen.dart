@@ -618,7 +618,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
               RadioListTile(
                 title: const Text("Client"),
-                value: "Client",
+                value: "client",
                 groupValue: filterCriteria.role,
                 onChanged: (value) {
                   setState(() {
@@ -629,7 +629,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
               RadioListTile(
                 title: const Text("Car Repair Shop"),
-                value: "Car Repair Shop",
+                value: "carrepairshop",
                 groupValue: filterCriteria.role,
                 onChanged: (value) {
                   setState(() {

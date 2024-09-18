@@ -23,7 +23,7 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
         body: jsonEncode(<String, String>{
           'username': username,
           'password': password,
-          'role': 'Car Repair Shop'
+          'role': 'carrepairshop'
         }),
       );
 

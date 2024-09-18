@@ -21,6 +21,48 @@ namespace FixMyCar.Services.Services
             _logger = logger;
         }
 
+        public override IQueryable<User> AddInclude(IQueryable<User> query, UserSearchObject? search = null)
+        {
+            query = query.Include("Role");
+            query = query.Include("City");
+            return base.AddInclude(query, search);
+        }
+
+        public override IQueryable<User> AddFilter(IQueryable<User> query, UserSearchObject? search = null)
+        {
+            if (search != null)
+            {
+                if (search!.Role != null)
+                {
+                    if (search!.Role != "allexceptadmin")
+                    {
+                        query = query.Where(u => u.Role.Name == search.Role);
+                    }
+                    else
+                    {
+                        query = query.Where(u => u.Role.Name != "admin");
+                    }
+                }
+
+                if (search!.Username != null)
+                {
+                    query = query.Where(u => u.Username == search.Username);
+                }
+
+                if (search!.ContainsUsername != null)
+                {
+                    query = query.Where(u => u.Username.Contains(search.ContainsUsername));
+                }
+
+                if (search!.Active != null)
+                {
+                    query = query.Where(u => u.Active == search.Active);
+                }
+            }
+
+            return base.AddFilter(query, search);
+        }
+
         public async Task ChangeActiveStatus(int id)
         {
             var set = _context.Set<User>();
@@ -168,26 +210,6 @@ namespace FixMyCar.Services.Services
             {
                 throw new UserException("User doesn't exist");
             }
-        }
-
-        public override IQueryable<User> AddInclude(IQueryable<User> query, UserSearchObject? search = null)
-        {
-            query = query.Include("Role");
-            query = query.Include("City");
-            return base.AddInclude(query, search);
-        }
-
-        public override IQueryable<User> AddFilter(IQueryable<User> query, UserSearchObject? search = null)
-        {
-            if (search != null)
-            {
-                if (search?.Username != null)
-                {
-                    query = query.Where(u => u.Username ==  search.Username);
-                }
-            }
-
-            return base.AddFilter(query, search);   
         }
 
         public override async Task BeforeInsert(User entity, UserInsertDTO request)

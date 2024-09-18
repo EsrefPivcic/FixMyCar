@@ -17,8 +17,8 @@ namespace FixMyCar.Model.Entities
         public string Username { get; set; }
         public DateTime Created { get; set; }
         public string Gender { get; set; }
-        public string Address { get; set; }
-        public string PostalCode { get; set; }
+        public string? Address { get; set; }
+        public string? PostalCode { get; set; }
         public string PasswordHash { get; set; }
         public string PasswordSalt { get; set; }
         public byte[]? Image { get; set; }

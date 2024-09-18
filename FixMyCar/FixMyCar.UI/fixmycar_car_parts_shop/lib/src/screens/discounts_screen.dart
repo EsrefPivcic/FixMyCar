@@ -107,7 +107,15 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
   }
 
   void _applyFilters() {
-    String? role = _selectedRole == 'All' ? null : _selectedRole;
+    String? role;
+
+    if (_selectedRole != 'All') {
+      role = _selectedRole == "Car Repair Shop" ? "carrepairshop" : "client";
+    }
+    else {
+      role = null;
+    }
+
     bool? active = _selectedStatus == 'All'
         ? null
         : _selectedStatus == 'Active'

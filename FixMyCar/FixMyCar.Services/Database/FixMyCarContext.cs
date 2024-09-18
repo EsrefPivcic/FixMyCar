@@ -169,7 +169,7 @@ namespace FixMyCar.Services.Database
                 new Role
                 {
                     Id = 1,
-                    Name = "Admin"
+                    Name = "admin"
                 }
             );
 
@@ -177,7 +177,7 @@ namespace FixMyCar.Services.Database
                 new Role
                 {
                     Id = 2,
-                    Name = "Client"
+                    Name = "client"
                 }
             );
 
@@ -185,7 +185,7 @@ namespace FixMyCar.Services.Database
                 new Role
                 {
                     Id = 3,
-                    Name = "Car Repair Shop"
+                    Name = "carrepairshop"
                 }
             );
 
@@ -193,7 +193,7 @@ namespace FixMyCar.Services.Database
                 new Role
                 {
                     Id = 4,
-                    Name = "Car Parts Shop"
+                    Name = "carpartsshop"
                 }
             );
 

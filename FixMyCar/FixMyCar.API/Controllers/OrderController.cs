@@ -74,7 +74,7 @@ namespace FixMyCar.API.Controllers
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             search.CarRepairShopName = username;
-            search.Role = "Car Repair Shop";
+            search.Role = "carrepairshop";
             return await (_service as IOrderService).Get(search);
         }
     }
