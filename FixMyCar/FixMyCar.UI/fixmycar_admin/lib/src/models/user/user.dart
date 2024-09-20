@@ -12,8 +12,8 @@ class User {
   String username;
   String created;
   String gender;
-  String address;
-  String postalCode;
+  String? address;
+  String? postalCode;
   String? image;
   String role;
   String city;

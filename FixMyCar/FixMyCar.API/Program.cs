@@ -160,11 +160,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.Urls.Add("https://localhost:7055");
+app.Urls.Add("http://0.0.0.0:5148");
 
 app.Run();
