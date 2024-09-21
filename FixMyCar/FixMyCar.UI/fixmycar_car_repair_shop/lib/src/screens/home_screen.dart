@@ -790,7 +790,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       },
                                       icon: const Icon(Icons.person),
                                       label: const Text(
-                                          'Change Username (Company Name)'),
+                                          'Change Username'),
                                     ),
                                     const SizedBox(height: 8.0),
                                     ElevatedButton.icon(

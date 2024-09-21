@@ -1,6 +1,7 @@
 import 'package:fixmycar_client/src/providers/auth_provider.dart';
 import 'package:fixmycar_client/src/screens/home_screen.dart';
 import 'package:fixmycar_client/src/screens/login_screen.dart';
+import 'package:fixmycar_client/src/screens/user_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,26 +18,36 @@ class MasterScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        title: Stack(
           children: [
-            Image.asset(
-              'lib/src/assets/images/car-service-icon.png',
-              height: 24.0,
-            ),
-            const SizedBox(width: 8.0),
-            const Text(
-              "FixMyCar",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'lib/src/assets/images/car-service-icon.png',
+                    height: 24.0,
+                  ),
+                  const SizedBox(width: 8.0),
+                  const Text(
+                    "FixMyCar",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
         centerTitle: true,
         leading: isLoggedIn
-            ? IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
+            ? Builder(
+                builder: (context) {
+                  return IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  );
                 },
               )
             : null,
@@ -46,11 +57,11 @@ class MasterScreen extends StatelessWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  const DrawerHeader(
+                  DrawerHeader(
                     decoration: BoxDecoration(
-                      color: Colors.blue,
+                      color: Theme.of(context).colorScheme.onSecondary,
                     ),
-                    child: Text(
+                    child: const Text(
                       'Menu',
                       style: TextStyle(
                         color: Colors.white,
@@ -59,18 +70,31 @@ class MasterScreen extends StatelessWidget {
                     ),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.home),
-                    title: const Text('Home'),
+                    leading: const Icon(Icons.person),
+                    title: const Text('Profile'),
                     onTap: () {
+                      Navigator.of(context).pop();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const HomeScreen()),
+                          builder: (context) => const UserProfileScreen(),
+                        ),
                       );
-                      Navigator.of(context).pop();
                     },
                   ),
-                  const Spacer(),
+                  ListTile(
+                    leading: const Icon(Icons.home),
+                    title: const Text('Home'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    },
+                  ),
                   ListTile(
                     leading: const Icon(Icons.logout),
                     title: const Text('Logout'),

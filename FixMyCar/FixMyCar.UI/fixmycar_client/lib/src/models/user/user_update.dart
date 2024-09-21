@@ -9,8 +9,11 @@ class UserUpdate {
   String? email;
   String? phone;
   String? gender;
+  String? address;
+  String? postalCode;
+  String? city;
 
-  UserUpdate(this.name, this.surname, this.email, this.phone, this.gender);
+  UserUpdate(this.name, this.surname, this.email, this.phone, this.gender, this.address, this.postalCode, this.city);
 
   factory UserUpdate.fromJson(Map<String, dynamic> json) =>
       _$UserUpdateFromJson(json);

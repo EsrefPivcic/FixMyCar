@@ -77,5 +77,14 @@ namespace FixMyCar.API.Controllers
             search.Role = "carrepairshop";
             return await (_service as IOrderService).Get(search);
         }
+
+        [HttpGet("GetByClient")]
+        public async Task<PagedResult<OrderGetDTO>> GetByClient([FromQuery] OrderSearchObject? search = null)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            search.ClientName = username;
+            search.Role = "client";
+            return await (_service as IOrderService).Get(search);
+        }
     }
 }

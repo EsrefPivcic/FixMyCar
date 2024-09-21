@@ -18,6 +18,10 @@ class User {
   String role;
   String city;
   bool active;
+  List<String>? workDays;
+  String? openingTime;
+  String? closingTime;
+  String? workingHours;
 
   User(
       this.id,
@@ -33,7 +37,11 @@ class User {
       this.image,
       this.role,
       this.city,
-      this.active);
+      this.active,
+      this.workDays,
+      this.openingTime,
+      this.closingTime,
+      this.workingHours);
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 

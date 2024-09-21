@@ -60,6 +60,11 @@ namespace FixMyCar.Services.Services
                     query = query.Where(o => o.CarRepairShop.Username == search.CarRepairShopName);
                 }
 
+                if (search?.CarRepairShopName != null)
+                {
+                    query = query.Where(o => o.Client.Username == search.ClientName);
+                }
+
                 if (search?.Discount != null)
                 {
                     if (search.Discount == true)

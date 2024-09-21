@@ -10,6 +10,7 @@ namespace FixMyCar.Model.SearchObjects
     {
         public string? CarPartsShopName { get; set; }
         public string? CarRepairShopName { get; set; }
+        public string? ClientName { get; set; }
         public string? Role { get; set; }
         public bool? Discount { get; set; }
         public string? State { get; set; }

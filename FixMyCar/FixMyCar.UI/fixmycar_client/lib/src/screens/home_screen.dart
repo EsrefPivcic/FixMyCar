@@ -1,3 +1,4 @@
+import 'package:fixmycar_client/src/screens/car_parts_shops_screen.dart';
 import 'package:flutter/material.dart';
 import 'master_screen.dart';
 
@@ -8,9 +9,62 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return MasterScreen(
       child: Center(
-        child: Text(
-          'Welcome to Home Screen',
-          style: Theme.of(context).textTheme.headlineMedium,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                // TODO: Add logic for Car Repair Shops
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16.0),
+                minimumSize: const Size(double.infinity, 150),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'lib/src/assets/images/repair-shop.png',
+                    height: 100,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Car Repair Shops',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CarPartsShopsScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16.0),
+                minimumSize: const Size(double.infinity, 150),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'lib/src/assets/images/parts-shop.png',
+                    height: 100,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Car Parts Shops',
+                    style: TextStyle(fontSize: 20),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
