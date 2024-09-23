@@ -1,5 +1,6 @@
 import 'package:fixmycar_client/src/models/user/user_search_object.dart';
 import 'package:fixmycar_client/src/screens/car_repair_shop_services_screen.dart';
+import 'package:fixmycar_client/src/screens/reservation_history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
@@ -23,7 +24,8 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Provider.of<CarRepairShopProvider>(context, listen: false).getRepairShops();
+      Provider.of<CarRepairShopProvider>(context, listen: false)
+          .getRepairShops();
     });
   }
 
@@ -119,12 +121,13 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
                             backgroundColor:
                                 const Color.fromARGB(18, 255, 255, 255)),
                         onPressed: () {
-                          /*Navigator.push(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const OrderHistoryScreen(),
+                              builder: (context) =>
+                                  const ReservationHistoryScreen(),
                             ),
-                          );*/
+                          );
                         },
                         label: const Text("Reservation History"),
                       ),
@@ -158,15 +161,17 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
                       ),
                       itemCount: provider.carRepairShops.length,
                       itemBuilder: (context, index) {
-                        final User carRepairShop = provider.carRepairShops[index];
+                        final User carRepairShop =
+                            provider.carRepairShops[index];
 
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => CarRepairShopServicesScreen(
-                                    carRepairShop: carRepairShop),
+                                builder: (context) =>
+                                    CarRepairShopServicesScreen(
+                                        carRepairShop: carRepairShop),
                               ),
                             );
                           },

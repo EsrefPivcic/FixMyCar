@@ -6,22 +6,30 @@ import 'package:fixmycar_client/src/providers/base_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class ReservationProvider extends BaseProvider<Reservation, ReservationInsertUpdate> {
+class ReservationProvider
+    extends BaseProvider<Reservation, ReservationInsertUpdate> {
   List<Reservation> reservations = [];
   int countOfItems = 0;
   bool isLoading = false;
 
   ReservationProvider() : super('Reservation');
 
-    Future<void> insertReservation(ReservationInsertUpdate reservation) async {
+  Future<void> insertReservation(ReservationInsertUpdate reservation) async {
     await insert(
       reservation,
       toJson: (service) => service.toJson(),
     );
   }
 
-  Future<void> getByCarClient(
-      {ReservationSearchObject? reservationSearch}) async {
+  Future<void> updateReservation(
+      int id, ReservationInsertUpdate reservationUpdate) async {
+    await update(
+        id: id,
+        item: reservationUpdate,
+        toJson: (reservationUpdate) => reservationUpdate.toJson());
+  }
+
+  Future<void> getByClient({ReservationSearchObject? reservationSearch}) async {
     isLoading = true;
     notifyListeners();
 
@@ -113,6 +121,38 @@ class ReservationProvider extends BaseProvider<Reservation, ReservationInsertUpd
           headers: await createHeaders());
       if (response.statusCode == 200) {
         print('Adding order successful.');
+        notifyListeners();
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> resend(int id) async {
+    try {
+      final response = await http.put(
+          Uri.parse('${BaseProvider.baseUrl}/$endpoint/Resend/$id'),
+          headers: await createHeaders());
+      if (response.statusCode == 200) {
+        print('Resending reservation successful.');
         notifyListeners();
       } else {
         final responseBody = jsonDecode(response.body);

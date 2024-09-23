@@ -11,6 +11,8 @@ class ReservationInsertUpdate {
   String? paymentMethod;
   List<int>? services;
 
+  ReservationInsertUpdate.n();
+
   ReservationInsertUpdate(this.carRepairShopId, this.orderId, this.clientOrder,
       this.reservationDate, this.paymentMethod, this.services);
 

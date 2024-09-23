@@ -85,7 +85,6 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
   Future<void> insert(TInsertUpdate item,
       {String customEndpoint = '',
       required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
-
     print("Reservation: ${jsonEncode(item)}");
 
     try {
@@ -139,8 +138,22 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
         print('Update successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to update data. Status code: ${response.statusCode}');
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception('User error. $error');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
       }
     } catch (e) {
       print('Error updating data: $e');
