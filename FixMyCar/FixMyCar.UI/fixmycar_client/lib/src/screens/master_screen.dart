@@ -1,6 +1,7 @@
 import 'package:fixmycar_client/src/providers/auth_provider.dart';
 import 'package:fixmycar_client/src/screens/home_screen.dart';
 import 'package:fixmycar_client/src/screens/login_screen.dart';
+import 'package:fixmycar_client/src/screens/order_history_screen.dart';
 import 'package:fixmycar_client/src/screens/user_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -91,6 +92,19 @@ class MasterScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.history),
+                    title: const Text('Car Parts Order History'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const OrderHistoryScreen(),
                         ),
                       );
                     },

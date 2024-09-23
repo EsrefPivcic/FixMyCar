@@ -1,10 +1,13 @@
 import 'package:fixmycar_client/app.dart';
 import 'package:fixmycar_client/src/providers/car_models_by_manufacturer_provider.dart';
 import 'package:fixmycar_client/src/providers/car_parts_shop_provider.dart';
+import 'package:fixmycar_client/src/providers/car_repair_shop_provider.dart';
+import 'package:fixmycar_client/src/providers/car_repair_shop_services_provider.dart';
 import 'package:fixmycar_client/src/providers/client_provider.dart';
 import 'package:fixmycar_client/src/providers/auth_provider.dart';
 import 'package:fixmycar_client/src/providers/order_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/order_provider.dart';
+import 'package:fixmycar_client/src/providers/reservation_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_provider.dart';
 import 'package:fixmycar_client/src/providers/user_provider.dart';
@@ -24,6 +27,9 @@ void main() {
         ChangeNotifierProvider(create: (_) => StoreItemProvider()),
         ChangeNotifierProvider(create: (_) => CarModelsByManufacturerProvider()),
         ChangeNotifierProvider(create: (_) => OrderDetailProvider()),
+        ChangeNotifierProvider(create: (_) => CarRepairShopProvider()),
+        ChangeNotifierProvider(create: (_) => CarRepairShopServiceProvider()),
+        ChangeNotifierProvider(create: (_) => ReservationProvider()),
       ],
       child: const MyApp(),
     ),

@@ -85,6 +85,9 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
   Future<void> insert(TInsertUpdate item,
       {String customEndpoint = '',
       required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
+
+    print("Reservation: ${jsonEncode(item)}");
+
     try {
       final response = await http.post(
         Uri.parse(

@@ -8,6 +8,7 @@ namespace FixMyCar.Model.SearchObjects
 {
     public class ReservationSearchObject : BaseSearchObject
     {
+        public string? ClientUsername { get; set; }
         public string? CarRepairShopName { get; set; }
         public bool? Discount { get; set; }
         public string? State { get; set; }

@@ -3,14 +3,14 @@ import 'package:fixmycar_client/src/models/user/user_search_object.dart';
 import 'package:fixmycar_client/src/providers/base_provider.dart';
 import 'package:fixmycar_client/src/models/search_result.dart';
 
-class CarPartsShopProvider extends BaseProvider<User, User> {
-  CarPartsShopProvider() : super('CarPartsShop');
+class CarRepairShopProvider extends BaseProvider<User, User> {
+  CarRepairShopProvider() : super('CarRepairShop');
 
   int countOfItems = 0;
-  List<User> carPartsShops = [];
+  List<User> carRepairShops = [];
   bool isLoading = false;
 
-  Future<void> getPartsShops({UserSearchObject? search}) async {
+  Future<void> getRepairShops({UserSearchObject? search}) async {
     isLoading = true;
     notifyListeners();
 
@@ -32,11 +32,11 @@ class CarPartsShopProvider extends BaseProvider<User, User> {
           fromJson: (json) => User.fromJson(json),
         );
 
-        carPartsShops = searchResult.result;
+        carRepairShops = searchResult.result;
         countOfItems = searchResult.count;
         isLoading = false;
       } catch (e) {
-        carPartsShops = [];
+        carRepairShops = [];
         countOfItems = 0;
         isLoading = false;
       } finally {

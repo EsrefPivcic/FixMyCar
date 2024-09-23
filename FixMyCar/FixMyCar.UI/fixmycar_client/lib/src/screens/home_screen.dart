@@ -1,4 +1,5 @@
 import 'package:fixmycar_client/src/screens/car_parts_shops_screen.dart';
+import 'package:fixmycar_client/src/screens/car_repair_shops_screen.dart';
 import 'package:flutter/material.dart';
 import 'master_screen.dart';
 
@@ -14,7 +15,12 @@ class HomeScreen extends StatelessWidget {
           children: [
             ElevatedButton(
               onPressed: () {
-                // TODO: Add logic for Car Repair Shops
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CarRepairShopsScreen(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.all(16.0),

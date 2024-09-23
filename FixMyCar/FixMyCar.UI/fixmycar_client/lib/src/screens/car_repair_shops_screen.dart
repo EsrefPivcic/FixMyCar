@@ -1,21 +1,20 @@
 import 'package:fixmycar_client/src/models/user/user_search_object.dart';
-import 'package:fixmycar_client/src/screens/order_history_screen.dart';
-import 'package:fixmycar_client/src/screens/store_items_screen.dart';
+import 'package:fixmycar_client/src/screens/car_repair_shop_services_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'master_screen.dart';
 import 'package:fixmycar_client/src/models/user/user.dart';
-import 'package:fixmycar_client/src/providers/car_parts_shop_provider.dart';
+import 'package:fixmycar_client/src/providers/car_repair_shop_provider.dart';
 
-class CarPartsShopsScreen extends StatefulWidget {
-  const CarPartsShopsScreen({Key? key}) : super(key: key);
+class CarRepairShopsScreen extends StatefulWidget {
+  const CarRepairShopsScreen({Key? key}) : super(key: key);
 
   @override
-  _CarPartsShopsScreenState createState() => _CarPartsShopsScreenState();
+  _CarRepairShopsScreenState createState() => _CarRepairShopsScreenState();
 }
 
-class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
+class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
   String _filterName = '';
   TextEditingController _nameFilterController = TextEditingController();
   bool _isFilterApplied = false;
@@ -24,7 +23,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Provider.of<CarPartsShopProvider>(context, listen: false).getPartsShops();
+      Provider.of<CarRepairShopProvider>(context, listen: false).getRepairShops();
     });
   }
 
@@ -79,13 +78,13 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
   }
 
   void _applyFilters() {
-    final provider = Provider.of<CarPartsShopProvider>(context, listen: false);
+    final provider = Provider.of<CarRepairShopProvider>(context, listen: false);
 
     setState(() {
       _isFilterApplied = true;
     });
 
-    provider.getPartsShops(
+    provider.getRepairShops(
         search: UserSearchObject(
             _filterName.isNotEmpty ? _filterName : null, true, null));
   }
@@ -94,7 +93,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: MasterScreen(
-        child: Consumer<CarPartsShopProvider>(
+        child: Consumer<CarRepairShopProvider>(
           builder: (context, provider, child) {
             return Column(
               children: [
@@ -120,14 +119,14 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                             backgroundColor:
                                 const Color.fromARGB(18, 255, 255, 255)),
                         onPressed: () {
-                          Navigator.push(
+                          /*Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => const OrderHistoryScreen(),
                             ),
-                          );
+                          );*/
                         },
-                        label: const Text("Order History"),
+                        label: const Text("Reservation History"),
                       ),
                     ],
                   ),
@@ -136,7 +135,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                   const Expanded(
                     child: Center(child: CircularProgressIndicator()),
                   )
-                else if (provider.carPartsShops.isEmpty)
+                else if (provider.carRepairShops.isEmpty)
                   Expanded(
                     child: Center(
                       child: Text(
@@ -157,17 +156,17 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                         mainAxisSpacing: 16.0,
                         childAspectRatio: 0.7,
                       ),
-                      itemCount: provider.carPartsShops.length,
+                      itemCount: provider.carRepairShops.length,
                       itemBuilder: (context, index) {
-                        final User carPartsShop = provider.carPartsShops[index];
+                        final User carRepairShop = provider.carRepairShops[index];
 
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => StoreItemsScreen(
-                                    carPartsShop: carPartsShop),
+                                builder: (context) => CarRepairShopServicesScreen(
+                                    carRepairShop: carRepairShop),
                               ),
                             );
                           },
@@ -183,13 +182,13 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                                 children: [
                                   Expanded(
                                     child: Center(
-                                      child: carPartsShop.image != ""
+                                      child: carRepairShop.image != ""
                                           ? ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(10),
                                               child: Image.memory(
                                                 base64Decode(
-                                                    carPartsShop.image!),
+                                                    carRepairShop.image!),
                                                 fit: BoxFit.cover,
                                                 width: 100,
                                                 height: 100,
@@ -202,7 +201,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                                   ),
                                   const SizedBox(height: 10),
                                   Text(
-                                    carPartsShop.username,
+                                    carRepairShop.username,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -213,7 +212,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                                   ),
                                   const SizedBox(height: 5),
                                   Text(
-                                    'Owner: ${carPartsShop.name} ${carPartsShop.surname}',
+                                    'Owner: ${carRepairShop.name} ${carRepairShop.surname}',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
@@ -231,7 +230,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                                           color: Theme.of(context)
                                               .primaryColorLight),
                                       const SizedBox(width: 4),
-                                      Text(carPartsShop.city,
+                                      Text(carRepairShop.city,
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall),
@@ -246,7 +245,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                                           color: Theme.of(context)
                                               .primaryColorLight),
                                       const SizedBox(width: 4),
-                                      Text(carPartsShop.phone,
+                                      Text(carRepairShop.phone,
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodySmall),
@@ -262,7 +261,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                                               .primaryColorLight),
                                       const SizedBox(width: 4),
                                       Text(
-                                        '${parseTimeOfDay(carPartsShop.openingTime!).format(context)} - ${parseTimeOfDay(carPartsShop.closingTime!).format(context)}',
+                                        '${parseTimeOfDay(carRepairShop.openingTime!).format(context)} - ${parseTimeOfDay(carRepairShop.closingTime!).format(context)}',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall,

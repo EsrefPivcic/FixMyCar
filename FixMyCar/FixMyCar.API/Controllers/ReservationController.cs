@@ -87,5 +87,13 @@ namespace FixMyCar.API.Controllers
             search.CarRepairShopName = username;
             return await (_service as IReservationService)!.Get(search);
         }
+
+        [HttpGet("GetByClientToken")]
+        public async Task<PagedResult<ReservationGetDTO>> GetByClient([FromQuery] ReservationSearchObject? search = null)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            search.ClientUsername = username;
+            return await (_service as IReservationService)!.Get(search);
+        }
     }
 }
