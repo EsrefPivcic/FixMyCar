@@ -54,7 +54,14 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             {
                 if (order!.State == "accepted")
                 {
-                    entity.State = "ready";
+                    if (order.ShippingDate > entity.ReservationDate)
+                    {
+                        entity.State = "orderdateconflict";
+                    }
+                    else
+                    {
+                        entity.State = "ready";
+                    }
                 }
                 else if (order!.State == "onhold")
                 {

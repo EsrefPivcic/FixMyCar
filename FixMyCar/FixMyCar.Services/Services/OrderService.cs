@@ -45,7 +45,7 @@ namespace FixMyCar.Services.Services
 
                 if (!string.IsNullOrEmpty(search?.Role))
                 {
-                    if (search?.Role == "Client")
+                    if (search?.Role == "client")
                     {
                         query = query.Where(x => x.ClientId != null);
                     }
@@ -60,7 +60,7 @@ namespace FixMyCar.Services.Services
                     query = query.Where(o => o.CarRepairShop.Username == search.CarRepairShopName);
                 }
 
-                if (search?.CarRepairShopName != null)
+                if (search?.ClientName != null)
                 {
                     query = query.Where(o => o.Client.Username == search.ClientName);
                 }

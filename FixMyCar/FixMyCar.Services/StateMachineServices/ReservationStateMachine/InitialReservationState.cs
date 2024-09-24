@@ -123,7 +123,14 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                     var order = await _context.Orders.FindAsync(request.OrderId);
                     if (order!.State == "accepted")
                     {
-                        entity.State = "ready";
+                        if (order.ShippingDate > entity.ReservationDate)
+                        {
+                            entity.State = "orderdateconflict";
+                        }
+                        else
+                        {
+                            entity.State = "ready";
+                        }
                     }
                     else if (order!.State == "onhold")
                     {

@@ -10,6 +10,7 @@ import 'package:fixmycar_client/src/providers/car_models_by_manufacturer_provide
 import 'package:fixmycar_client/src/providers/order_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_provider.dart';
+import 'package:fixmycar_client/src/widgets/shop_details_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
@@ -28,6 +29,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late String carPartsShopFilter;
   late int carPartsShopId;
   late List<StoreItem> loadedItems;
+  late User carPartsShopDetails;
 
   @override
   void initState() {
@@ -35,6 +37,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
 
     carPartsShopFilter = widget.carPartsShop.username;
     carPartsShopId = widget.carPartsShop.id;
+    carPartsShopDetails = widget.carPartsShop;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<StoreItemProvider>(context, listen: false)
@@ -59,6 +62,13 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   TextEditingController addressController = TextEditingController();
   TextEditingController postalCodeController = TextEditingController();
   String selectedPaymentMethod = 'Cash';
+
+  TimeOfDay parseTimeOfDay(String timeString) {
+    final parts = timeString.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+    return TimeOfDay(hour: hour, minute: minute);
+  }
 
   void _openShoppingCartForm(BuildContext context) {
     showModalBottomSheet(
@@ -470,14 +480,32 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: IconButton(
-                      icon: Icon(Icons.filter_list,
-                          color: Theme.of(context).primaryColorLight),
-                      onPressed: () => _showFilterDialog(context),
-                    ),
+                  padding: const EdgeInsets.only(
+                      left: 8.0, right: 8.0, top: 8.0, bottom: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.filter_list),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(18, 255, 255, 255)),
+                        onPressed: () {
+                          _showFilterDialog(context);
+                        },
+                        label: const Text("Filters"),
+                      ),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.info_outline_rounded),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(18, 255, 255, 255)),
+                        onPressed: () {
+                          showShopDetailsDialog(context, carPartsShopDetails);
+                        },
+                        label: const Text("Shop details"),
+                      ),
+                    ],
                   ),
                 ),
                 if (provider.isLoading)
@@ -494,7 +522,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 else
                   Expanded(
                     child: GridView.builder(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.only(
+                          left: 8.0, right: 8.0, bottom: 8.0),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: isPortrait ? 2 : 3,
                         crossAxisSpacing: 8.0,
@@ -823,12 +852,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 ),
               ),
               actions: [
-                TextButton(
-                  child: const Text('Apply Filters'),
-                  onPressed: () {
-                    _applyFilters();
-                    Navigator.of(context).pop();
-                  },
+                Center(
+                  child: TextButton(
+                    child: const Text('Apply Filters'),
+                    onPressed: () {
+                      _applyFilters();
+                      Navigator.of(context).pop();
+                    },
+                  ),
                 ),
               ],
             );

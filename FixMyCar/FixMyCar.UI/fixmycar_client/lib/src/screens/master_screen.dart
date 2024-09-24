@@ -2,6 +2,7 @@ import 'package:fixmycar_client/src/providers/auth_provider.dart';
 import 'package:fixmycar_client/src/screens/home_screen.dart';
 import 'package:fixmycar_client/src/screens/login_screen.dart';
 import 'package:fixmycar_client/src/screens/order_history_screen.dart';
+import 'package:fixmycar_client/src/screens/reservation_history_screen.dart';
 import 'package:fixmycar_client/src/screens/user_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -62,26 +63,44 @@ class MasterScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.onSecondary,
                     ),
-                    child: const Text(
-                      'Menu',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                      ),
-                    ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.person),
-                    title: const Text('Profile'),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const UserProfileScreen(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Menu',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                          ),
                         ),
-                      );
-                    },
+                        const Spacer(), 
+                        InkWell(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const UserProfileScreen(),
+                              ),
+                            );
+                          },
+                          child: const Row(
+                            children: [
+                              Icon(Icons.person, color: Colors.white),
+                              SizedBox(width: 8),
+                              Text(
+                                'Profile',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 5,)
+                      ],
+                    ),
                   ),
                   ListTile(
                     leading: const Icon(Icons.home),
@@ -105,6 +124,19 @@ class MasterScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const OrderHistoryScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.history),
+                    title: const Text('Car Repar Shop Reservations History'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ReservationHistoryScreen(),
                         ),
                       );
                     },

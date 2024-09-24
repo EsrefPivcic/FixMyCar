@@ -6,6 +6,7 @@ import 'package:fixmycar_client/src/providers/order_essential_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
 import 'package:intl/intl.dart';
@@ -405,7 +406,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
             borderRadius: BorderRadius.circular(12.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : Column(
@@ -421,10 +422,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                         TextSpan(
                           children: [
                             const TextSpan(
-                              text: 'Client: ',
+                              text: 'Car Repair Shop: ',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
-                            TextSpan(text: reservation.clientUsername),
+                            TextSpan(text: reservation.carRepairShopName),
                           ],
                         ),
                       ),
@@ -550,6 +551,20 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                             ],
                           ),
                         ),
+                        if (order == null &&
+                            reservation.clientOrder == true) ...[
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await _addOrder(reservation.id);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).hoverColor,
+                              ),
+                              child: const Text("Add Order"),
+                            ),
+                          ),
+                        ],
                         if (order != null) ...[
                           Card(
                             margin: const EdgeInsets.symmetric(vertical: 4.0),
@@ -699,21 +714,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                             )),
                             const SizedBox(width: 8.0),
                           ],
-                          if (reservation.state == "awaitingorder" &&
-                              reservation.clientOrder == true) ...[
-                            Center(
-                                child: ElevatedButton(
-                              onPressed: () async {
-                                await _addOrder(reservation.id);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 26, 115, 156),
-                              ),
-                              child: const Text('Add Order'),
-                            )),
-                            const SizedBox(width: 8.0),
-                          ],
                           const SizedBox(width: 8.0),
                           Center(
                               child: ElevatedButton(
@@ -728,7 +728,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                         ],
                       )
                     ],
-                  ),
+                ),
           ),
         );
       },
@@ -1462,36 +1462,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                     TextSpan(
                                       children: [
                                         const TextSpan(
-                                          text: 'Completion Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: reservation.completionDate ==
-                                                    null
-                                                ? "Not completed"
-                                                : _formatDate(reservation
-                                                    .completionDate!))
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Total Service Duration: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: reservation.totalDuration)
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
                                           text: 'Total Amount: ',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold),
@@ -1539,11 +1509,12 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: reservation.state == "awaitingorder"
+                                    icon: reservation.state != "accepted" &&
+                                            (reservation.state != "ongoing" &&
+                                                reservation.state !=
+                                                    "completed")
                                         ? const Icon(Icons.settings)
-                                        : reservation.state == "ready"
-                                            ? const Icon(Icons.settings)
-                                            : const Icon(Icons.info_outline),
+                                        : const Icon(Icons.info_outline),
                                     onPressed: () {
                                       _showReservationDetails(
                                           context, reservation);

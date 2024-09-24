@@ -38,7 +38,7 @@ namespace FixMyCar.Services.Services
                 }
                 if (!string.IsNullOrEmpty(search?.Role))
                 {
-                    if (search?.Role == "Client")
+                    if (search?.Role == "client")
                     {
                         query = query.Where(x => x.ClientId != null);
                     }

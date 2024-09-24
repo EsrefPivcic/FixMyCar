@@ -13,61 +13,71 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CarRepairShopsScreen(),
+            SizedBox(
+              width: double.infinity,
+              child: Card(
+                elevation: 4,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CarRepairShopsScreen(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'lib/src/assets/images/repair-shop.png',
+                          height: 100,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Car Repair Shops',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16.0),
-                minimumSize: const Size(double.infinity, 150),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'lib/src/assets/images/repair-shop.png',
-                    height: 100,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Car Repair Shops',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ],
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CarPartsShopsScreen(),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: Card(
+                elevation: 4,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CarPartsShopsScreen(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'lib/src/assets/images/parts-shop.png',
+                          height: 100,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Car Parts Shops',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16.0),
-                minimumSize: const Size(double.infinity, 150),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    'lib/src/assets/images/parts-shop.png',
-                    height: 100,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Car Parts Shops',
-                    style: TextStyle(fontSize: 20),
-                  ),
-                ],
+                ),
               ),
             ),
           ],

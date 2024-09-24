@@ -2,6 +2,7 @@ import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_sh
 import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_shop_service_search_object.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation_insert_update.dart';
 import 'package:fixmycar_client/src/models/user/user.dart';
+import 'package:fixmycar_client/src/widgets/shop_details_widget.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_services_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_provider.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class _CarRepairShopServicesScreenState
   late String carRepairShopFilter;
   late int carRepairShopId;
   late List<CarRepairShopService> loadedServices;
+  late User carRepairShopDetails;
 
   @override
   void initState() {
@@ -31,6 +33,7 @@ class _CarRepairShopServicesScreenState
 
     carRepairShopFilter = widget.carRepairShop.username;
     carRepairShopId = widget.carRepairShop.id;
+    carRepairShopDetails = widget.carRepairShop;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopServiceProvider>(context, listen: false)
@@ -467,14 +470,32 @@ class _CarRepairShopServicesScreenState
             return Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: IconButton(
-                      icon: Icon(Icons.filter_list,
-                          color: Theme.of(context).primaryColorLight),
-                      onPressed: () => _showFilterDialog(context),
-                    ),
+                  padding: const EdgeInsets.only(
+                      left: 8.0, right: 8.0, top: 8.0, bottom: 5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.filter_list),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(18, 255, 255, 255)),
+                        onPressed: () {
+                          _showFilterDialog(context);
+                        },
+                        label: const Text("Filters"),
+                      ),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.info_outline_rounded),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(18, 255, 255, 255)),
+                        onPressed: () {
+                          showShopDetailsDialog(context, carRepairShopDetails);
+                        },
+                        label: const Text("Shop details"),
+                      ),
+                    ],
                   ),
                 ),
                 if (provider.isLoading)
@@ -491,7 +512,8 @@ class _CarRepairShopServicesScreenState
                 else
                   Expanded(
                     child: GridView.builder(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.only(
+                          left: 8.0, right: 8.0, bottom: 8.0),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: isPortrait ? 2 : 3,
                         crossAxisSpacing: 8.0,
