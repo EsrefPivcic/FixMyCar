@@ -81,9 +81,14 @@ In the terminal, run the following command to get all dependencies:
 
 #### Run the App:
 
-To start the app, run:
+To start desktop apps, run:
 
     flutter run -d windows
+
+
+To start the mobile app, run (make sure you have an android device attached or emulated):
+
+    flutter run
 
 ### Test the App
 
