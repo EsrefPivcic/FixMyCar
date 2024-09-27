@@ -67,7 +67,7 @@ Start the API by running the solution.
 
 #### Navigate to the UI Folder:
 
-In the solution folder (`FixMyCar`), navigate to `FixMyCar.UI/fixmycar_car_parts_shop`, `FixMyCar.UI/fixmycar_car_repair_shop` or `FixMyCar.UI/fixmycar_admin`. Those are the Windows apps for car parts shops, car repair shops and admins (client side android app will be added soon).
+In the solution folder (`FixMyCar`), navigate to `FixMyCar.UI/fixmycar_car_parts_shop`, `FixMyCar.UI/fixmycar_car_repair_shop`, `FixMyCar.UI/fixmycar_admin` or `FixMyCar.UI/fixmycar_client`. Those are the Windows apps for car parts shops, car repair shops, admins and clients.
 
 #### Open the folder with Visual Studio Code:
 
@@ -81,9 +81,14 @@ In the terminal, run the following command to get all dependencies:
 
 #### Run the App:
 
-To start the app, run:
+To start desktop apps, run:
 
     flutter run -d windows
+
+
+To start the mobile app, run (make sure you have an android device attached or emulated):
+
+    flutter run
 
 ### Test the App
 
@@ -101,6 +106,11 @@ Use the following credentials to test the admin app:
 
 - Username: admin
 - Password: admin
+
+Use the following credentials to test the client app:
+
+- Username: client
+- Password: client
 
 Feel free to explore and test the current features of the app.
 
