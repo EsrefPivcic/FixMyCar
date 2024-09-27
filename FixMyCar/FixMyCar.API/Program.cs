@@ -1,5 +1,6 @@
 using AutoMapper;
 using FixMyCar.Filters;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Mapping;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Stripe;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
@@ -118,6 +120,8 @@ builder.Services.AddControllers(x =>
     x.Filters.Add<ErrorFilter>();
 });
 
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -169,5 +173,8 @@ app.MapControllers();
 
 app.Urls.Add("https://localhost:7055");
 app.Urls.Add("http://0.0.0.0:5148");
+
+var stripeSettings = builder.Configuration.GetSection("Stripe").Get<StripeSettings>();
+StripeConfiguration.ApiKey = stripeSettings.SecretKey;
 
 app.Run();
