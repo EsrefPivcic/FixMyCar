@@ -58,7 +58,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   TextEditingController cityController = TextEditingController();
   TextEditingController addressController = TextEditingController();
   TextEditingController postalCodeController = TextEditingController();
-  String selectedPaymentMethod = 'Cash';
+
+  String selectedCard = 'pm_card_visa';
 
   void _openShoppingCartForm(BuildContext context) {
     showDialog(
@@ -143,35 +144,30 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       ),
                     ],
                     const SizedBox(height: 16.0),
-                    DropdownButton<String>(
-                      value: selectedPaymentMethod,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Cash',
-                          child: Row(
-                            children: [
-                              Icon(Icons.money_rounded),
-                              SizedBox(width: 8),
-                              Text('Cash'),
-                            ],
-                          ),
+                    const Text('Choose a Card'),
+                    Column(
+                      children: [
+                        RadioListTile<String>(
+                          title: const Text('Visa Card 1'),
+                          value: 'pm_card_visa',
+                          groupValue: selectedCard,
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedCard = value!;
+                            });
+                          },
                         ),
-                        DropdownMenuItem(
-                          value: 'Stripe',
-                          child: Row(
-                            children: [
-                              Icon(Icons.credit_card_rounded),
-                              SizedBox(width: 8),
-                              Text('Stripe'),
-                            ],
-                          ),
+                        RadioListTile<String>(
+                          title: const Text('Visa Card 2 (Declined)'),
+                          value: 'pm_card_visa_chargeDeclined',
+                          groupValue: selectedCard,
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedCard = value!;
+                            });
+                          },
                         ),
                       ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
-                      },
                     ),
                     const SizedBox(height: 16.0),
                     Row(
@@ -195,11 +191,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   const Color.fromARGB(18, 255, 255, 255)),
-                          onPressed: orderedItems.isNotEmpty
-                              ? () {
-                                  _confirmPlaceOrder(context);
-                                }
-                              : null,
+                          onPressed:
+                              orderedItems.isNotEmpty && selectedCard.isNotEmpty
+                                  ? () {
+                                      _confirmPlaceOrder(context, selectedCard);
+                                    }
+                                  : null,
                           child: const Text('Place Order'),
                         ),
                       ],
@@ -245,7 +242,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     );
   }
 
-  Future<void> _confirmPlaceOrder(BuildContext context) async {
+  Future<void> _confirmPlaceOrder(BuildContext context, String card) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -257,14 +254,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               onPressed: () async {
                 OrderInsertUpdate newOrder;
                 if (useProfileAddress) {
-                  newOrder = OrderInsertUpdate(
-                      carPartsShopId,
-                      useProfileAddress,
-                      "",
-                      "",
-                      "",
-                      selectedPaymentMethod,
-                      orderedItems);
+                  newOrder = OrderInsertUpdate(carPartsShopId,
+                      useProfileAddress, "", "", "", orderedItems);
                 } else {
                   newOrder = OrderInsertUpdate(
                       carPartsShopId,
@@ -272,7 +263,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       cityController.text,
                       addressController.text,
                       postalCodeController.text,
-                      selectedPaymentMethod,
                       orderedItems);
                 }
                 bool validateInputs = cityController.text.trim().isNotEmpty &&
@@ -282,7 +272,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     (!useProfileAddress && validateInputs)) {
                   try {
                     await Provider.of<OrderProvider>(context, listen: false)
-                        .insertOrder(newOrder);
+                        .insertOrder(newOrder, card);
                     orderedItems = [];
                     cityController.clear();
                     addressController.clear();

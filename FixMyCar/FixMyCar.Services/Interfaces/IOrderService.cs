@@ -16,6 +16,9 @@ namespace FixMyCar.Services.Interfaces
         Task<OrderGetDTO> Reject(int id);
         Task<OrderGetDTO> Cancel(int id);
         Task<OrderGetDTO> Resend(int id);
+
+        Task<OrderGetDTO> AddFailedPayment(int id, string paymentIntentId);
+        Task<OrderGetDTO> AddSuccessfulPayment(int id, string paymentIntentId);
         Task<List<string>> AllowedActions(int id);
         Task<OrderBasicInfoGetDTO> GetBasicOrderInfo(int id);
     }

@@ -13,7 +13,6 @@ OrderInsertUpdate _$OrderInsertUpdateFromJson(Map<String, dynamic> json) =>
       json['shippingCity'] as String?,
       json['shippingAddress'] as String?,
       json['shippingPostalCode'] as String?,
-      json['paymentMethod'] as String?,
       (json['storeItems'] as List<dynamic>?)
           ?.map((e) => StoreItemOrder.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -26,6 +25,5 @@ Map<String, dynamic> _$OrderInsertUpdateToJson(OrderInsertUpdate instance) =>
       'shippingCity': instance.shippingCity,
       'shippingAddress': instance.shippingAddress,
       'shippingPostalCode': instance.shippingPostalCode,
-      'paymentMethod': instance.paymentMethod,
       'storeItems': instance.storeItems,
     };

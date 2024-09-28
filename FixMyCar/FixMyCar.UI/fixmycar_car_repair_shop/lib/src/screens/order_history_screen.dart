@@ -43,6 +43,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         return "Rejected";
       case "cancelled":
         return "Cancelled";
+      case "awaitingpayment":
+        return "Awaiting Payment";
+      case "paymentfailed":
+        return "Payment Failed";
       default:
         return state;
     }
@@ -90,13 +94,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   final _cityController = TextEditingController();
   final _addressController = TextEditingController();
   final _postalCodeController = TextEditingController();
-  String? selectedPaymentMethod;
 
   Future showUpdateForm(Order order) async {
     _cityController.text = order.shippingCity;
     _addressController.text = order.shippingAddress;
     _postalCodeController.text = order.shippingPostalCode;
-    selectedPaymentMethod = order.paymentMethod;
 
     showDialog(
       context: context,
@@ -124,36 +126,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     decoration: const InputDecoration(
                         labelText: 'Shipping Postal Code'),
                     keyboardType: TextInputType.number,
-                  ),
-                  DropdownButton<String>(
-                    value: selectedPaymentMethod,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'Cash',
-                        child: Row(
-                          children: [
-                            Icon(Icons.money_rounded),
-                            SizedBox(width: 8),
-                            Text('Cash'),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Stripe',
-                        child: Row(
-                          children: [
-                            Icon(Icons.credit_card_rounded),
-                            SizedBox(width: 8),
-                            Text('Stripe'),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedPaymentMethod = value!;
-                      });
-                    },
                   ),
                 ],
               );
@@ -186,7 +158,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   updateOrder.shippingCity = _cityController.text;
                   updateOrder.shippingAddress = _addressController.text;
                   updateOrder.shippingPostalCode = _postalCodeController.text;
-                  updateOrder.paymentMethod = selectedPaymentMethod;
                   try {
                     await Provider.of<OrderProvider>(context, listen: false)
                         .updateOrder(order.id, updateOrder)
@@ -257,11 +228,15 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Color _getStateColor(String state) {
     switch (state) {
+      case 'awaitingpayment':
+        return Colors.blue.shade300;
       case 'onhold':
         return Colors.blue.shade300;
       case 'accepted':
         return Colors.green.shade400;
       case 'rejected':
+        return Colors.red.shade700;
+      case 'paymentfailed':
         return Colors.red.shade700;
       case 'cancelled':
         return Colors.red.shade400;
@@ -405,17 +380,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             TextSpan(text: order.shippingPostalCode),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Payment Method: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: order.paymentMethod),
                           ],
                         ),
                       ),

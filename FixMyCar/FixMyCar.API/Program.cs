@@ -37,6 +37,7 @@ builder.Services.AddTransient<ICarRepairShopDiscountService, CarRepairShopDiscou
 builder.Services.AddTransient<IServiceTypeService, ServiceTypeService>();
 builder.Services.AddTransient<IReservationService, ReservationService>();
 builder.Services.AddTransient<IReservationDetailService, ReservationDetailService>();
+builder.Services.AddTransient<IStripeService, StripeService>();
 
 builder.Services.AddTransient<BaseStoreItemState>();
 builder.Services.AddTransient<InitialStoreItemState>();
@@ -54,6 +55,8 @@ builder.Services.AddTransient<OnHoldOrderState>();
 builder.Services.AddTransient<AcceptedOrderState>();
 builder.Services.AddTransient<RejectedOrderState>();
 builder.Services.AddTransient<CancelledOrderState>();
+builder.Services.AddTransient<AwaitingPaymentOrderState>();
+builder.Services.AddTransient<PaymentFailedOrderState>();
 
 builder.Services.AddTransient<BaseReservationState>();
 builder.Services.AddTransient<InitialReservationState>();

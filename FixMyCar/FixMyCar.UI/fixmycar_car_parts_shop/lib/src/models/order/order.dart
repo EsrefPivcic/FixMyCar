@@ -15,7 +15,6 @@ class Order {
   String shippingCity;
   String shippingAddress;
   String shippingPostalCode;
-  String paymentMethod;
 
   Order(
       this.id,
@@ -28,8 +27,7 @@ class Order {
       this.state,
       this.shippingCity,
       this.shippingAddress,
-      this.shippingPostalCode,
-      this.paymentMethod);
+      this.shippingPostalCode);
 
   factory Order.fromJson(Map<String, dynamic> json) => _$OrderFromJson(json);
 

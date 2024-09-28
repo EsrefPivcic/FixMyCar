@@ -10,19 +10,12 @@ class OrderInsertUpdate {
   String? shippingCity;
   String? shippingAddress;
   String? shippingPostalCode;
-  String? paymentMethod;
   List<StoreItemOrder>? storeItems;
 
   OrderInsertUpdate.n();
 
-  OrderInsertUpdate(
-      this.carPartsShopId,
-      this.userAddress,
-      this.shippingCity,
-      this.shippingAddress,
-      this.shippingPostalCode,
-      this.paymentMethod,
-      this.storeItems);
+  OrderInsertUpdate(this.carPartsShopId, this.userAddress, this.shippingCity,
+      this.shippingAddress, this.shippingPostalCode, this.storeItems);
 
   factory OrderInsertUpdate.fromJson(Map<String, dynamic> json) =>
       _$OrderInsertUpdateFromJson(json);

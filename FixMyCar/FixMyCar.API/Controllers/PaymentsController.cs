@@ -1,33 +1,33 @@
 ﻿using FixMyCar.Model.DTOs.Payment;
+using FixMyCar.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stripe;
 
 namespace FixMyCar.API.Controllers
 {
+    [Authorize]
     [ApiController]
-    public class PaymentsController : ControllerBase
+    public class PaymentController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
+        private readonly IStripeService _stripeService;
 
-        public PaymentsController(IConfiguration configuration)
+        public PaymentController(IStripeService stripeService)
         {
-            _configuration = configuration;
+            _stripeService = stripeService;
+        }
+
+        [HttpPost("ConfirmPayment")]
+        public async Task<IActionResult> ConfirmPayment([FromBody] PaymentCreateDTO request)
+        {
+            var confirmation = await _stripeService.ConfirmPayment(request);
+            return Ok(confirmation);
         }
 
         [HttpPost("CreatePaymentIntent")]
         public async Task<IActionResult> CreatePaymentIntent([FromBody] PaymentCreateDTO request)
         {
-            var paymentIntentService = new PaymentIntentService();
-            var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
-            {
-                Amount = request.TotalAmount,
-                Currency = "eur",
-                PaymentMethod = request.PaymentMethodId,
-                ConfirmationMethod = "manual",
-                Confirm = false
-            });
-
-            return Ok(new { clientSecret = paymentIntent.ClientSecret });
+            var intent = await _stripeService.CreatePaymentIntent(request);
+            return Ok(new { clientSecret = intent.ClientSecret });
         }
     }
 }

@@ -28,7 +28,6 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             Order entity = new Order();
 
             entity.CarPartsShopId = request.CarPartsShopId;
-            entity.PaymentMethod = request.PaymentMethod;
 
             if (request.UserAddress)
             {
@@ -73,7 +72,7 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
                 throw new UserException("Invalid user role.");
             }
 
-            entity.State = "onhold";
+            entity.State = "awaitingpayment";
 
             entity.TotalAmount = 0;
 

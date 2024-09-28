@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Model.DTOs.Payment
 {
-    public class PaymentCreateDTO
+    public class PaymentResponseDTO
     {
-        public int OrderId { get; set; }
-        public long TotalAmount { get; set; }
-        public string? PaymentMethodId { get; set; }
+        public string PaymentIntentId { get; set; }
+        public string Message { get; set; }
     }
 }

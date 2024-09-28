@@ -49,6 +49,18 @@ namespace FixMyCar.API.Controllers
             return await (_service as IOrderService).Resend(id);
         }
 
+        [HttpPut("AddFailedPayment/{id}/{paymentIntentId}")]
+        public virtual async Task<OrderGetDTO> AddFailedPayment(int id, string paymentIntentId)
+        {
+            return await (_service as IOrderService).AddFailedPayment(id, paymentIntentId);
+        }
+
+        [HttpPut("AddSuccessfulPayment/{id}/{paymentIntentId}")]
+        public virtual async Task<OrderGetDTO> AddSuccessfulPayment(int id, string paymentIntentId)
+        {
+            return await (_service as IOrderService).AddSuccessfulPayment(id, paymentIntentId);
+        }
+
         [HttpGet("AllowedActions/{id}")]
         public virtual async Task<List<string>> AllowedActions(int id)
         {

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FixMyCar.Model.DTOs.Order;
 using FixMyCar.Services.Database;
 using System;
 using System.Collections.Generic;
@@ -8,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
 {
-    public class RejectedOrderState : BaseOrderState
+    public class PaymentFailedOrderState : BaseOrderState
     {
-        public RejectedOrderState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        public PaymentFailedOrderState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
         }
 
@@ -18,7 +19,7 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
         {
             var list = await base.AllowedActions();
 
-            list.Add("Rejected orders can't be updated or have it's state changed.");
+            list.Add("Orders with failed payment can't be updated or have it's state changed.");
 
             return list;
         }

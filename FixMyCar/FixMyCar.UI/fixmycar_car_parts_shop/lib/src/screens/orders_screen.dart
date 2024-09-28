@@ -241,17 +241,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           ],
                         ),
                       ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Payment Method: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: order.paymentMethod),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 16.0),
                       Text(
                         'Order Items',

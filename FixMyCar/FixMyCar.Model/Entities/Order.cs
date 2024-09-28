@@ -32,7 +32,7 @@ namespace FixMyCar.Model.Entities
         public City City { get; set; }
         public string ShippingAddress { get; set; }
         public string ShippingPostalCode { get; set; }
-        public string PaymentMethod { get; set; }
+        public string? PaymentIntentId { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
     }
 }

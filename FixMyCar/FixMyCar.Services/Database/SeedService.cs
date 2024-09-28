@@ -180,7 +180,6 @@ namespace FixMyCar.Services.Database
                         CityId = 1,
                         ShippingAddress = "Kralja Tvrtka I bb",
                         ShippingPostalCode = "80101",
-                        PaymentMethod = "Cash"
                     },
                     new Order
                     {
@@ -195,7 +194,6 @@ namespace FixMyCar.Services.Database
                         CityId = 1,
                         ShippingAddress = "Kralja Tvrtka I bb",
                         ShippingPostalCode = "80101",
-                        PaymentMethod = "Cash"
                     },
                     new Order
                     {
@@ -210,7 +208,6 @@ namespace FixMyCar.Services.Database
                         CityId = 1,
                         ShippingAddress = "Kralja Tvrtka I bb",
                         ShippingPostalCode = "80101",
-                        PaymentMethod = "Stripe"
                     },
                     new Order
                     {
@@ -225,7 +222,6 @@ namespace FixMyCar.Services.Database
                         CityId = 1,
                         ShippingAddress = "Kralja Tvrtka I bb",
                         ShippingPostalCode = "80101",
-                        PaymentMethod = "Stripe"
                     }
                 );
 

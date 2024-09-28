@@ -194,6 +194,24 @@ namespace FixMyCar.Services.Services
             return await state.Reject(entity);
         }
 
+        public async Task<OrderGetDTO> AddFailedPayment(int id, string paymentIntentId)
+        {
+            var entity = await _context.Orders.FindAsync(id);
+
+            var state = _baseOrderState.CreateState(entity.State);
+
+            return await state.AddFailedPayment(entity, paymentIntentId);
+        }
+
+        public async Task<OrderGetDTO> AddSuccessfulPayment(int id, string paymentIntentId)
+        {
+            var entity = await _context.Orders.FindAsync(id);
+
+            var state = _baseOrderState.CreateState(entity.State);
+
+            return await state.AddSuccessfulPayment(entity, paymentIntentId);
+        }
+
         public async Task<OrderGetDTO> Cancel(int id)
         {
             var entity = await _context.Orders.FindAsync(id);

@@ -47,6 +47,16 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             throw new UserException("Action not allowed.");
         }
 
+        public virtual async Task<OrderGetDTO> AddFailedPayment(Order entity, string paymentIntentId)
+        {
+            throw new UserException("Action not allowed.");
+        }
+
+        public virtual async Task<OrderGetDTO> AddSuccessfulPayment(Order entity, string paymentIntentId)
+        {
+            throw new UserException("Action not allowed.");
+        }
+
         public virtual async Task<OrderGetDTO> Cancel(Order entity)
         {
             throw new UserException("Action not allowed.");
@@ -69,6 +79,8 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
                 case "initial":
                 case null:
                     return _serviceProvider.GetService<InitialOrderState>()!;
+                case "awaitingpayment":
+                    return _serviceProvider.GetService<AwaitingPaymentOrderState>()!;
                 case "onhold":
                     return _serviceProvider.GetService<OnHoldOrderState>()!;
                 case "accepted":
@@ -77,6 +89,8 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
                     return _serviceProvider.GetService<RejectedOrderState>()!;
                 case "cancelled":
                     return _serviceProvider.GetService<CancelledOrderState>()!;
+                case "paymentfailed":
+                    return _serviceProvider.GetService<PaymentFailedOrderState>()!;
 
                 default:
                     throw new UserException("Action not allowed.");
