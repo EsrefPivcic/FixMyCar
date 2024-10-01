@@ -46,6 +46,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
         return "Rejected";
       case "cancelled":
         return "Cancelled";
+      case "missingpayment":
+        return "Missing Payment";
+      case "paymentfailed":
+        return "Payment Failed";
       default:
         return state;
     }
@@ -60,6 +64,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
       case 'rejected':
         return Colors.red.shade700;
       case 'cancelled':
+        return Colors.red.shade400;
+      case 'paymentfailed':
+        return Colors.red.shade700;
+      case 'missingpayment':
         return Colors.red.shade400;
       default:
         return Colors.white;
@@ -86,6 +94,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
         return "Rejected";
       case "cancelled":
         return "Cancelled";
+      case "missingpayment":
+        return "Missing Payment";
+      case "paymentfailed":
+        return "Payment Failed";
       default:
         return state;
     }
@@ -111,6 +123,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
         return Colors.red.shade700;
       case 'cancelled':
         return Colors.red.shade700;
+      case 'paymentfailed':
+        return Colors.red.shade700;
+      case 'missingpayment':
+        return Colors.red.shade400;
       default:
         return Colors.white;
     }
@@ -859,6 +875,30 @@ class _ReservationsScreen extends State<ReservationsScreen> {
               RadioListTile(
                 title: const Text("Cancelled"),
                 value: "cancelled",
+                groupValue: filterCriteria.state,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.state = value;
+                  });
+                  _clearCompletionDates();
+                  _clearEstimatedCompletionDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Missing Payment"),
+                value: "missingpayment",
+                groupValue: filterCriteria.state,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.state = value;
+                  });
+                  _clearCompletionDates();
+                  _clearEstimatedCompletionDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Payment Failed"),
+                value: "paymentfailed",
                 groupValue: filterCriteria.state,
                 onChanged: (value) {
                   setState(() {

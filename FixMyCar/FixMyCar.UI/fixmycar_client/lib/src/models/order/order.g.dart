@@ -18,7 +18,6 @@ Order _$OrderFromJson(Map<String, dynamic> json) => Order(
       json['shippingCity'] as String,
       json['shippingAddress'] as String,
       json['shippingPostalCode'] as String,
-      json['paymentMethod'] as String,
     );
 
 Map<String, dynamic> _$OrderToJson(Order instance) => <String, dynamic>{
@@ -33,5 +32,4 @@ Map<String, dynamic> _$OrderToJson(Order instance) => <String, dynamic>{
       'shippingCity': instance.shippingCity,
       'shippingAddress': instance.shippingAddress,
       'shippingPostalCode': instance.shippingPostalCode,
-      'paymentMethod': instance.paymentMethod,
     };

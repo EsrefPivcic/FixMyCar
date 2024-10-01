@@ -79,8 +79,8 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
                 case "initial":
                 case null:
                     return _serviceProvider.GetService<InitialOrderState>()!;
-                case "awaitingpayment":
-                    return _serviceProvider.GetService<AwaitingPaymentOrderState>()!;
+                case "missingpayment":
+                    return _serviceProvider.GetService<MissingPaymentOrderState>()!;
                 case "onhold":
                     return _serviceProvider.GetService<OnHoldOrderState>()!;
                 case "accepted":

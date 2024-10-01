@@ -10,6 +10,7 @@ import 'package:fixmycar_car_repair_shop/src/providers/car_models_by_manufacture
 import 'package:fixmycar_car_repair_shop/src/providers/order_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/screens/order_history_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
@@ -272,12 +273,26 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     (!useProfileAddress && validateInputs)) {
                   try {
                     await Provider.of<OrderProvider>(context, listen: false)
-                        .insertOrder(newOrder, card);
-                    orderedItems = [];
-                    cityController.clear();
-                    addressController.clear();
-                    postalCodeController.clear();
+                        .insertOrder(newOrder, card)
+                        .then((_) {
+                      setState(() {
+                        orderedItems.clear();
+                        cityController.clear();
+                        addressController.clear();
+                        postalCodeController.clear();
+                      });
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const OrderHistoryScreen(),
+                        ),
+                      );
+                    });
                   } catch (e) {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(e.toString()),
@@ -285,14 +300,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     );
                   }
                 } else {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Please provide shipping details!"),
                     ),
                   );
                 }
-                Navigator.pop(context);
-                Navigator.pop(context);
               },
               child: const Text('Yes'),
             ),

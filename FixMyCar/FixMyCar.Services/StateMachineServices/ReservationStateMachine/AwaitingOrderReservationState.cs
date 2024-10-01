@@ -43,7 +43,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
             var alreadyUsed = await _context.Reservations.FirstOrDefaultAsync(x => x.OrderId == orderId);
 
-            if (alreadyUsed != null) 
+            if (alreadyUsed != null && (alreadyUsed.State != "rejected" && alreadyUsed.State != "cancelled" && alreadyUsed.State != "missingpayment" && alreadyUsed.State != "paymentfailed")) 
             {
                 throw new UserException($"This order is already used for reservation #{alreadyUsed.Id}.");
             }

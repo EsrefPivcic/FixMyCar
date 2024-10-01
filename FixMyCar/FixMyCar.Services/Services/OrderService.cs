@@ -36,6 +36,8 @@ namespace FixMyCar.Services.Services
 
         public override IQueryable<Order> AddFilter(IQueryable<Order> query, OrderSearchObject? search = null)
         {
+            query = query.OrderByDescending(o => o.Id);
+
             if (search != null)
             {
                 if (search?.CarPartsShopName != null)

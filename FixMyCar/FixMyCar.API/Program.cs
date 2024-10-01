@@ -55,7 +55,7 @@ builder.Services.AddTransient<OnHoldOrderState>();
 builder.Services.AddTransient<AcceptedOrderState>();
 builder.Services.AddTransient<RejectedOrderState>();
 builder.Services.AddTransient<CancelledOrderState>();
-builder.Services.AddTransient<AwaitingPaymentOrderState>();
+builder.Services.AddTransient<MissingPaymentOrderState>();
 builder.Services.AddTransient<PaymentFailedOrderState>();
 
 builder.Services.AddTransient<BaseReservationState>();

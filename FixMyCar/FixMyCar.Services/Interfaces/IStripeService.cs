@@ -11,6 +11,6 @@ namespace FixMyCar.Services.Interfaces
     public interface IStripeService
     {
         Task<PaymentResponseDTO> ConfirmPayment(PaymentCreateDTO request);
-        Task<PaymentIntent> CreatePaymentIntent(PaymentCreateDTO request);
+        Task<IntentResponseDTO> CreatePaymentIntent(PaymentCreateDTO request);
     }
 }

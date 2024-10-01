@@ -72,7 +72,7 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
                 throw new UserException("Invalid user role.");
             }
 
-            entity.State = "awaitingpayment";
+            entity.State = "missingpayment";
 
             entity.TotalAmount = 0;
 

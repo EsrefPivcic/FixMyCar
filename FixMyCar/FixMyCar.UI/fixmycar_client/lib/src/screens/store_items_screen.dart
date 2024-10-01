@@ -12,6 +12,7 @@ import 'package:fixmycar_client/src/providers/store_item_category_provider.dart'
 import 'package:fixmycar_client/src/providers/store_item_provider.dart';
 import 'package:fixmycar_client/src/widgets/shop_details_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'master_screen.dart';
@@ -61,7 +62,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   TextEditingController cityController = TextEditingController();
   TextEditingController addressController = TextEditingController();
   TextEditingController postalCodeController = TextEditingController();
-  String selectedPaymentMethod = 'Cash';
 
   TimeOfDay parseTimeOfDay(String timeString) {
     final parts = timeString.split(':');
@@ -72,11 +72,11 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
 
   void _openShoppingCartForm(BuildContext context) {
     showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (BuildContext context) {
-          return StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
@@ -151,35 +151,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       ),
                     ],
                     const SizedBox(height: 16.0),
-                    DropdownButton<String>(
-                      value: selectedPaymentMethod,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Cash',
-                          child: Row(
-                            children: [
-                              Icon(Icons.money_rounded),
-                              SizedBox(width: 8),
-                              Text('Cash'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Stripe',
-                          child: Row(
-                            children: [
-                              Icon(Icons.credit_card_rounded),
-                              SizedBox(width: 8),
-                              Text('Stripe'),
-                            ],
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
+                    const Text('Enter Card Details'),
+                    stripe.CardField(
+                      onCardChanged: (card) {
+                        print(card);
                       },
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16.0),
                     Row(
@@ -219,8 +198,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 ),
               ),
             );
-          });
-        });
+          },
+        );
+      },
+    );
   }
 
   void _confirmDiscard(BuildContext context) {
@@ -266,14 +247,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               onPressed: () async {
                 OrderInsertUpdate newOrder;
                 if (useProfileAddress) {
-                  newOrder = OrderInsertUpdate(
-                      carPartsShopId,
-                      useProfileAddress,
-                      "",
-                      "",
-                      "",
-                      selectedPaymentMethod,
-                      orderedItems);
+                  newOrder = OrderInsertUpdate(carPartsShopId,
+                      useProfileAddress, "", "", "", orderedItems);
                 } else {
                   newOrder = OrderInsertUpdate(
                       carPartsShopId,
@@ -281,7 +256,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       cityController.text,
                       addressController.text,
                       postalCodeController.text,
-                      selectedPaymentMethod,
                       orderedItems);
                 }
                 bool validateInputs = cityController.text.trim().isNotEmpty &&

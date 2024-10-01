@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
 {
-    public class AwaitingPaymentOrderState : BaseOrderState
+    public class MissingPaymentOrderState : BaseOrderState
     {
-        public AwaitingPaymentOrderState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        public MissingPaymentOrderState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
         }
 

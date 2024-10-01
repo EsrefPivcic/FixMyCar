@@ -31,7 +31,7 @@ namespace FixMyCar.Model.Entities
         public CarRepairShopDiscount? CarRepairShopDiscount { get; set; }
         public string State { get; set; }
         public string Type { get; set; }
-        public string PaymentMethod { get; set; }
+        public string? PaymentIntentId { get; set; }
         public ICollection<ReservationDetail> ReservationDetails { get; set; }
     }
 }

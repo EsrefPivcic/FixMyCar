@@ -81,7 +81,9 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
       final orderResponseBody = jsonDecode(orderResponse.body);
 
       int orderId = orderResponseBody['id'];
-      double amount = orderResponseBody['totalAmount'];
+      double amount = orderResponseBody['totalAmount'] is int
+          ? (orderResponseBody['totalAmount'] as int).toDouble()
+          : orderResponseBody['totalAmount'];
 
       int totalAmount = (amount * 100).toInt();
 

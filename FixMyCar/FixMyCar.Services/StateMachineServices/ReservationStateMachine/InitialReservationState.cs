@@ -50,7 +50,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
                 var alreadyUsed = await _context.Reservations.FirstOrDefaultAsync(x => x.OrderId == order.Id);
 
-                if (alreadyUsed != null)
+                if (alreadyUsed != null && (alreadyUsed.State != "rejected" && alreadyUsed.State != "cancelled" && alreadyUsed.State != "missingpayment" && alreadyUsed.State != "paymentfailed"))
                 {
                     throw new UserException($"This order is already used for reservation #{alreadyUsed.Id}.");
                 }
@@ -113,30 +113,11 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                     {
                         throw new UserException("Please specify who is responsible for ordering car parts!");
                     }
-                    else
-                    {
-                        entity.State = "awaitingorder";
-                    }
                 }
                 else
                 {
                     var order = await _context.Orders.FindAsync(request.OrderId);
-                    if (order!.State == "accepted")
-                    {
-                        if (order.ShippingDate > entity.ReservationDate)
-                        {
-                            entity.State = "orderdateconflict";
-                        }
-                        else
-                        {
-                            entity.State = "ready";
-                        }
-                    }
-                    else if (order!.State == "onhold")
-                    {
-                        entity.State = "orderpendingapproval";
-                    }
-                    else
+                    if (order!.State != "onhold" && order!.State != "accepted")
                     {
                         throw new UserException($"Invalid order state ({order.State})! Please verify your order is either accepted or on hold!");
                     }
@@ -146,11 +127,11 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             else
             {
                 entity.Type = "Diagnostics";
-                entity.State = "ready";
                 entity.ClientOrder = null;
                 entity.OrderId = null;
             }
 
+            entity.State = "missingpayment";
             entity.ClientId = user.Id;
 
             entity.TotalAmount = 0;

@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:fixmycar_client/src/models/order/order.dart';
 import 'package:fixmycar_client/src/models/order/order_insert_update.dart';
 import 'package:fixmycar_client/src/models/order/order_search_object.dart';
 import 'package:fixmycar_client/src/models/search_result.dart';
 import 'package:fixmycar_client/src/providers/base_provider.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 
 class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
@@ -69,10 +72,87 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
   }
 
   Future<void> insertOrder(OrderInsertUpdate order) async {
-    await insert(
-      order,
-      toJson: (service) => service.toJson(),
+    try {
+      final orderResponse = await _createOrder(order);
+
+      if (orderResponse.statusCode != 200) {
+        _handleError(orderResponse, step: 'Order creation');
+        return;
+      }
+
+      final orderResponseBody = jsonDecode(orderResponse.body);
+
+      int orderId = orderResponseBody['id'];
+      double amount = orderResponseBody['totalAmount'] is int
+          ? (orderResponseBody['totalAmount'] as int).toDouble()
+          : orderResponseBody['totalAmount'];
+
+      int totalAmount = (amount * 100).toInt();
+
+      final paymentResponse = await _createPaymentIntent(orderId, totalAmount);
+
+      final paymentResponseBody = jsonDecode(paymentResponse.body);
+
+      final clientSecret = paymentResponseBody['clientSecret'];
+      final paymentIntentId = paymentResponseBody['paymentIntentId'];
+
+      try {
+        await _confirmPayment(clientSecret);
+
+        await _updatePaymentStatus(orderId, paymentIntentId, successful: true);
+        print('Payment successful');
+      } catch (e) {
+        print('Payment failed: $e');
+        await _updatePaymentStatus(orderId, paymentIntentId, successful: false);
+      }
+    } catch (e) {
+      print('Error during order insertion: $e');
+      rethrow;
+    }
+  }
+
+  Future<dynamic> _createOrder(OrderInsertUpdate order) async {
+    final response = await http.post(
+      Uri.parse('${BaseProvider.baseUrl}/$endpoint'),
+      headers: await createHeaders(),
+      body: jsonEncode(order),
     );
+    return response;
+  }
+
+  Future<dynamic> _createPaymentIntent(int orderId, int totalAmount) async {
+    final response = await http.post(
+      Uri.parse('${BaseProvider.baseUrl}/ConfirmPayment'),
+      headers: await createHeaders(),
+      body: jsonEncode({'orderId': orderId, 'totalAmount': totalAmount}),
+    );
+    return response;
+  }
+
+  Future<void> _confirmPayment(String clientSecret) async {
+    await Stripe.instance.confirmPayment(
+      paymentIntentClientSecret: clientSecret,
+      data: const PaymentMethodParams.card(
+          paymentMethodData: PaymentMethodData()),
+    );
+  }
+
+  Future<void> _updatePaymentStatus(int orderId, String paymentIntentId,
+      {required bool successful}) async {
+    final endpointSuffix =
+        successful ? 'AddSuccessfulPayment' : 'AddFailedPayment';
+    final response = await http.put(
+      Uri.parse(
+          '${BaseProvider.baseUrl}/$endpoint/$endpointSuffix/$orderId/$paymentIntentId'),
+      headers: await createHeaders(),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          'Failed to update payment status. Status code: ${response.statusCode}');
+    }
+
+    print(successful ? 'Payment status: successful' : 'Payment status: failed');
   }
 
   Future<void> updateOrder(int id, OrderInsertUpdate orderUpdate) async {
@@ -115,6 +195,22 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
     } catch (e) {
       print('Error resending the order: $e');
       rethrow;
+    }
+  }
+
+  void _handleError(dynamic response, {required String step}) {
+    final errors = response['errors'] as Map<String, dynamic>?;
+    if (errors != null) {
+      final userErrors = errors['UserError'] as List<dynamic>?;
+      if (userErrors != null && userErrors.isNotEmpty) {
+        throw Exception('$step failed. User error: ${userErrors.first}');
+      } else {
+        throw Exception(
+            '$step failed. Server error: Status code ${response['statusCode']}');
+      }
+    } else {
+      throw Exception(
+          '$step failed. Unknown error: Status code ${response['statusCode']}');
     }
   }
 }

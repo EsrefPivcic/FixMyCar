@@ -50,6 +50,16 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             throw new UserException("Action not allowed.");
         }
 
+        public virtual async Task<ReservationGetDTO> AddFailedPayment(Reservation entity, string paymentIntentId)
+        {
+            throw new UserException("Action not allowed.");
+        }
+
+        public virtual async Task<ReservationGetDTO> AddSuccessfulPayment(Reservation entity, string paymentIntentId)
+        {
+            throw new UserException("Action not allowed.");
+        }
+
         public virtual async Task<ReservationGetDTO> Cancel(Reservation entity)
         {
             throw new UserException("Action not allowed.");
@@ -85,6 +95,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             return state switch
             {
                 "initial" or null => _serviceProvider.GetService<InitialReservationState>()!,
+                "missingpayment" => _serviceProvider.GetService<MissingPaymentReservationState>()!,
                 "awaitingorder" => _serviceProvider.GetService<AwaitingOrderReservationState>()!,
                 "orderpendingapproval" => _serviceProvider.GetService<OrderPendingApprovalReservationState>()!,
                 "orderdateconflict" => _serviceProvider.GetService<OrderDateConflictReservationState>()!,
@@ -94,6 +105,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 "cancelled" => _serviceProvider.GetService<CancelledReservationState>()!,
                 "ongoing" => _serviceProvider.GetService<OngoingReservationState>()!,
                 "completed" => _serviceProvider.GetService<CompletedReservationState>()!,
+                "paymentfailed" => _serviceProvider.GetService<PaymentFailedReservationState>()!,
                 _ => throw new UserException("Action not allowed."),
             };
         }

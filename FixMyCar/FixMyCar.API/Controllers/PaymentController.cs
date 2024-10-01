@@ -24,10 +24,11 @@ namespace FixMyCar.API.Controllers
         }
 
         [HttpPost("CreatePaymentIntent")]
-        public async Task<IActionResult> CreatePaymentIntent([FromBody] PaymentCreateDTO request)
+        public async Task<IntentResponseDTO> CreatePaymentIntent([FromBody] PaymentCreateDTO request)
         {
             var intent = await _stripeService.CreatePaymentIntent(request);
-            return Ok(new { clientSecret = intent.ClientSecret });
+            return await _stripeService.CreatePaymentIntent(request);
+
         }
     }
 }

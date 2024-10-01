@@ -63,7 +63,7 @@ namespace FixMyCar.Services.Services
             return response;
         }
 
-        public async Task<PaymentIntent> CreatePaymentIntent(PaymentCreateDTO request)
+        public async Task<IntentResponseDTO> CreatePaymentIntent(PaymentCreateDTO request)
         {
             var options = new PaymentIntentCreateOptions
             {
@@ -78,7 +78,11 @@ namespace FixMyCar.Services.Services
             };
 
             var service = new PaymentIntentService();
-            return await service.CreateAsync(options);
+            var paymentintent = await service.CreateAsync(options);
+
+            var response = new IntentResponseDTO { PaymentIntentId = paymentintent.Id, clientSecret = paymentintent.ClientSecret };
+
+            return response;
         }
     }
 }

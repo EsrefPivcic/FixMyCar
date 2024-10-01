@@ -15,8 +15,15 @@ import 'package:fixmycar_client/src/providers/store_item_provider.dart';
 import 'package:fixmycar_client/src/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Stripe.publishableKey = 'publishable key here';
+  await Stripe.instance.applySettings();
   runApp(
     MultiProvider(
       providers: [

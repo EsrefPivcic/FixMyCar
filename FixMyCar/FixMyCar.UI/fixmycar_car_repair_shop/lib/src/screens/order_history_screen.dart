@@ -43,8 +43,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         return "Rejected";
       case "cancelled":
         return "Cancelled";
-      case "awaitingpayment":
-        return "Awaiting Payment";
+      case "missingpayment":
+        return "Missing Payment";
       case "paymentfailed":
         return "Payment Failed";
       default:
@@ -228,8 +228,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Color _getStateColor(String state) {
     switch (state) {
-      case 'awaitingpayment':
-        return Colors.blue.shade300;
+      case 'missingpayment':
+        return Colors.red.shade400;
       case 'onhold':
         return Colors.blue.shade300;
       case 'accepted':
@@ -552,6 +552,28 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               RadioListTile(
                 title: const Text("Cancelled"),
                 value: "cancelled",
+                groupValue: filterCriteria.state,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.state = value;
+                  });
+                  _clearShippingDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Payment Failed"),
+                value: "paymentfailed",
+                groupValue: filterCriteria.state,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.state = value;
+                  });
+                  _clearShippingDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Missing Payment"),
+                value: "missingpayment",
                 groupValue: filterCriteria.state,
                 onChanged: (value) {
                   setState(() {

@@ -43,6 +43,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
         return "Rejected";
       case "cancelled":
         return "Cancelled";
+      case "missingpayment":
+        return "Missing Payment";
+      case "paymentfailed":
+        return "Payment Failed";
       default:
         return state;
     }
@@ -50,11 +54,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Color _getStateColor(String state) {
     switch (state) {
+      case 'missingpayment':
+        return Colors.red.shade400;
       case 'onhold':
         return Colors.blue.shade300;
       case 'accepted':
         return Colors.green.shade400;
       case 'rejected':
+        return Colors.red.shade700;
+      case 'paymentfailed':
         return Colors.red.shade700;
       case 'cancelled':
         return Colors.red.shade400;
@@ -422,6 +430,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
               RadioListTile(
                 title: const Text("Cancelled"),
                 value: "cancelled",
+                groupValue: filterCriteria.state,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.state = value;
+                  });
+                  _clearShippingDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Payment Failed"),
+                value: "paymentfailed",
+                groupValue: filterCriteria.state,
+                onChanged: (value) {
+                  setState(() {
+                    filterCriteria.state = value;
+                  });
+                  _clearShippingDates();
+                },
+              ),
+              RadioListTile(
+                title: const Text("Missing Payment"),
+                value: "missingpayment",
                 groupValue: filterCriteria.state,
                 onChanged: (value) {
                   setState(() {
