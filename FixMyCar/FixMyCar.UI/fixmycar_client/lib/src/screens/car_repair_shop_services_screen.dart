@@ -1,14 +1,19 @@
+import 'package:fixmycar_client/src/models/car_repair_shop_discount/car_repair_shop_discount.dart';
 import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_shop_service.dart';
 import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_shop_service_search_object.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation_insert_update.dart';
 import 'package:fixmycar_client/src/models/user/user.dart';
+import 'package:fixmycar_client/src/providers/car_repair_shop_discount_provider.dart';
+import 'package:fixmycar_client/src/screens/reservation_history_screen.dart';
 import 'package:fixmycar_client/src/widgets/shop_details_widget.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_services_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'master_screen.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 
 class CarRepairShopServicesScreen extends StatefulWidget {
   final User carRepairShop;
@@ -38,6 +43,8 @@ class _CarRepairShopServicesScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopServiceProvider>(context, listen: false)
           .getByCarRepairShop(carRepairShopName: carRepairShopFilter);
+
+      await _fetchDiscounts();
     });
   }
 
@@ -50,11 +57,10 @@ class _CarRepairShopServicesScreenState
   bool clientOrder = false;
   bool isOrderWithRepairs = false;
   DateTime? reservationDate;
+  List<CarRepairShopDiscount> _discounts = [];
 
   TextEditingController _nameFilterController = TextEditingController();
   TextEditingController _orderIdContoller = TextEditingController();
-
-  String selectedPaymentMethod = 'Cash';
 
   void _checkForTypes() {
     setState(() {
@@ -69,6 +75,49 @@ class _CarRepairShopServicesScreenState
           });
         }
       }
+    }
+  }
+
+  Future<void> _fetchDiscounts() async {
+    final discountProvider =
+        Provider.of<CarRepairShopDiscountProvider>(context, listen: false);
+    await discountProvider.getByClient(carRepairShop: carRepairShopFilter);
+    setState(() {
+      _discounts = discountProvider.discounts;
+    });
+  }
+
+  String _formatDate(String dateTimeString) {
+    final dateTime = DateTime.parse(dateTimeString);
+    return DateFormat('dd.MM.yyyy').format(dateTime);
+  }
+
+  String _loadTotalAmount() {
+    if (selectedServiceIds.isNotEmpty) {
+      double totalAmount = 0;
+      for (var selectedServiceId in selectedServiceIds) {
+        CarRepairShopService serviceDetails = loadedServices.firstWhere(
+            (loadedService) => loadedService.id == selectedServiceId);
+        totalAmount = totalAmount + serviceDetails.discountedPrice;
+      }
+      if (_discounts.isNotEmpty) {
+        double discountValue = 0;
+        for (var discount in _discounts) {
+          if (discount.revoked == null) {
+            discountValue = discount.value;
+          }
+        }
+        if (discountValue != 0) {
+          double discountedTotal = totalAmount - (totalAmount * discountValue);
+          return "$discountedTotal€";
+        } else {
+          return "$totalAmount€";
+        }
+      } else {
+        return "$totalAmount€";
+      }
+    } else {
+      return "Unknown";
     }
   }
 
@@ -88,9 +137,9 @@ class _CarRepairShopServicesScreenState
                   children: [
                     const Text('Your Services', style: TextStyle(fontSize: 24)),
                     const SizedBox(height: 16.0),
-                    if (selectedServiceIds.isEmpty)
-                      const Text('No selected services.')
-                    else
+                    if (selectedServiceIds.isEmpty) ...[
+                      const Text('No items in your cart.')
+                    ] else ...[
                       SizedBox(
                         height: 200,
                         child: ListView.builder(
@@ -116,6 +165,8 @@ class _CarRepairShopServicesScreenState
                           },
                         ),
                       ),
+                      Text("Total amount: ${_loadTotalAmount()}"),
+                    ],
                     const SizedBox(height: 16.0),
                     if (isOrderWithRepairs) ...[
                       Row(
@@ -165,37 +216,15 @@ class _CarRepairShopServicesScreenState
                         },
                         label: const Text("Select reservation date")),
                     Text(
-                        "Reservation date: ${reservationDate ?? 'not selected'}"),
+                        "Reservation date: ${reservationDate != null ? _formatDate(reservationDate.toString()) : 'not selected'}"),
                     const SizedBox(height: 16.0),
-                    DropdownButton<String>(
-                      value: selectedPaymentMethod,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Cash',
-                          child: Row(
-                            children: [
-                              Icon(Icons.money_rounded),
-                              SizedBox(width: 8),
-                              Text('Cash'),
-                            ],
-                          ),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Stripe',
-                          child: Row(
-                            children: [
-                              Icon(Icons.credit_card_rounded),
-                              SizedBox(width: 8),
-                              Text('Stripe'),
-                            ],
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          selectedPaymentMethod = value!;
-                        });
+                    stripe.CardField(
+                      onCardChanged: (card) {
+                        print(card);
                       },
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 16.0),
                     Column(
@@ -206,7 +235,8 @@ class _CarRepairShopServicesScreenState
                             backgroundColor:
                                 const Color.fromARGB(18, 255, 255, 255),
                           ),
-                          onPressed: selectedServiceIds.isNotEmpty
+                          onPressed: selectedServiceIds.isNotEmpty &&
+                                  reservationDate != null
                               ? () {
                                   _confirmPlaceReservation(context);
                                 }
@@ -288,6 +318,8 @@ class _CarRepairShopServicesScreenState
                   validateDate = true;
                 } else {
                   validateDate = false;
+                  Navigator.pop(context);
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Please provide a valid reservation date!"),
@@ -299,6 +331,8 @@ class _CarRepairShopServicesScreenState
                   if (_orderIdContoller.text.isNotEmpty) {
                     orderId = int.tryParse(_orderIdContoller.text);
                     if (orderId == null) {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
                       validateOrder = false;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -316,17 +350,11 @@ class _CarRepairShopServicesScreenState
                       orderId,
                       clientOrder,
                       reservationDate,
-                      selectedPaymentMethod,
                       selectedServiceIds);
                 } else {
                   validateOrder = true;
-                  newReservation = ReservationInsertUpdate(
-                      carRepairShopId,
-                      null,
-                      clientOrder,
-                      reservationDate,
-                      selectedPaymentMethod,
-                      selectedServiceIds);
+                  newReservation = ReservationInsertUpdate(carRepairShopId,
+                      null, clientOrder, reservationDate, selectedServiceIds);
                 }
                 if (validateDate && validateOrder) {
                   try {
@@ -338,9 +366,20 @@ class _CarRepairShopServicesScreenState
                         selectedServiceIds.clear();
                         _orderIdContoller.clear();
                         reservationDate = null;
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ReservationHistoryScreen(),
+                          ),
+                        );
                       });
                     });
                   } catch (e) {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(e.toString()),
@@ -348,8 +387,6 @@ class _CarRepairShopServicesScreenState
                     );
                   }
                 }
-                Navigator.pop(context);
-                Navigator.pop(context);
               },
               child: const Text('Yes'),
             ),
@@ -364,6 +401,7 @@ class _CarRepairShopServicesScreenState
   }
 
   void _showDetailsDialog(BuildContext context, CarRepairShopService service) {
+    print("discount count: ${_discounts.length}");
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -379,6 +417,7 @@ class _CarRepairShopServicesScreenState
                 maxWidth: double.infinity,
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (service.imageData != null &&
                       service.imageData!.isNotEmpty)
@@ -491,7 +530,8 @@ class _CarRepairShopServicesScreenState
                             backgroundColor:
                                 const Color.fromARGB(18, 255, 255, 255)),
                         onPressed: () {
-                          showShopDetailsDialog(context, carRepairShopDetails);
+                          showShopDetailsDialog(
+                              context, carRepairShopDetails, _discounts, null);
                         },
                         label: const Text("Shop details"),
                       ),

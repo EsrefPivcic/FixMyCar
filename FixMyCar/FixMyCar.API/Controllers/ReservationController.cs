@@ -80,6 +80,18 @@ namespace FixMyCar.API.Controllers
             return await (_service as IReservationService)!.AllowedActions(id);
         }
 
+        [HttpPut("AddFailedPayment/{id}/{paymentIntentId}")]
+        public virtual async Task<ReservationGetDTO> AddFailedPayment(int id, string paymentIntentId)
+        {
+            return await (_service as IReservationService).AddFailedPayment(id, paymentIntentId);
+        }
+
+        [HttpPut("AddSuccessfulPayment/{id}/{paymentIntentId}")]
+        public virtual async Task<ReservationGetDTO> AddSuccessfulPayment(int id, string paymentIntentId)
+        {
+            return await (_service as IReservationService).AddSuccessfulPayment(id, paymentIntentId);
+        }
+
         [HttpGet("GetByCarRepairShop")]
         public async Task<PagedResult<ReservationGetDTO>> GetByCarRepairShop([FromQuery] ReservationSearchObject? search = null)
         {

@@ -69,6 +69,8 @@ builder.Services.AddTransient<RejectedReservationState>();
 builder.Services.AddTransient<CancelledReservationState>();
 builder.Services.AddTransient<OngoingReservationState>();
 builder.Services.AddTransient<CompletedReservationState>();
+builder.Services.AddTransient<MissingPaymentReservationState>();
+builder.Services.AddTransient<PaymentFailedReservationState>();
 
 builder.Services.AddTransient<SeedService>();
 

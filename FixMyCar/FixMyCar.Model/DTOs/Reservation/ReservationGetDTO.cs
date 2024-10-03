@@ -24,6 +24,5 @@ namespace FixMyCar.Model.DTOs.Reservation
         public double CarRepairShopDiscountValue { get; set; }
         public string State { get; set; }
         public string Type { get; set; }
-        public string PaymentMethod { get; set; }
     }
 }

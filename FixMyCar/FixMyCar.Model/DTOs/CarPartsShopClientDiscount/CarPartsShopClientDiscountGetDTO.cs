@@ -11,6 +11,7 @@ namespace FixMyCar.Model.DTOs.CarPartsShopClientDiscount
     public class CarPartsShopClientDiscountGetDTO
     {
         public int Id { get; set; }
+        public string? CarPartsShop { get; set; }
         public string? User { get; set; }
         public string? Role { get; set; }
         public double Value { get; set; }

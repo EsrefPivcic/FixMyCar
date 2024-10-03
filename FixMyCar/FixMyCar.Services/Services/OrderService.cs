@@ -3,15 +3,9 @@ using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Database;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AutoMapper;
 using FixMyCar.Services.StateMachineServices.OrderStateMachine;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using FixMyCar.Model.Utilities;
 
 namespace FixMyCar.Services.Services

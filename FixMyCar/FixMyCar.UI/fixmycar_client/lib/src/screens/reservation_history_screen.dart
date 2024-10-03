@@ -6,7 +6,6 @@ import 'package:fixmycar_client/src/providers/order_essential_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
 import 'package:intl/intl.dart';
@@ -47,6 +46,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
         return "Rejected";
       case "cancelled":
         return "Cancelled";
+      case "missingpayment":
+        return "Missing Payment";
+      case "paymentfailed":
+        return "Payment Failed";
       default:
         return state;
     }
@@ -54,11 +57,15 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
 
   Color _getOrderStateColor(String state) {
     switch (state) {
+      case 'missingpayment':
+        return Colors.red.shade400;
       case 'onhold':
         return Colors.blue.shade300;
       case 'accepted':
         return Colors.green.shade400;
       case 'rejected':
+        return Colors.red.shade700;
+      case 'paymentfailed':
         return Colors.red.shade700;
       case 'cancelled':
         return Colors.red.shade400;
@@ -87,6 +94,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
         return "Rejected";
       case "cancelled":
         return "Cancelled";
+      case "missingpayment":
+        return "Missing Payment";
+      case "paymentfailed":
+        return "Payment Failed";
       default:
         return state;
     }
@@ -94,6 +105,8 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
 
   Color _getStateColor(String state) {
     switch (state) {
+      case 'missingpayment':
+        return Colors.red.shade400;
       case 'awaitingorder':
         return Colors.yellow.shade200;
       case 'orderpendingapproval':
@@ -111,6 +124,8 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
       case 'rejected':
         return Colors.red.shade700;
       case 'cancelled':
+        return Colors.red.shade700;
+      case 'paymentfailed':
         return Colors.red.shade700;
       default:
         return Colors.white;
@@ -226,7 +241,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
   Future showUpdateForm(Reservation reservation) async {
     DateTime? selectedReservationDate =
         DateTime.parse(reservation.reservationDate);
-    String? selectedPaymentMethod = reservation.paymentMethod;
 
     showDialog(
       context: context,
@@ -262,36 +276,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                       label: const Text("Select reservation date")),
                   Text(
                       "Reservation date: ${selectedReservationDate != null ? _formatDate(selectedReservationDate.toString()) : 'not selected'}"),
-                  DropdownButton<String>(
-                    value: selectedPaymentMethod,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'Cash',
-                        child: Row(
-                          children: [
-                            Icon(Icons.money_rounded),
-                            SizedBox(width: 8),
-                            Text('Cash'),
-                          ],
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Stripe',
-                        child: Row(
-                          children: [
-                            Icon(Icons.credit_card_rounded),
-                            SizedBox(width: 8),
-                            Text('Stripe'),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedPaymentMethod = value!;
-                      });
-                    },
-                  ),
                 ],
               );
             },
@@ -307,7 +291,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
               onPressed: () async {
                 ReservationInsertUpdate updateReservation =
                     ReservationInsertUpdate.n();
-                updateReservation.paymentMethod = selectedPaymentMethod;
                 updateReservation.reservationDate = selectedReservationDate;
                 try {
                   await Provider.of<ReservationProvider>(context, listen: false)
@@ -618,17 +601,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                           ],
                         ),
                       ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Payment Method: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: reservation.paymentMethod),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 16.0),
                       Text(
                         'Services',
@@ -728,7 +700,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                         ],
                       )
                     ],
-                ),
+                  ),
           ),
         );
       },
@@ -1482,7 +1454,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                         ),
                                         TextSpan(
                                             text:
-                                                '${reservation.carRepairShopDiscountValue * 100}%')
+                                                '${(reservation.carRepairShopDiscountValue * 100).toStringAsFixed(2)}%')
                                       ],
                                     ),
                                   ),

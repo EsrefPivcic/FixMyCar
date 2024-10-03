@@ -1,15 +1,18 @@
 import 'package:fixmycar_client/src/models/car_manufacturer/car_manufacturer.dart';
 import 'package:fixmycar_client/src/models/car_model/car_model.dart';
 import 'package:fixmycar_client/src/models/car_model/car_models_by_manufacturer.dart';
+import 'package:fixmycar_client/src/models/car_parts_shop_discount/car_parts_shop_discount.dart';
 import 'package:fixmycar_client/src/models/order/order_insert_update.dart';
 import 'package:fixmycar_client/src/models/store_item/store_item.dart';
 import 'package:fixmycar_client/src/models/store_item/store_item_order.dart';
 import 'package:fixmycar_client/src/models/store_item_category/store_item_category.dart';
 import 'package:fixmycar_client/src/models/user/user.dart';
 import 'package:fixmycar_client/src/providers/car_models_by_manufacturer_provider.dart';
+import 'package:fixmycar_client/src/providers/car_parts_shop_discount_provider.dart';
 import 'package:fixmycar_client/src/providers/order_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_provider.dart';
+import 'package:fixmycar_client/src/screens/order_history_screen.dart';
 import 'package:fixmycar_client/src/widgets/shop_details_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
@@ -45,6 +48,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           .getStoreItems(carPartsShopName: carPartsShopFilter);
 
       await _fetchCarModelsAndCategories();
+      await _fetchDiscounts();
     });
   }
 
@@ -56,6 +60,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   List<StoreItemCategory> _categories = [];
   List<CarModelsByManufacturer> _carModelsByManufacturer = [];
   TextEditingController _nameFilterController = TextEditingController();
+  List<CarPartsShopDiscount> _discounts = [];
 
   List<StoreItemOrder> orderedItems = [];
   bool useProfileAddress = true;
@@ -68,6 +73,45 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     final hour = int.parse(parts[0]);
     final minute = int.parse(parts[1]);
     return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  Future<void> _fetchDiscounts() async {
+    final discountProvider =
+        Provider.of<CarPartsShopDiscountProvider>(context, listen: false);
+    await discountProvider.getByClient(carPartsShop: carPartsShopFilter);
+    setState(() {
+      _discounts = discountProvider.discounts;
+    });
+  }
+
+  String _loadTotalAmount() {
+    if (orderedItems.isNotEmpty) {
+      double totalAmount = 0;
+      for (var item in orderedItems) {
+        StoreItem itemDetails = loadedItems
+            .firstWhere((loadedItem) => loadedItem.id == item.storeItemId);
+        double itemAmount = itemDetails.discountedPrice * item.quantity;
+        totalAmount = totalAmount + itemAmount;
+      }
+      if (_discounts.isNotEmpty) {
+        double discountValue = 0;
+        for (var discount in _discounts) {
+          if (discount.revoked == null) {
+            discountValue = discount.value;
+          }
+        }
+        if (discountValue != 0) {
+          double discountedTotal = totalAmount - (totalAmount * discountValue);
+          return "$discountedTotal€";
+        } else {
+          return "$totalAmount€";
+        }
+      } else {
+        return "$totalAmount€";
+      }
+    } else {
+      return "Unknown";
+    }
   }
 
   void _openShoppingCartForm(BuildContext context) {
@@ -86,9 +130,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   children: [
                     const Text('Your Cart', style: TextStyle(fontSize: 24)),
                     const SizedBox(height: 16.0),
-                    if (orderedItems.isEmpty)
+                    if (orderedItems.isEmpty) ...[
                       const Text('No items in your cart.')
-                    else
+                    ] else ...[
                       SizedBox(
                         height: 200,
                         child: ListView.builder(
@@ -121,6 +165,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           },
                         ),
                       ),
+                      Text("Total amount: ${_loadTotalAmount()}"),
+                    ],
                     const SizedBox(height: 16.0),
                     Row(
                       children: [
@@ -267,12 +313,24 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     await Provider.of<OrderProvider>(context, listen: false)
                         .insertOrder(newOrder)
                         .then((_) {
-                      orderedItems.clear();
-                      cityController.clear();
-                      addressController.clear();
-                      postalCodeController.clear();
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                      setState(() {
+                        orderedItems.clear();
+                        cityController.clear();
+                        addressController.clear();
+                        postalCodeController.clear();
+                      });
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const OrderHistoryScreen(),
+                        ),
+                      );
                     });
                   } catch (e) {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(e.toString()),
@@ -280,14 +338,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     );
                   }
                 } else {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Please provide shipping details!"),
                     ),
                   );
                 }
-                Navigator.pop(context);
-                Navigator.pop(context);
               },
               child: const Text('Yes'),
             ),
@@ -475,7 +533,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                             backgroundColor:
                                 const Color.fromARGB(18, 255, 255, 255)),
                         onPressed: () {
-                          showShopDetailsDialog(context, carPartsShopDetails);
+                          showShopDetailsDialog(
+                              context, carPartsShopDetails, null, _discounts);
                         },
                         label: const Text("Shop details"),
                       ),

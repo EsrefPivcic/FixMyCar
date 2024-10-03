@@ -8,13 +8,12 @@ class ReservationInsertUpdate {
   int? orderId;
   bool? clientOrder;
   DateTime? reservationDate;
-  String? paymentMethod;
   List<int>? services;
 
   ReservationInsertUpdate.n();
 
   ReservationInsertUpdate(this.carRepairShopId, this.orderId, this.clientOrder,
-      this.reservationDate, this.paymentMethod, this.services);
+      this.reservationDate, this.services);
 
   factory ReservationInsertUpdate.fromJson(Map<String, dynamic> json) =>
       _$ReservationInsertUpdateFromJson(json);

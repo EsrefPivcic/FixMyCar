@@ -1,6 +1,8 @@
 import 'package:fixmycar_client/app.dart';
 import 'package:fixmycar_client/src/providers/car_models_by_manufacturer_provider.dart';
+import 'package:fixmycar_client/src/providers/car_parts_shop_discount_provider.dart';
 import 'package:fixmycar_client/src/providers/car_parts_shop_provider.dart';
+import 'package:fixmycar_client/src/providers/car_repair_shop_discount_provider.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_services_provider.dart';
 import 'package:fixmycar_client/src/providers/client_provider.dart';
@@ -42,6 +44,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ReservationProvider()),
         ChangeNotifierProvider(create: (_) => ReservationDetailProvider()),
         ChangeNotifierProvider(create: (_) => OrderEssentialProvider()),
+        ChangeNotifierProvider(create: (_) => CarRepairShopDiscountProvider()),
+        ChangeNotifierProvider(create: (_) => CarPartsShopDiscountProvider())
       ],
       child: const MyApp(),
     ),

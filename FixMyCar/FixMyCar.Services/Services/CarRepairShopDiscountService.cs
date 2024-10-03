@@ -23,6 +23,7 @@ namespace FixMyCar.Services.Services
         public override IQueryable<CarRepairShopDiscount> AddInclude(IQueryable<CarRepairShopDiscount> query, CarRepairShopDiscountSearchObject? search = null)
         {
             query = query.Include("Client");
+            query = query.Include("CarRepairShop");
             return base.AddInclude(query, search);
         }
 
@@ -30,6 +31,10 @@ namespace FixMyCar.Services.Services
         {
             if (search != null)
             {
+                if (search?.ClientName != null)
+                {
+                    query = query.Where(x => x.Client.Username == search.ClientName);
+                }
                 if (search?.CarRepairShopName != null)
                 {
                     query = query.Where(x => x.CarRepairShop.Username == search.CarRepairShopName);

@@ -122,7 +122,7 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
 
   Future<dynamic> _createPaymentIntent(int orderId, int totalAmount) async {
     final response = await http.post(
-      Uri.parse('${BaseProvider.baseUrl}/ConfirmPayment'),
+      Uri.parse('${BaseProvider.baseUrl}/CreatePaymentIntent'),
       headers: await createHeaders(),
       body: jsonEncode({'orderId': orderId, 'totalAmount': totalAmount}),
     );

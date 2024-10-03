@@ -2,6 +2,7 @@
 using FixMyCar.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FixMyCar.API.Controllers
 {
@@ -19,6 +20,8 @@ namespace FixMyCar.API.Controllers
         [HttpPost("ConfirmPayment")]
         public async Task<IActionResult> ConfirmPayment([FromBody] PaymentCreateDTO request)
         {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.Username = username;
             var confirmation = await _stripeService.ConfirmPayment(request);
             return Ok(confirmation);
         }
@@ -26,6 +29,8 @@ namespace FixMyCar.API.Controllers
         [HttpPost("CreatePaymentIntent")]
         public async Task<IntentResponseDTO> CreatePaymentIntent([FromBody] PaymentCreateDTO request)
         {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.Username = username;
             var intent = await _stripeService.CreatePaymentIntent(request);
             return await _stripeService.CreatePaymentIntent(request);
 

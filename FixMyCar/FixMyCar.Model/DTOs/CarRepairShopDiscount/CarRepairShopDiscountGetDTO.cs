@@ -10,6 +10,7 @@ namespace FixMyCar.Model.DTOs.CarRepairShopDiscount
     {
         public int Id { get; set; }
         public string? Client { get; set; }
+        public string? CarRepairShop { get; set; }
         public double Value { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Revoked { get; set; }

@@ -15,7 +15,6 @@ ReservationInsertUpdate _$ReservationInsertUpdateFromJson(
       json['reservationDate'] == null
           ? null
           : DateTime.parse(json['reservationDate'] as String),
-      json['paymentMethod'] as String?,
       (json['services'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
           .toList(),
@@ -28,6 +27,5 @@ Map<String, dynamic> _$ReservationInsertUpdateToJson(
       'orderId': instance.orderId,
       'clientOrder': instance.clientOrder,
       'reservationDate': instance.reservationDate?.toIso8601String(),
-      'paymentMethod': instance.paymentMethod,
       'services': instance.services,
     };

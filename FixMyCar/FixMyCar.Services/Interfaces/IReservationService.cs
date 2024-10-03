@@ -20,5 +20,7 @@ namespace FixMyCar.Services.Interfaces
         Task<ReservationGetDTO> UpdateEstimatedDate(int id, DateTime newEstimatedCompletion);
         Task<ReservationGetDTO> Complete(int id);
         Task<List<string>> AllowedActions(int id);
+        Task<ReservationGetDTO> AddSuccessfulPayment(int id, string paymentIntentId);
+        Task<ReservationGetDTO> AddFailedPayment(int id, string paymentIntentId);
     }
 }

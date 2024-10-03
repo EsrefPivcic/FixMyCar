@@ -5,14 +5,8 @@ using FixMyCar.Model.SearchObjects;
 using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
-using FixMyCar.Services.StateMachineServices.OrderStateMachine;
 using FixMyCar.Services.StateMachineServices.ReservationStateMachine;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Services
 {
@@ -34,6 +28,8 @@ namespace FixMyCar.Services.Services
 
         public override IQueryable<Reservation> AddFilter(IQueryable<Reservation> query, ReservationSearchObject? search = null)
         {
+            query = query.OrderByDescending(r => r.Id);
+
             if (search != null)
             {
                 if (search?.CarRepairShopName != null)
@@ -175,6 +171,24 @@ namespace FixMyCar.Services.Services
                 return await state.Update(entity, request);
             }
             throw new UserException("Entity doesn't exist!");
+        }
+
+        public async Task<ReservationGetDTO> AddFailedPayment(int id, string paymentIntentId)
+        {
+            var entity = await _context.Reservations.FindAsync(id);
+
+            var state = _baseReservationState.CreateState(entity.State);
+
+            return await state.AddFailedPayment(entity, paymentIntentId);
+        }
+
+        public async Task<ReservationGetDTO> AddSuccessfulPayment(int id, string paymentIntentId)
+        {
+            var entity = await _context.Reservations.FindAsync(id);
+
+            var state = _baseReservationState.CreateState(entity.State);
+
+            return await state.AddSuccessfulPayment(entity, paymentIntentId);
         }
 
         public async Task<ReservationGetDTO> AddOrder(int id, int orderId, string username)

@@ -21,7 +21,8 @@ namespace FixMyCar.Services.Mapping
                 .ForMember(dest => dest.Revoked, opt => opt.MapFrom(src => src.Revoked != null ? (src.Revoked == true ? DateTime.Now.Date : (DateTime?)null) : null))
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<CarRepairShopDiscount, CarRepairShopDiscountGetDTO>()
-                .ForMember(dest => dest.Client, opt => opt.MapFrom(src => src.Client != null ? src.Client.Username : "Unknown"));
+                .ForMember(dest => dest.Client, opt => opt.MapFrom(src => src.Client != null ? src.Client.Username : "Unknown"))
+                .ForMember(dest => dest.CarRepairShop, opt => opt.MapFrom(src => src.CarRepairShop != null ? src.CarRepairShop.Username : "Unknown"));
         }
     }
 }

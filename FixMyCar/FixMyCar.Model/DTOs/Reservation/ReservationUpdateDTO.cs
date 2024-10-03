@@ -12,6 +12,5 @@ namespace FixMyCar.Model.DTOs.Reservation
     {
         public DateTime? ReservationDate { get; set; }
         public DateTime? CompletionDate { get; set; }
-        public string? PaymentMethod { get; set; }
     }
 }

@@ -24,13 +24,19 @@ namespace FixMyCar.API.Controllers
             return await (_service as ICarPartsShopClientDiscountService).Insert(request);
         }
 
-        [HttpGet("/CarPartsShopClientDiscount/GetByCarPartsShop")]
+        [HttpGet("GetByCarPartsShop")]
         public async Task<PagedResult<CarPartsShopClientDiscountGetDTO>> GetByCarPartsShop([FromQuery] CarPartsShopClientDiscountSearchObject? search = null)
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
             search.CarPartsShopName = username;
+            return await (_service as ICarPartsShopClientDiscountService).Get(search);
+        }
 
+        [HttpGet("GetByClient")]
+        public async Task<PagedResult<CarPartsShopClientDiscountGetDTO>> GetByClient([FromQuery] CarPartsShopClientDiscountSearchObject? search = null)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            search.Username = username;
             return await (_service as ICarPartsShopClientDiscountService).Get(search);
         }
     }

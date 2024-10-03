@@ -6,6 +6,7 @@ using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Stripe.Forwarding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace FixMyCar.Services.Services
         public override IQueryable<CarPartsShopClientDiscount> AddInclude(IQueryable<CarPartsShopClientDiscount> query, CarPartsShopClientDiscountSearchObject? search = null)
         {
             query = query.Include("CarRepairShop");
+            query = query.Include("CarPartsShop");
             query = query.Include("Client");
             return base.AddInclude(query, search);
         }
@@ -32,6 +34,10 @@ namespace FixMyCar.Services.Services
         {
             if (search != null)
             {
+                if (search?.Username != null)
+                {
+                    query = query.Where(x => x.Client.Username == search.Username || x.CarRepairShop.Username == search.Username);
+                }
                 if (search?.CarPartsShopName != null)
                 {
                     query = query.Where(x => x.CarPartsShop.Username == search.CarPartsShopName);
@@ -91,7 +97,7 @@ namespace FixMyCar.Services.Services
             }
             else
             {
-                throw new UserException("Invalid user type for discount");
+                throw new UserException("Invalid user role for discount.");
             }
 
             entity.Created = DateTime.Now.Date;

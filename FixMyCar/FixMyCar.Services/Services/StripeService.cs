@@ -2,6 +2,7 @@
 using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Interfaces;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Stripe;
 using System;
 using System.Collections.Generic;
@@ -31,6 +32,7 @@ namespace FixMyCar.Services.Services
                 Metadata = new Dictionary<string, string>
                 {
                     { "order_id", request.OrderId.ToString() },
+                    { "username", request.Username },
                 },
             };
 
@@ -65,22 +67,37 @@ namespace FixMyCar.Services.Services
 
         public async Task<IntentResponseDTO> CreatePaymentIntent(PaymentCreateDTO request)
         {
+            var metadata = new Dictionary<string, string>();
+
+            if (!request.Username.IsNullOrEmpty())
+            {
+                metadata.Add("user", request.Username!);
+            }
+            if (request.OrderId.HasValue)
+            {
+                metadata.Add("order_id", request.OrderId.Value.ToString());
+            }
+            else if (request.ReservationId.HasValue)
+            {
+                metadata.Add("reservation_id", request.ReservationId.Value.ToString());
+            }
+
             var options = new PaymentIntentCreateOptions
             {
                 Amount = request.TotalAmount,
-
                 Currency = "eur",
                 PaymentMethodTypes = new List<string> { "card" },
-                Metadata = new Dictionary<string, string>
-                {
-                    { "order_id", request.OrderId.ToString() }, 
-                },
+                Metadata = metadata
             };
 
             var service = new PaymentIntentService();
             var paymentintent = await service.CreateAsync(options);
 
-            var response = new IntentResponseDTO { PaymentIntentId = paymentintent.Id, clientSecret = paymentintent.ClientSecret };
+            var response = new IntentResponseDTO
+            {
+                PaymentIntentId = paymentintent.Id,
+                clientSecret = paymentintent.ClientSecret
+            };
 
             return response;
         }

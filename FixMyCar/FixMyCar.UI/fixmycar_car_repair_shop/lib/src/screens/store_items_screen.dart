@@ -1,17 +1,20 @@
 import 'package:fixmycar_car_repair_shop/src/models/car_manufacturer/car_manufacturer.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_model/car_model.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_model/car_models_by_manufacturer.dart';
+import 'package:fixmycar_car_repair_shop/src/models/car_parts_shop_discount/car_parts_shop_discount.dart';
 import 'package:fixmycar_car_repair_shop/src/models/order/order_insert_update.dart';
 import 'package:fixmycar_car_repair_shop/src/models/store_item/store_item.dart';
 import 'package:fixmycar_car_repair_shop/src/models/store_item/store_item_order.dart';
 import 'package:fixmycar_car_repair_shop/src/models/store_item_category/store_item_category.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_models_by_manufacturer_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/car_parts_shop_discount_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/order_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/order_history_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'master_screen.dart';
@@ -29,6 +32,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late String carPartsShopFilter;
   late int carPartsShopId;
   late List<StoreItem> loadedItems;
+  late User carPartsShopDetails;
 
   @override
   void initState() {
@@ -36,12 +40,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
 
     carPartsShopFilter = widget.carPartsShop.username;
     carPartsShopId = widget.carPartsShop.id;
+    carPartsShopDetails = widget.carPartsShop;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<StoreItemProvider>(context, listen: false)
           .getStoreItems(carPartsShopName: carPartsShopFilter);
 
       await _fetchCarModelsAndCategories();
+      await _fetchDiscounts();
     });
   }
 
@@ -53,6 +59,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   List<StoreItemCategory> _categories = [];
   List<CarModelsByManufacturer> _carModelsByManufacturer = [];
   TextEditingController _nameFilterController = TextEditingController();
+  List<CarPartsShopDiscount> _discounts = [];
 
   List<StoreItemOrder> orderedItems = [];
   bool useProfileAddress = true;
@@ -61,6 +68,45 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   TextEditingController postalCodeController = TextEditingController();
 
   String selectedCard = 'pm_card_visa';
+
+  Future<void> _fetchDiscounts() async {
+    final discountProvider =
+        Provider.of<CarPartsShopDiscountProvider>(context, listen: false);
+    await discountProvider.getByClient(carPartsShop: carPartsShopFilter);
+    setState(() {
+      _discounts = discountProvider.discounts;
+    });
+  }
+
+  String _loadTotalAmount() {
+    if (orderedItems.isNotEmpty) {
+      double totalAmount = 0;
+      for (var item in orderedItems) {
+        StoreItem itemDetails = loadedItems
+            .firstWhere((loadedItem) => loadedItem.id == item.storeItemId);
+        double itemAmount = itemDetails.discountedPrice * item.quantity;
+        totalAmount = totalAmount + itemAmount;
+      }
+      if (_discounts.isNotEmpty) {
+        double discountValue = 0;
+        for (var discount in _discounts) {
+          if (discount.revoked == null) {
+            discountValue = discount.value;
+          }
+        }
+        if (discountValue != 0) {
+          double discountedTotal = totalAmount - (totalAmount * discountValue);
+          return "$discountedTotal€";
+        } else {
+          return "$totalAmount€";
+        }
+      } else {
+        return "$totalAmount€";
+      }
+    } else {
+      return "Unknown";
+    }
+  }
 
   void _openShoppingCartForm(BuildContext context) {
     showDialog(
@@ -77,9 +123,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   children: [
                     const Text('Your Cart', style: TextStyle(fontSize: 24)),
                     const SizedBox(height: 16.0),
-                    if (orderedItems.isEmpty)
+                    if (orderedItems.isEmpty) ...[
                       const Text('No items in your cart.')
-                    else
+                    ] else ...[
                       SizedBox(
                         height: 300,
                         child: ListView.builder(
@@ -115,6 +161,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           },
                         ),
                       ),
+                      Text("Total amount: ${_loadTotalAmount()}"),
+                    ],
                     const SizedBox(height: 16.0),
                     Row(
                       children: [
@@ -475,13 +523,31 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: IconButton(
-                      icon: Icon(Icons.filter_list,
-                          color: Theme.of(context).primaryColorLight),
-                      onPressed: () => _showFilterDialog(context),
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.filter_list),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(18, 255, 255, 255)),
+                        onPressed: () {
+                          _showFilterDialog(context);
+                        },
+                        label: const Text("Filters"),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.info_outline_rounded),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color.fromARGB(18, 255, 255, 255)),
+                        onPressed: () {
+                          showShopDetailsDialog(context);
+                        },
+                        label: const Text("Shop details"),
+                      ),
+                    ],
                   ),
                 ),
                 if (provider.isLoading)
@@ -871,5 +937,177 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   void dispose() {
     _nameFilterController.dispose();
     super.dispose();
+  }
+
+  void showShopDetailsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: SingleChildScrollView(
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.35,
+              ),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    carPartsShopDetails.username,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  if (carPartsShopDetails.image != null)
+                    Container(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      height: 150,
+                      child: carPartsShopDetails.image != ""
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.memory(
+                                base64Decode(carPartsShopDetails.image!),
+                                fit: BoxFit.cover,
+                                height: 100,
+                              ),
+                            )
+                          : Icon(Icons.image,
+                              size: 80, color: Colors.grey[400]),
+                    ),
+                  _buildProfileDetailRow(
+                      'Owner',
+                      "${carPartsShopDetails.name} ${carPartsShopDetails.surname}",
+                      context),
+                  _buildProfileDetailRow(
+                      'City', carPartsShopDetails.city, context),
+                  _buildProfileDetailRow(
+                    'Address',
+                    carPartsShopDetails.address,
+                    context,
+                  ),
+                  _buildProfileDetailRow(
+                      'Phone', carPartsShopDetails.phone, context),
+                  _buildProfileDetailRow(
+                      'Email', carPartsShopDetails.email, context),
+                  _buildProfileDetailRow(
+                    'Work Time',
+                    '${_parseTimeOfDay(carPartsShopDetails.openingTime).format(context)} - ${_parseTimeOfDay(carPartsShopDetails.closingTime).format(context)}',
+                    context,
+                  ),
+                  _buildProfileDetailRow(
+                    'Work Days',
+                    carPartsShopDetails.workDays
+                        .map((day) => day.substring(0, 3))
+                        .join(', '),
+                    context,
+                  ),
+                  if (_discounts.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Personal Discounts',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    for (var discount in _discounts)
+                      _buildDiscountRow(discount, context),
+                  ],
+                  const SizedBox(height: 16),
+                  Center(
+                    child: TextButton(
+                      child: const Text('Close'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDiscountRow(
+      CarPartsShopDiscount discount, BuildContext context) {
+    bool isActive = discount.revoked == null;
+    String statusText = isActive
+        ? "Active"
+        : "Revoked on ${_formatDate(discount.revoked.toString())}";
+    Color statusColor = isActive ? Colors.green : Colors.red;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Discount: ${(discount.value * 100).toInt()}%',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Created: ${_formatDate(discount.created.toString())}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Text(
+                statusText,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall!
+                    .copyWith(color: statusColor),
+              ),
+            ],
+          ),
+          const Divider(),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String dateTimeString) {
+    final dateTime = DateTime.parse(dateTimeString);
+    return DateFormat('dd.MM.yyyy').format(dateTime);
+  }
+
+  TimeOfDay _parseTimeOfDay(String timeString) {
+    final parts = timeString.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  Widget _buildProfileDetailRow(
+      String title, String value, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '$title:',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

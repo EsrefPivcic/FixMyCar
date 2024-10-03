@@ -15,7 +15,6 @@ namespace FixMyCar.Model.DTOs.Reservation
         public int? OrderId { get; set; }
         public bool? ClientOrder { get; set; }
         public DateTime ReservationDate { get; set; }
-        public string PaymentMethod { get; set; }
         public List<int> Services { get; set; }
     }
 }
