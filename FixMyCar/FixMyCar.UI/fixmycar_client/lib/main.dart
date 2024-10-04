@@ -21,9 +21,6 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  WidgetsFlutterBinding.ensureInitialized();
-
   Stripe.publishableKey = 'publishable key here';
   await Stripe.instance.applySettings();
   runApp(

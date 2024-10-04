@@ -2,6 +2,7 @@
 using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Services.Database;
+using FixMyCar.Services.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -55,6 +56,10 @@ namespace FixMyCar.Services.StateMachineServices.StoreItemStateMachine
             entity.State = "active";
 
             await _context.SaveChangesAsync();
+
+            using var rabbitMQService = new RabbitMQService();
+            var message = $"New product ({entity.Name}) available in store: {entity.CarPartsShop.Username}.";
+            rabbitMQService.SendNotification(message, "product_notifications");
 
             return _mapper.Map<StoreItemGetDTO>(entity);
         }

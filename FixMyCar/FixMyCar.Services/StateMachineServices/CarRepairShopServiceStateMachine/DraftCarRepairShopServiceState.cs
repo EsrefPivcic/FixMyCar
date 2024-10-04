@@ -2,6 +2,7 @@
 using FixMyCar.Model.DTOs.CarRepairShopService;
 using FixMyCar.Model.Entities;
 using FixMyCar.Services.Database;
+using FixMyCar.Services.Services;
 using FixMyCar.Services.Utilities;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace FixMyCar.Services.StateMachineServices.CarRepairShopServiceStateMachin
         {
         }
 
-        public async override Task<CarRepairShopServiceGetDTO> Update(CarRepairShopService entity, CarRepairShopServiceUpdateDTO request)
+        public async override Task<CarRepairShopServiceGetDTO> Update(Model.Entities.CarRepairShopService entity, CarRepairShopServiceUpdateDTO request)
         {
             _mapper.Map(request, entity);
 
@@ -34,18 +35,22 @@ namespace FixMyCar.Services.StateMachineServices.CarRepairShopServiceStateMachin
             return _mapper.Map<CarRepairShopServiceGetDTO>(entity);
         }
 
-        public async override Task<CarRepairShopServiceGetDTO> Activate(CarRepairShopService entity)
+        public async override Task<CarRepairShopServiceGetDTO> Activate(Model.Entities.CarRepairShopService entity)
         {
             entity.State = "active";
 
             await _context.SaveChangesAsync();
 
+            using var rabbitMQService = new RabbitMQService();
+            var message = $"New service ({entity.Name}) offered in car repair shop: {entity.CarRepairShop.Username}.";
+            rabbitMQService.SendNotification(message, "service_notifications");
+
             return _mapper.Map<CarRepairShopServiceGetDTO>(entity);
         }
 
-        public async override Task<string> Delete(CarRepairShopService entity)
+        public async override Task<string> Delete(Model.Entities.CarRepairShopService entity)
         {
-            var set = _context.Set<CarRepairShopService>();
+            var set = _context.Set<Model.Entities.CarRepairShopService>();
 
             set.Remove(entity);
 

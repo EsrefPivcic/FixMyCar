@@ -116,7 +116,7 @@ namespace FixMyCar.Services.Services
 
         public async Task<StoreItemGetDTO> Activate (int id)
         {
-            var entity = await _context.StoreItems.FindAsync(id);
+            var entity = await _context.StoreItems.Include("CarPartsShop").FirstOrDefaultAsync(si => si.Id == id);
 
             var state = _baseStoreItemState.CreateState(entity.State);
 

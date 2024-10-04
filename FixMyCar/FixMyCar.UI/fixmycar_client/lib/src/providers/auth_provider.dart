@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:fixmycar_client/src/providers/base_provider.dart';
+import 'package:fixmycar_client/src/services/rabbitmq_service.dart';
 import 'package:http/http.dart' as http;
 
 class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
@@ -7,6 +8,7 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
 
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
+  RabbitMQService rabbitMQService = RabbitMQService();
 
   set isLoggedIn(bool value) {
     _isLoggedIn = value;
@@ -32,6 +34,7 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
         final token = responseBody['token'];
         await storage.write(key: 'jwt_token', value: token);
         isLoggedIn = true;
+        rabbitMQService.startListening();
       } else {
         final responseBody = jsonDecode(response.body);
         final errors = responseBody['errors'] as Map<String, dynamic>?;
@@ -65,6 +68,7 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
     if (response.statusCode == 200) {
       await storage.write(key: 'jwt_token', value: '');
       isLoggedIn = false;
+      rabbitMQService.closeConnection();
       print("Logout successful!");
     } else {
       final responseBody = json.decode(response.body);
