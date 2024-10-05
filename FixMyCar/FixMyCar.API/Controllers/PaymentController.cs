@@ -33,7 +33,6 @@ namespace FixMyCar.API.Controllers
             request.Username = username;
             var intent = await _stripeService.CreatePaymentIntent(request);
             return await _stripeService.CreatePaymentIntent(request);
-
         }
     }
 }

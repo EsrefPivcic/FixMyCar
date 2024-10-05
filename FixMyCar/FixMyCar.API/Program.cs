@@ -39,6 +39,9 @@ builder.Services.AddTransient<IReservationService, ReservationService>();
 builder.Services.AddTransient<IReservationDetailService, ReservationDetailService>();
 builder.Services.AddTransient<IStripeService, StripeService>();
 
+builder.Services.AddTransient<IRecommenderTrainService, RecommenderTrainService>();
+builder.Services.AddTransient<IRecommenderPredictService, RecommenderPredictService>();
+
 builder.Services.AddTransient<BaseStoreItemState>();
 builder.Services.AddTransient<InitialStoreItemState>();
 builder.Services.AddTransient<DraftStoreItemState>();
