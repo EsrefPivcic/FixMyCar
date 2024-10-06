@@ -18,7 +18,6 @@ class Reservation {
   double carRepairShopDiscountValue;
   String state;
   String type;
-  String paymentMethod;
 
   Reservation(
       this.id,
@@ -34,10 +33,10 @@ class Reservation {
       this.totalDuration,
       this.carRepairShopDiscountValue,
       this.state,
-      this.type,
-      this.paymentMethod);
+      this.type);
 
-  factory Reservation.fromJson(Map<String, dynamic> json) => _$ReservationFromJson(json);
+  factory Reservation.fromJson(Map<String, dynamic> json) =>
+      _$ReservationFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReservationToJson(this);
 }

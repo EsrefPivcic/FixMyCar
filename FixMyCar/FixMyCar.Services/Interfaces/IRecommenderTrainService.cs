@@ -8,6 +8,7 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface IRecommenderTrainService
     {
-        void TrainModel();
+        void TrainOrdersModel();
+        void TrainReservationsModel();
     }
 }

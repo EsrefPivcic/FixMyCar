@@ -7,6 +7,7 @@ import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_service_p
 import 'package:fixmycar_car_repair_shop/src/providers/order_detail_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/order_essential_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/order_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/recommender_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/reservation_detail_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/reservation_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/service_type_provider.dart';
@@ -38,7 +39,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => StoreItemCategoryProvider()),
         ChangeNotifierProvider(
             create: (_) => CarModelsByManufacturerProvider()),
-        ChangeNotifierProvider(create: (_) => CarPartsShopDiscountProvider())
+        ChangeNotifierProvider(create: (_) => CarPartsShopDiscountProvider()),
+        ChangeNotifierProvider(create: (_) => RecommenderProvider())
       ],
       child: const MyApp(),
     ),

@@ -10,6 +10,7 @@ import 'package:fixmycar_car_repair_shop/src/models/user/user.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_models_by_manufacturer_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_parts_shop_discount_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/order_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/recommender_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/order_history_screen.dart';
@@ -60,6 +61,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   List<CarModelsByManufacturer> _carModelsByManufacturer = [];
   TextEditingController _nameFilterController = TextEditingController();
   List<CarPartsShopDiscount> _discounts = [];
+  late List<StoreItem> recommendedItems;
 
   List<StoreItemOrder> orderedItems = [];
   bool useProfileAddress = true;
@@ -410,14 +412,20 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     });
   }
 
-  void _showDetailsDialog(BuildContext context, StoreItem item) {
+  void _showDetailsDialog(BuildContext context, StoreItem item) async {
+    final recommenderProvider =
+        Provider.of<RecommenderProvider>(context, listen: false);
+
+    await recommenderProvider.getRecommendations(storeItemId: item.id);
+    recommendedItems = recommenderProvider.recommendedItems;
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(
             item.name,
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: Theme.of(dialogContext).textTheme.headlineMedium,
             textAlign: TextAlign.center,
           ),
           content: SingleChildScrollView(
@@ -426,6 +434,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 maxWidth: 600,
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (item.imageData != null && item.imageData!.isNotEmpty)
                     Container(
@@ -439,24 +448,24 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         ),
                       ),
                     ),
-                  _buildDetailRow(
-                      'Price', '${item.price.toStringAsFixed(2)}€', context),
+                  _buildDetailRow('Price', '${item.price.toStringAsFixed(2)}€',
+                      dialogContext),
                   if (item.discount != 0)
                     _buildDetailRow('Discount',
-                        '${(item.discount * 100).toInt()}%', context),
+                        '${(item.discount * 100).toInt()}%', dialogContext),
                   if (item.discount != 0)
                     _buildDetailRow(
                       'Discounted Price',
                       '${item.discountedPrice.toStringAsFixed(2)}€',
-                      context,
+                      dialogContext,
                     ),
-                  _buildDetailRow('State', item.state, context),
+                  _buildDetailRow('State', item.state, dialogContext),
                   _buildDetailRow(
-                      'Category', item.category ?? "Unknown", context),
+                      'Category', item.category ?? "Unknown", dialogContext),
                   _buildDetailRow(
                     'Details',
                     item.details ?? "No details available",
-                    context,
+                    dialogContext,
                   ),
                   _buildDetailRow(
                     'Car Models',
@@ -466,8 +475,39 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 (model) => '${model.name} (${model.modelYear})')
                             .join(', ')
                         : "Unknown",
-                    context,
+                    dialogContext,
                   ),
+                  if (recommenderProvider.isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (recommenderProvider.recommendedItems.isEmpty)
+                    const Center(child: Text('No recommendations.'))
+                  else ...[
+                    const SizedBox(height: 10),
+                    Text("Users who buy ${item.name}, also buy:"),
+                    const SizedBox(height: 5),
+                    Column(
+                      children: List.generate(recommendedItems.length, (index) {
+                        final recommendedItem = recommendedItems[index];
+                        return ListTile(
+                          onTap: () async {
+                            Navigator.of(dialogContext).pop();
+                            await Future.delayed(
+                                const Duration(milliseconds: 150));
+                            _showDetailsDialog(context, recommendedItem);
+                          },
+                          leading: recommendedItem.imageData != ""
+                              ? Image.memory(
+                                  base64Decode(recommendedItem.imageData!),
+                                  fit: BoxFit.contain,
+                                  width: 50,
+                                  height: 50,
+                                )
+                              : const Icon(Icons.image, size: 50),
+                          title: Text(recommendedItem.name),
+                        );
+                      }),
+                    ),
+                  ]
                 ],
               ),
             ),
@@ -476,7 +516,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
             TextButton(
               child: const Text('Close'),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
               },
             ),
           ],

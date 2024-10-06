@@ -1,4 +1,6 @@
-﻿using FixMyCar.Model.DTOs.StoreItem;
+﻿using FixMyCar.Model.DTOs.CarRepairShopService;
+using FixMyCar.Model.DTOs.StoreItem;
+using FixMyCar.Model.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,7 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface IRecommenderPredictService
     {
-        Task<List<StoreItemGetDTO>> Recommend(int storeItemId);
+        Task<PagedResult<StoreItemGetDTO>> RecommendStoreItems(int storeItemId);
+        Task<PagedResult<CarRepairShopServiceGetDTO>> RecommendRepairShopServices(int repairShopServiceId);
     }
 }

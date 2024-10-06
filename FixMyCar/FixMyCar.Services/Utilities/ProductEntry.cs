@@ -9,10 +9,10 @@ namespace FixMyCar.Services.Utilities
 {
     public class ProductEntry
     {
-        [KeyType(count: 10)]
+        [KeyType(count: 200)]
         public uint ProductId { get; set; }
 
-        [KeyType(count: 10)]
+        [KeyType(count: 200)]
         public uint CoPurchaseProductId { get; set; }
 
         public float Label { get; set; }

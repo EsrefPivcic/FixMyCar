@@ -4,6 +4,7 @@ import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_sh
 import 'package:fixmycar_client/src/models/reservation/reservation_insert_update.dart';
 import 'package:fixmycar_client/src/models/user/user.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_discount_provider.dart';
+import 'package:fixmycar_client/src/providers/services_recommender_provider.dart';
 import 'package:fixmycar_client/src/screens/reservation_history_screen.dart';
 import 'package:fixmycar_client/src/widgets/shop_details_widget.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_services_provider.dart';
@@ -58,6 +59,7 @@ class _CarRepairShopServicesScreenState
   bool isOrderWithRepairs = false;
   DateTime? reservationDate;
   List<CarRepairShopDiscount> _discounts = [];
+  late List<CarRepairShopService> recommendedServices;
 
   TextEditingController _nameFilterController = TextEditingController();
   TextEditingController _orderIdContoller = TextEditingController();
@@ -400,24 +402,29 @@ class _CarRepairShopServicesScreenState
     );
   }
 
-  void _showDetailsDialog(BuildContext context, CarRepairShopService service) {
-    print("discount count: ${_discounts.length}");
+  void _showDetailsDialog(
+      BuildContext context, CarRepairShopService service) async {
+    final recommenderProvider =
+        Provider.of<ServicesRecommenderProvider>(context, listen: false);
+
+    await recommenderProvider.getServicesRecommendations(
+        carRepairShopServiceId: service.id);
+    recommendedServices = recommenderProvider.recommendedServices;
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(
             service.name,
-            style: Theme.of(context).textTheme.headlineMedium,
+            style: Theme.of(dialogContext).textTheme.headlineMedium,
             textAlign: TextAlign.center,
           ),
           content: SingleChildScrollView(
             child: Container(
-              constraints: const BoxConstraints(
-                maxWidth: double.infinity,
-              ),
+              constraints: const BoxConstraints(maxWidth: double.infinity),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (service.imageData != null &&
                       service.imageData!.isNotEmpty)
@@ -432,28 +439,61 @@ class _CarRepairShopServicesScreenState
                         ),
                       ),
                     ),
-                  _buildDetailRow(
-                      'Price', '${service.price.toStringAsFixed(2)}€', context),
+                  _buildDetailRow('Price',
+                      '${service.price.toStringAsFixed(2)}€', dialogContext),
                   if (service.discount != 0)
                     _buildDetailRow('Discount',
-                        '${(service.discount * 100).toInt()}%', context),
+                        '${(service.discount * 100).toInt()}%', dialogContext),
                   if (service.discount != 0)
                     _buildDetailRow(
                       'Discounted Price',
                       '${service.discountedPrice.toStringAsFixed(2)}€',
-                      context,
+                      dialogContext,
                     ),
-                  _buildDetailRow('Type', service.serviceTypeName, context),
+                  _buildDetailRow(
+                      'Type', service.serviceTypeName, dialogContext),
                   _buildDetailRow(
                     'Details',
                     service.details ?? "No details available",
-                    context,
+                    dialogContext,
                   ),
                   _buildDetailRow(
                     'Duration',
                     service.duration,
-                    context,
+                    dialogContext,
                   ),
+                  if (recommenderProvider.isLoading)
+                    const Center(child: CircularProgressIndicator())
+                  else if (recommenderProvider.recommendedServices.isEmpty)
+                    const Center(child: Text('No recommendations.'))
+                  else ...[
+                    const SizedBox(height: 10),
+                    Text("Along ${service.name}, users usually appoint:"),
+                    const SizedBox(height: 5),
+                    Column(
+                      children:
+                          List.generate(recommendedServices.length, (index) {
+                        final recommendedService = recommendedServices[index];
+                        return ListTile(
+                          onTap: () async {
+                            Navigator.of(dialogContext).pop();
+                            await Future.delayed(
+                                const Duration(milliseconds: 150));
+                            _showDetailsDialog(context, recommendedService);
+                          },
+                          leading: recommendedService.imageData != ""
+                              ? Image.memory(
+                                  base64Decode(recommendedService.imageData!),
+                                  fit: BoxFit.contain,
+                                  width: 50,
+                                  height: 50,
+                                )
+                              : const Icon(Icons.image, size: 50),
+                          title: Text(recommendedService.name),
+                        );
+                      }),
+                    ),
+                  ]
                 ],
               ),
             ),

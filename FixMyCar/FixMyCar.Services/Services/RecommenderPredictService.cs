@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using FixMyCar.Model.DTOs.CarRepairShopService;
 using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Utilities;
@@ -26,10 +28,10 @@ namespace FixMyCar.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<List<StoreItemGetDTO>> Recommend(int storeItemId)
+        public async Task<PagedResult<StoreItemGetDTO>> RecommendStoreItems(int storeItemId)
         {
             DataViewSchema modelSchema;
-            ITransformer _model = mlContext.Model.Load("model.zip", out modelSchema);
+            ITransformer _model = mlContext.Model.Load("ordersmodel.zip", out modelSchema);
             var storeItems = await _context.StoreItems.Where(x => x.Id != storeItemId).ToListAsync();
             var predictionResult = new List<Tuple<StoreItem, float>>();
 
@@ -52,8 +54,46 @@ namespace FixMyCar.Services.Services
                                                .Take(3)
                                                .ToList();
 
-            return _mapper.Map<List<StoreItemGetDTO>>(finalResults);
+            PagedResult<StoreItemGetDTO> pagedResult = new PagedResult<StoreItemGetDTO>();
+
+            pagedResult.Result = _mapper.Map<List<StoreItemGetDTO>>(finalResults);
+            pagedResult.Count = finalResults.Count;
+
+            return pagedResult;
+        }
+
+        public async Task<PagedResult<CarRepairShopServiceGetDTO>> RecommendRepairShopServices(int repairShopServiceId)
+        {
+            DataViewSchema modelSchema;
+            ITransformer _model = mlContext.Model.Load("reservationsmodel.zip", out modelSchema);
+            var repairShopServices = await _context.CarRepairShopServices.Where(x => x.Id != repairShopServiceId).ToListAsync();
+            var predictionResult = new List<Tuple<Model.Entities.CarRepairShopService, float>>();
+
+            var predictionEngine = mlContext.Model.CreatePredictionEngine<ProductEntry, CopurchasePrediction>(_model);
+
+            foreach (var repairShopService in repairShopServices)
+            {
+                var prediction = predictionEngine.Predict(
+                                     new ProductEntry()
+                                     {
+                                         ProductId = (uint)repairShopServiceId,
+                                         CoPurchaseProductId = (uint)repairShopService.Id
+                                     });
+
+                predictionResult.Add(new Tuple<Model.Entities.CarRepairShopService, float>(repairShopService, prediction.Score));
+            }
+
+            var finalResults = predictionResult.OrderByDescending(x => x.Item2)
+                                               .Select(x => x.Item1)
+                                               .Take(3)
+                                               .ToList();
+
+            PagedResult<CarRepairShopServiceGetDTO> pagedResult = new PagedResult<CarRepairShopServiceGetDTO>();
+
+            pagedResult.Result = _mapper.Map<List<CarRepairShopServiceGetDTO>>(finalResults);
+            pagedResult.Count = finalResults.Count;
+
+            return pagedResult;
         }
     }
 }
-

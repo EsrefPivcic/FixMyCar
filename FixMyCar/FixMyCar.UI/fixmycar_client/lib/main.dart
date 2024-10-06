@@ -10,8 +10,10 @@ import 'package:fixmycar_client/src/providers/auth_provider.dart';
 import 'package:fixmycar_client/src/providers/order_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/order_essential_provider.dart';
 import 'package:fixmycar_client/src/providers/order_provider.dart';
+import 'package:fixmycar_client/src/providers/items_recommender_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_provider.dart';
+import 'package:fixmycar_client/src/providers/services_recommender_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_provider.dart';
 import 'package:fixmycar_client/src/providers/user_provider.dart';
@@ -42,7 +44,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ReservationDetailProvider()),
         ChangeNotifierProvider(create: (_) => OrderEssentialProvider()),
         ChangeNotifierProvider(create: (_) => CarRepairShopDiscountProvider()),
-        ChangeNotifierProvider(create: (_) => CarPartsShopDiscountProvider())
+        ChangeNotifierProvider(create: (_) => CarPartsShopDiscountProvider()),
+        ChangeNotifierProvider(create: (_) => ItemsRecommenderProvider()),
+        ChangeNotifierProvider(create: (_) => ServicesRecommenderProvider()),
       ],
       child: const MyApp(),
     ),

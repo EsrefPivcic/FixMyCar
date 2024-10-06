@@ -590,17 +590,6 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                           ],
                         ),
                       ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Payment Method: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: reservation.paymentMethod),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 16.0),
                       Text(
                         'Services',
