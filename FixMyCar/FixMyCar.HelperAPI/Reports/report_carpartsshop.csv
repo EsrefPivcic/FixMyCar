@@ -1,0 +1,27 @@
+OrderId,OrderDate,TotalAmount,ShippingDate,ClientDiscount,StoreItemName,Quantity,UnitPrice,TotalItemsPrice,Discount,TotalItemsPriceDiscounted
+5,2024-10-03,804.75,Pending,13.00%,EBC-Turbo,2,350.00,700.00,No item discount,700.00
+5,2024-10-03,804.75,Pending,13.00%,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+6,2024-10-03,925.00,Pending,No client discount,EBC-Turbo,2,350.00,700.00,No item discount,700.00
+6,2024-10-03,925.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+7,2024-10-05,575.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
+7,2024-10-05,575.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+8,2024-10-05,575.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+8,2024-10-05,575.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
+9,2024-10-05,575.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
+9,2024-10-05,575.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+10,2024-10-05,750.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
+10,2024-10-05,750.00,Pending,No client discount,OEM-R32 Brembo,1,400.00,400.00,No item discount,400.00
+11,2024-10-05,30.00,Pending,No client discount,Test 1,1,20.00,20.00,No item discount,20.00
+11,2024-10-05,30.00,Pending,No client discount,Test 2,1,10.00,10.00,No item discount,10.00
+12,2024-10-05,245.00,Pending,No client discount,Test 1,1,20.00,20.00,No item discount,20.00
+12,2024-10-05,245.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+13,2024-10-05,800.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
+13,2024-10-05,800.00,Pending,No client discount,Monster-Motorsport,2,250.00,500.00,10.00%,450.00
+14,2024-10-05,750.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
+14,2024-10-05,750.00,Pending,No client discount,OEM-R32 Brembo,1,400.00,400.00,No item discount,400.00
+15,2024-10-05,255.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+15,2024-10-05,255.00,Pending,No client discount,Test 1,1,20.00,20.00,No item discount,20.00
+15,2024-10-05,255.00,Pending,No client discount,Test 2,1,10.00,10.00,No item discount,10.00
+16,2024-10-05,615.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
+16,2024-10-05,615.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+16,2024-10-05,615.00,Pending,No client discount,Test 1,2,20.00,40.00,No item discount,40.00

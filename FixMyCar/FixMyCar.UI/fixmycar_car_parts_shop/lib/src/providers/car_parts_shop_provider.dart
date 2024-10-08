@@ -11,6 +11,7 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
 
   User? user;
   bool isLoading = false;
+  bool isLoadingReport = false;
 
   Future<void> insertUser(UserRegister user) async {
     await insert(
@@ -36,6 +37,28 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<String?> getReport() async {
+    try {
+      isLoadingReport = true;
+      final response = await http.get(
+        Uri.parse('${BaseProvider.baseUrl}/$endpoint/GetReport'),
+        headers: await createHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return response.body;
+      } else {
+        print('Failed to load report. Status: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching report: $e');
+      return null;
+    } finally {
+      isLoadingReport = false;
     }
   }
 

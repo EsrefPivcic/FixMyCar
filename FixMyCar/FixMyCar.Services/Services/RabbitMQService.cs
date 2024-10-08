@@ -1,9 +1,11 @@
-﻿using FixMyCar.Services.Interfaces;
+﻿using FixMyCar.Model.DTOs.Report;
+using FixMyCar.Services.Interfaces;
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace FixMyCar.Services.Services
@@ -28,6 +30,11 @@ namespace FixMyCar.Services.Services
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
+            _channel.QueueDeclare(queue: "generate_report",
+                                 durable: false,
+                                 exclusive: false,
+                                 autoDelete: false,
+                                 arguments: null);
         }
         
         public void SendNotification(string message, string queue)
@@ -35,6 +42,18 @@ namespace FixMyCar.Services.Services
             var body = Encoding.UTF8.GetBytes(message);
             _channel.BasicPublish(exchange: "",
                                   routingKey: queue,
+                                  basicProperties: null,
+                                  body: body);
+        }
+
+        public void SendReportGenerationRequest(ReportRequestDTO reportRequest)
+        {
+            var message = JsonSerializer.Serialize(reportRequest);
+
+            var body = Encoding.UTF8.GetBytes(message);
+
+            _channel.BasicPublish(exchange: "",
+                                  routingKey: "generate_report",
                                   basicProperties: null,
                                   body: body);
         }

@@ -1,5 +1,6 @@
 ﻿using FixMyCar.Controllers;
 using FixMyCar.Model.DTOs.CarPartsShop;
+using FixMyCar.Model.DTOs.Report;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Model.Utilities;
@@ -23,6 +24,28 @@ namespace FixMyCar.API.Controllers
         {
             request.RoleId = 4;
             return await (_service as ICarPartsShopService).Insert(request);
+        }
+
+        [HttpPost("GenerateReport")]
+        public IActionResult GenerateReport(ReportRequestDTO request)
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            request.ShopName = username;
+            (_service as ICarPartsShopService).GenerateReport(request);
+            return Ok();
+        }
+
+        [HttpGet("GetReport")]
+        public async Task<IActionResult> GetReport()
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var report = await (_service as ICarPartsShopService).GetReport(username);
+            if (report == null)
+            {
+                return NotFound();
+            }
+
+            return File(report, "text/csv", "report.csv");
         }
 
         [HttpPut("UpdateWorkDetailsByToken")]

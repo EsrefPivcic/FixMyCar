@@ -1,3 +1,4 @@
+import 'package:csv/csv.dart';
 import 'package:fixmycar_car_parts_shop/constants.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_image.dart';
@@ -7,6 +8,7 @@ import 'package:fixmycar_car_parts_shop/src/models/user/user_update_work_details
 import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/car_parts_shop_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/login_screen.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
@@ -37,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarPartsShopProvider>(context, listen: false).getByToken();
+      _fetchReport();
     });
   }
 
@@ -568,6 +571,66 @@ class _HomeScreenState extends State<HomeScreen> {
     ;
   }
 
+  List<List<dynamic>>? _reportData;
+
+  List<List<dynamic>> _parseCsvReport(String csvData) {
+    return CsvToListConverter().convert(csvData);
+  }
+
+  Future<void> _fetchReport() async {
+    final report =
+        await Provider.of<CarPartsShopProvider>(context, listen: false)
+            .getReport();
+
+    if (report != null) {
+      if (mounted) {
+        setState(() {
+          _reportData = _parseCsvReport(report);
+        });
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load report.')),
+      );
+    }
+  }
+
+  String _selectedDataType = 'TotalAmount';
+  List<String> _dataTypes = ['TotalAmount', 'Quantity', 'TotalItemsPrice'];
+
+  List<BarChartGroupData> _createBarChartData(String dataType) {
+    int columnIndex;
+
+    switch (dataType) {
+      case 'TotalAmount':
+        columnIndex = 2;
+        break;
+      case 'Quantity':
+        columnIndex = 6;
+        break;
+      case 'TotalItemsPrice':
+        columnIndex = 8;
+        break;
+      default:
+        columnIndex = 2;
+    }
+
+    return _reportData!.skip(1).toList().asMap().entries.map((entry) {
+      int index = entry.key;
+      List<dynamic> row = entry.value;
+
+      double value =
+          row[columnIndex] is num ? row[columnIndex].toDouble() : 0.0;
+
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(toY: value, width: 15),
+        ],
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
@@ -817,40 +880,44 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(width: 16.0, height: 16.0),
                     Expanded(
-                      child: Card(
-                        elevation: 4.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.0),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.bar_chart,
-                                  size: 100,
-                                  color: Colors.grey,
-                                ),
-                                const SizedBox(height: 16.0),
-                                Text(
-                                  'Business Reports',
-                                  style:
-                                      Theme.of(context).textTheme.headlineSmall,
-                                ),
-                                const SizedBox(height: 8.0),
-                                Text(
-                                  'In development...',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.copyWith(color: Colors.grey),
-                                ),
-                              ],
-                            ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Business Report',
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
-                        ),
+                          const SizedBox(height: 10.0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Plot by:"),
+                              const SizedBox(width: 10),
+                              DropdownButton<String>(
+                                value: _selectedDataType,
+                                items: _dataTypes.map((String type) {
+                                  return DropdownMenuItem<String>(
+                                    value: type,
+                                    child: Text(type),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newType) {
+                                  setState(() {
+                                    _selectedDataType = newType!;
+                                    _createBarChartData(_selectedDataType);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16.0),
+                          Expanded(
+                            child: _reportData != null
+                                ? ReportChart(
+                                    barGroups:
+                                        _createBarChartData(_selectedDataType))
+                                : Center(child: CircularProgressIndicator()),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -859,6 +926,52 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class ReportChart extends StatelessWidget {
+  final List<BarChartGroupData> barGroups;
+
+  ReportChart({required this.barGroups});
+
+  @override
+  Widget build(BuildContext context) {
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: barGroups.isNotEmpty
+            ? barGroups
+                .map((e) => e.barRods[0].toY)
+                .reduce((a, b) => a > b ? a : b)
+            : 0,
+        barGroups: barGroups,
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            axisNameWidget: Text('Orders'),
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (double value, TitleMeta meta) {
+                return Text((value.toInt() + 1).toString());
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (double value, TitleMeta meta) {
+                return Text('${value.toStringAsFixed(0)}');
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: Colors.black12),
+        ),
+        gridData: FlGridData(show: true),
       ),
     );
   }

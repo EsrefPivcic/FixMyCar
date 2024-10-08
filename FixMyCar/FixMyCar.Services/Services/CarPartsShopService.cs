@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using FixMyCar.Model.DTOs.CarPartsShop;
-using FixMyCar.Model.DTOs.CarRepairShop;
+using FixMyCar.Model.DTOs.Report;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Model.Utilities;
@@ -10,6 +10,7 @@ using FixMyCar.Services.Utilities;
 using Microsoft.AspNetCore.Connections.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Stripe.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,6 +75,28 @@ namespace FixMyCar.Services.Services
             {
                 throw new UserException($"User {request.Username} doesn't exist");
             }
+        }
+
+        public void GenerateReport(ReportRequestDTO request)
+        {
+            using var rabbitMQService = new RabbitMQService();
+            request.ShopType = "carpartsshop";
+            rabbitMQService.SendReportGenerationRequest(request);
+        }
+
+        public async Task<byte[]> GetReport(string username)
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
+            var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports"); 
+            var reportFilePath = Path.Combine(reportsFolderPath, $"report_{username}.csv");
+
+            if (File.Exists(reportFilePath))
+            {
+                return await File.ReadAllBytesAsync(reportFilePath);
+            }
+
+            throw new UserException($"Report for {username} not found.");
         }
 
         public override async Task BeforeInsert(CarPartsShop entity, CarPartsShopInsertDTO request)
