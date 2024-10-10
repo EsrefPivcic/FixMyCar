@@ -1,3 +1,4 @@
+import 'package:fixmycar_car_parts_shop/src/models/report_filter/report_filter.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_work_details.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_register.dart';
@@ -59,6 +60,41 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
       return null;
     } finally {
       isLoadingReport = false;
+    }
+  }
+
+  Future<void> generateReport({required ReportFilter filter}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseProvider.baseUrl}/$endpoint/GenerateReport'),
+        headers: await createHeaders(),
+        body: jsonEncode(filter),
+      );
+
+      if (response.statusCode == 200) {
+        print('Request successful.');
+        notifyListeners();
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 

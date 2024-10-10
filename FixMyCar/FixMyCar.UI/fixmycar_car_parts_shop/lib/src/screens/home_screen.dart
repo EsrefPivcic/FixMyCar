@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 import 'package:fixmycar_car_parts_shop/constants.dart';
+import 'package:fixmycar_car_parts_shop/src/models/report_filter/report_filter.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_image.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_password.dart';
@@ -571,6 +572,10 @@ class _HomeScreenState extends State<HomeScreen> {
     ;
   }
 
+  String? _selectedRole;
+  String? _username;
+  DateTime? _startDate;
+  DateTime? _endDate;
   List<List<dynamic>>? _reportData;
 
   List<List<dynamic>> _parseCsvReport(String csvData) {
@@ -595,40 +600,285 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _selectedDataType = 'TotalAmount';
-  List<String> _dataTypes = ['TotalAmount', 'Quantity', 'TotalItemsPrice'];
+  Future<void> _openFilterDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Generate Report'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: _selectedRole,
+                    decoration: InputDecoration(labelText: "Select Role"),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text("All")),
+                      DropdownMenuItem(value: "client", child: Text("Client")),
+                      DropdownMenuItem(
+                          value: "carrepairshop",
+                          child: Text("Car Repair Shop")),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedRole = value;
+                        _username = null;
+                      });
+                    },
+                  ),
+                  if (_selectedRole != null) ...[
+                    TextFormField(
+                      decoration: const InputDecoration(
+                          labelText: "Username / Repair Shop Name"),
+                      onChanged: (value) {
+                        setState(() {
+                          _username = value;
+                        });
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: _startDate ?? DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: _endDate ?? DateTime.now(),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _startDate = picked;
+                              });
+                            }
+                          },
+                          child: Text(_startDate != null
+                              ? "Start: ${_startDate!.toLocal().toIso8601String().split('T')[0]}"
+                              : "Select Start Date"),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: _endDate ?? DateTime.now(),
+                              firstDate: _startDate ?? DateTime(2000),
+                              lastDate: DateTime.now(),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _endDate = picked;
+                              });
+                            }
+                          },
+                          child: Text(_endDate != null
+                              ? "End: ${_endDate!.toLocal().toIso8601String().split('T')[0]}"
+                              : "Select End Date"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _generateReport();
+                  },
+                  child: Text('Generate'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
-  List<BarChartGroupData> _createBarChartData(String dataType) {
-    int columnIndex;
+  Future<void> _generateReport() async {
+    final filter = ReportFilter(
+      _username,
+      _selectedRole,
+      _startDate,
+      _endDate,
+    );
+    await Provider.of<CarPartsShopProvider>(context, listen: false)
+        .generateReport(filter: filter);
+    await _fetchReport();
+  }
 
-    switch (dataType) {
-      case 'TotalAmount':
-        columnIndex = 2;
-        break;
-      case 'Quantity':
-        columnIndex = 6;
-        break;
-      case 'TotalItemsPrice':
-        columnIndex = 8;
-        break;
-      default:
-        columnIndex = 2;
+  String _selectedChartType = 'Revenue per customer type';
+
+  final List<String> _chartTypes = [
+    'Revenue per customer type',
+    'Revenue over time',
+    'Revenue per customer',
+    'Top 5 orders'
+  ];
+
+  List<BarChartGroupData> _createBarChartData() {
+    double clientSum = 0;
+    double shopSum = 0;
+
+    final Set<int> uniqueOrderIds = {};
+
+    for (var row in _reportData!.skip(1)) {
+      int orderId = row[0];
+
+      if (uniqueOrderIds.contains(orderId)) {
+        continue;
+      }
+
+      uniqueOrderIds.add(orderId);
+
+      if (row[3] == 'Client') {
+        clientSum += row[4] is num ? row[4].toDouble() : 0.0;
+      } else if (row[3] == 'Car Repair Shop') {
+        shopSum += row[4] is num ? row[4].toDouble() : 0.0;
+      }
     }
 
-    return _reportData!.skip(1).toList().asMap().entries.map((entry) {
-      int index = entry.key;
-      List<dynamic> row = entry.value;
-
-      double value =
-          row[columnIndex] is num ? row[columnIndex].toDouble() : 0.0;
-
-      return BarChartGroupData(
-        x: index,
+    return [
+      BarChartGroupData(
+        x: 0,
         barRods: [
-          BarChartRodData(toY: value, width: 15),
+          BarChartRodData(toY: clientSum, width: 15, color: Colors.blue)
         ],
+      ),
+      BarChartGroupData(
+        x: 1,
+        barRods: [
+          BarChartRodData(toY: shopSum, width: 15, color: Colors.green)
+        ],
+      ),
+    ];
+  }
+
+  List<LineChartBarData> _createLineChartData() {
+    Map<DateTime, double> totalAmountByDate = {};
+
+    Map<DateTime, Set<int>> processedOrdersByDate = {};
+
+    List<List<dynamic>> sortedReportData = _reportData!.skip(1).toList()
+      ..sort((a, b) => DateTime.parse(a[1]).compareTo(DateTime.parse(b[1])));
+
+    for (var row in sortedReportData) {
+      DateTime orderDate = DateTime.parse(row[1]);
+      int orderId = row[0];
+      double totalAmount = row[4] is num ? row[4].toDouble() : 0.0;
+
+      processedOrdersByDate.putIfAbsent(orderDate, () => <int>{});
+
+      if (!processedOrdersByDate[orderDate]!.contains(orderId)) {
+        processedOrdersByDate[orderDate]!.add(orderId);
+
+        if (totalAmountByDate.containsKey(orderDate)) {
+          totalAmountByDate[orderDate] =
+              totalAmountByDate[orderDate]! + totalAmount;
+        } else {
+          totalAmountByDate[orderDate] = totalAmount;
+        }
+      }
+    }
+
+    return [
+      LineChartBarData(
+        spots: totalAmountByDate.entries.map((e) {
+          return FlSpot(e.key.millisecondsSinceEpoch.toDouble(), e.value);
+        }).toList(),
+      ),
+    ];
+  }
+
+  List<PieChartSectionData> _createPieChartData() {
+    Map<String, double> customerTotalAmount = {};
+
+    Map<String, Set<int>> processedOrders = {};
+
+    for (var row in _reportData!.skip(1)) {
+      String customer = row[2];
+      int orderId = row[0];
+      double totalAmount = row[4] is num ? row[4].toDouble() : 0.0;
+
+      processedOrders.putIfAbsent(customer, () => <int>{});
+
+      if (!processedOrders[customer]!.contains(orderId)) {
+        processedOrders[customer]!.add(orderId);
+
+        if (customerTotalAmount.containsKey(customer)) {
+          customerTotalAmount[customer] =
+              customerTotalAmount[customer]! + totalAmount;
+        } else {
+          customerTotalAmount[customer] = totalAmount;
+        }
+      }
+    }
+
+    return customerTotalAmount.entries.map((entry) {
+      return PieChartSectionData(
+        value: entry.value,
+        title: entry.key,
+        color: Colors.primaries[entry.key.hashCode % Colors.primaries.length],
       );
     }).toList();
+  }
+
+  Widget _buildTop5OrdersTable() {
+    final Map<int, Map<String, dynamic>> groupedOrders = {};
+
+    for (var order in _reportData!.skip(1)) {
+      int orderId = order[0];
+      if (!groupedOrders.containsKey(orderId)) {
+        groupedOrders[orderId] = {
+          'OrderDate': order[1],
+          'Customer': order[2],
+          'CustomerType': order[3],
+          'TotalAmount': order[4],
+          'ClientDiscount': order[6],
+        };
+      } else {
+        groupedOrders[orderId]!['TotalAmount'] = order[4];
+      }
+    }
+
+    final List<Map<String, dynamic>> sortedOrders = groupedOrders.values
+        .toList()
+      ..sort((a, b) => b['TotalAmount'].compareTo(a['TotalAmount']));
+
+    final top5Orders = sortedOrders.take(5).toList();
+
+    return DataTable(
+      columns: const [
+        DataColumn(label: Text('Order Date')),
+        DataColumn(label: Text('Customer')),
+        DataColumn(label: Text('Customer Type')),
+        DataColumn(label: Text('Total Amount')),
+        DataColumn(label: Text('Client Discount')),
+      ],
+      rows: top5Orders.map((order) {
+        return DataRow(cells: [
+          DataCell(Text(order['OrderDate'].toString())),
+          DataCell(Text(order['Customer'].toString())),
+          DataCell(Text(order['CustomerType'].toString())),
+          DataCell(Text(order['TotalAmount'].toString())),
+          DataCell(Text(order['ClientDiscount'].toString())),
+        ]);
+      }).toList(),
+    );
   }
 
   @override
@@ -886,36 +1136,48 @@ class _HomeScreenState extends State<HomeScreen> {
                             'Business Report',
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
-                          const SizedBox(height: 10.0),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text("Plot by:"),
-                              const SizedBox(width: 10),
-                              DropdownButton<String>(
-                                value: _selectedDataType,
-                                items: _dataTypes.map((String type) {
-                                  return DropdownMenuItem<String>(
-                                    value: type,
-                                    child: Text(type),
-                                  );
-                                }).toList(),
-                                onChanged: (String? newType) {
-                                  setState(() {
-                                    _selectedDataType = newType!;
-                                    _createBarChartData(_selectedDataType);
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16.0),
                           Expanded(
-                            child: _reportData != null
-                                ? ReportChart(
-                                    barGroups:
-                                        _createBarChartData(_selectedDataType))
-                                : Center(child: CircularProgressIndicator()),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: _fetchReport,
+                                      child: const Text('Refresh Report'),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ElevatedButton(
+                                      onPressed: _openFilterDialog,
+                                      child: const Text('Generate Report'),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    DropdownButton<String>(
+                                      value: _selectedChartType,
+                                      items: _chartTypes.map((String type) {
+                                        return DropdownMenuItem<String>(
+                                          value: type,
+                                          child: Text(type),
+                                        );
+                                      }).toList(),
+                                      onChanged: (String? newChartType) {
+                                        setState(() {
+                                          _selectedChartType = newChartType!;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10.0),
+                                Expanded(
+                                  child: _reportData != null
+                                      ? _buildChart()
+                                      : const Center(
+                                          child: Text("No report available."),
+                                        ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -929,49 +1191,44 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
-class ReportChart extends StatelessWidget {
-  final List<BarChartGroupData> barGroups;
-
-  ReportChart({required this.barGroups});
-
-  @override
-  Widget build(BuildContext context) {
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: barGroups.isNotEmpty
-            ? barGroups
-                .map((e) => e.barRods[0].toY)
-                .reduce((a, b) => a > b ? a : b)
-            : 0,
-        barGroups: barGroups,
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            axisNameWidget: Text('Orders'),
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                return Text((value.toInt() + 1).toString());
-              },
-            ),
+  Widget _buildChart() {
+    switch (_selectedChartType) {
+      case 'Revenue per customer type':
+        return BarChart(
+          BarChartData(
+            barGroups: _createBarChartData(),
+            titlesData: _buildTitles(),
           ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                return Text('${value.toStringAsFixed(0)}');
-              },
-            ),
+        );
+      case 'Revenue over time':
+        return LineChart(
+          LineChartData(
+            lineBarsData: _createLineChartData(),
+            titlesData: _buildTitles(),
           ),
-        ),
-        borderData: FlBorderData(
-          show: true,
-          border: Border.all(color: Colors.black12),
-        ),
-        gridData: FlGridData(show: true),
+        );
+      case 'Revenue per customer':
+        return PieChart(
+          PieChartData(
+            sections: _createPieChartData(),
+          ),
+        );
+      case 'Top 5 orders':
+        return _buildTop5OrdersTable();
+      default:
+        return const Text('Select a chart type');
+    }
+  }
+
+  FlTitlesData _buildTitles() {
+    return const FlTitlesData(
+      bottomTitles: AxisTitles(
+        axisNameWidget: const Text('Orders'),
+        sideTitles: SideTitles(showTitles: true),
+      ),
+      leftTitles: AxisTitles(
+        sideTitles: SideTitles(showTitles: false),
       ),
     );
   }

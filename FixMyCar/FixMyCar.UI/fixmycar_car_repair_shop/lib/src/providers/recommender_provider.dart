@@ -17,7 +17,7 @@ class RecommenderProvider extends BaseProvider<StoreItem, StoreItem> {
 
     try {
       SearchResult<StoreItem> searchResult = await get(
-          customEndpoint: 'Predict/$storeItemId',
+          customEndpoint: 'RecommendStoreItems/$storeItemId',
           fromJson: (json) => StoreItem.fromJson(json));
 
       recommendedItems = searchResult.result;
