@@ -26,22 +26,21 @@ namespace FixMyCar.HelperAPI.Services
                 .Include(o => o.CarRepairShop)
                 .Include(o => o.Client)
                 .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.StoreItem);
+                .ThenInclude(od => od.StoreItem)
+                .Where(o => o.CarPartsShop.Username == request.ShopName);
 
             if (request.StartDate != null)
             {
                 DateTime startDate = request.StartDate.Value;
 
-                query = query.Where(o => o.CarPartsShop.Username == request.ShopName
-                         && o.OrderDate.Date >= startDate.Date);
+                query = query.Where(o => o.OrderDate.Date >= startDate.Date);
             }
 
             if (request.EndDate != null)
             {
                 DateTime endDate = request.EndDate.Value;
 
-                query = query.Where(o => o.CarPartsShop.Username == request.ShopName
-                         && o.OrderDate.Date <= endDate.Date);
+                query = query.Where(o => o.OrderDate.Date <= endDate.Date);
             }
 
             if (!request.Role.IsNullOrEmpty())
@@ -115,8 +114,75 @@ namespace FixMyCar.HelperAPI.Services
 
         public async Task GenerateReportCarRepairShop(ReportRequestDTO request)
         {
-            Console.WriteLine($"Generating report for {request.ShopName} " + $"({request.ShopType}) " +
-                              $"from {request.StartDate} to {request.EndDate}");
+            var query = _context.Set<Reservation>().AsQueryable();
+
+            query = query.Include(r => r.CarRepairShopDiscount)
+                .Include(r => r.Client)
+                .Include(r => r.ReservationDetails)
+                .ThenInclude(rd => rd.CarRepairShopService)
+                .Where(r => r.CarRepairShop.Username == request.ShopName);
+
+            if (request.StartDate != null)
+            {
+                DateTime startDate = request.StartDate.Value;
+
+                query = query.Where(r => r.ReservationCreatedDate.Date >= startDate.Date);
+            }
+
+            if (request.EndDate != null)
+            {
+                DateTime endDate = request.EndDate.Value;
+
+                query = query.Where(r => r.ReservationCreatedDate.Date <= endDate.Date);
+            }
+
+            if (!request.Username.IsNullOrEmpty())
+            {
+                query = query.Where(r => r.Client.Username == request.Username);
+            }
+
+            var reservations = await query.ToListAsync();
+
+            var reportData = reservations.Select(reservation => new
+            {
+                ReservationId = reservation.Id,
+                ReservationCreatedDate = reservation.ReservationCreatedDate.ToString("yyyy-MM-dd"),
+                ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
+                Customer = reservation.Client.Username,
+                TotalAmount = reservation.TotalAmount,
+                Type = reservation.Type,
+                PartsOrderedBy = reservation.ClientOrder == null ? "No order" : (bool)reservation.ClientOrder ? "Client" : "Shop",
+                ClientDiscount = reservation.CarRepairShopDiscount != null ? $"{(reservation.CarRepairShopDiscount.Value * 100):F2}%" : "No client discount",
+                Services = reservation.ReservationDetails.Select(rd => new
+                {
+                    rd.ServiceName,
+                    rd.ServicePrice,
+                    Discount = rd.ServiceDiscount > 0 ? $"{(rd.ServiceDiscount * 100):F2}%" : "No service discount",
+                    rd.ServiceDiscountedPrice
+                })
+            }).ToList();
+
+            var csvReport = new StringBuilder();
+            csvReport.AppendLine("ReservationId,ReservationCreatedDate,ReservationDate,Customer," +
+                "TotalAmount,Type,PartsOrderedBy,ClientDiscount,ServiceName,ServicePrice,Discount,ServiceDiscountedPrice");
+
+            foreach (var reservation in reportData)
+            {
+                foreach (var service in reservation.Services)
+                {
+                    csvReport.AppendLine($"{reservation.ReservationId},{reservation.ReservationCreatedDate:yyyy-MM-dd}," +
+                        $"{reservation.ReservationDate:yyyy-MM-dd},{reservation.Customer},{reservation.TotalAmount:F2}," +
+                        $"{reservation.Type},{reservation.PartsOrderedBy},{reservation.ClientDiscount},{service.ServiceName}," +
+                        $"{service.ServicePrice:F2},{service.Discount},{service.ServiceDiscountedPrice:F2}");
+                }
+            }
+
+            var fileName = $"report_{request.ShopName}.csv";
+            var filePath = Path.Combine("Reports", fileName);
+
+            await File.WriteAllTextAsync(filePath, csvReport.ToString());
+
+            Console.WriteLine($"Report generated and saved at {filePath}");
         }
     }
 }

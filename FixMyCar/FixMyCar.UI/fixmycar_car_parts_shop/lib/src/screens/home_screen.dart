@@ -9,7 +9,7 @@ import 'package:fixmycar_car_parts_shop/src/models/user/user_update_work_details
 import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/car_parts_shop_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/login_screen.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:fixmycar_car_parts_shop/src/widgets/charts.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
@@ -577,6 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _startDate;
   DateTime? _endDate;
   List<List<dynamic>>? _reportData;
+  String? _csvReport;
 
   List<List<dynamic>> _parseCsvReport(String csvData) {
     return CsvToListConverter().convert(csvData);
@@ -591,11 +592,46 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {
           _reportData = _parseCsvReport(report);
+          _csvReport = report;
         });
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load report.')),
+        const SnackBar(content: Text('Failed to load report.')),
+      );
+    }
+  }
+
+  Future<void> _saveReportToFile() async {
+    if (_csvReport == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No report available to save.')),
+      );
+      return;
+    }
+
+    try {
+      String? savePath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Please select a location to save your report',
+        fileName: 'report.csv',
+      );
+
+      if (savePath == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Save operation canceled.')),
+        );
+        return;
+      }
+
+      final file = File(savePath);
+      await file.writeAsString(_csvReport!);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Report saved to $savePath')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to save report.')),
       );
     }
   }
@@ -607,13 +643,14 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Generate Report'),
+              title: const Text('Generate Report'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   DropdownButtonFormField<String>(
                     value: _selectedRole,
-                    decoration: InputDecoration(labelText: "Select Role"),
+                    decoration: const InputDecoration(
+                        labelText: "Select Customer Role"),
                     items: const [
                       DropdownMenuItem(value: null, child: Text("All")),
                       DropdownMenuItem(value: "client", child: Text("Client")),
@@ -690,6 +727,12 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () {
+                    setState(() {
+                      _endDate = null;
+                      _startDate = null;
+                      _username = null;
+                      _selectedRole = null;
+                    });
                     Navigator.pop(context);
                   },
                   child: Text('Cancel'),
@@ -727,159 +770,8 @@ class _HomeScreenState extends State<HomeScreen> {
     'Revenue per customer type',
     'Revenue over time',
     'Revenue per customer',
-    'Top 5 orders'
+    'Top 10 orders'
   ];
-
-  List<BarChartGroupData> _createBarChartData() {
-    double clientSum = 0;
-    double shopSum = 0;
-
-    final Set<int> uniqueOrderIds = {};
-
-    for (var row in _reportData!.skip(1)) {
-      int orderId = row[0];
-
-      if (uniqueOrderIds.contains(orderId)) {
-        continue;
-      }
-
-      uniqueOrderIds.add(orderId);
-
-      if (row[3] == 'Client') {
-        clientSum += row[4] is num ? row[4].toDouble() : 0.0;
-      } else if (row[3] == 'Car Repair Shop') {
-        shopSum += row[4] is num ? row[4].toDouble() : 0.0;
-      }
-    }
-
-    return [
-      BarChartGroupData(
-        x: 0,
-        barRods: [
-          BarChartRodData(toY: clientSum, width: 15, color: Colors.blue)
-        ],
-      ),
-      BarChartGroupData(
-        x: 1,
-        barRods: [
-          BarChartRodData(toY: shopSum, width: 15, color: Colors.green)
-        ],
-      ),
-    ];
-  }
-
-  List<LineChartBarData> _createLineChartData() {
-    Map<DateTime, double> totalAmountByDate = {};
-
-    Map<DateTime, Set<int>> processedOrdersByDate = {};
-
-    List<List<dynamic>> sortedReportData = _reportData!.skip(1).toList()
-      ..sort((a, b) => DateTime.parse(a[1]).compareTo(DateTime.parse(b[1])));
-
-    for (var row in sortedReportData) {
-      DateTime orderDate = DateTime.parse(row[1]);
-      int orderId = row[0];
-      double totalAmount = row[4] is num ? row[4].toDouble() : 0.0;
-
-      processedOrdersByDate.putIfAbsent(orderDate, () => <int>{});
-
-      if (!processedOrdersByDate[orderDate]!.contains(orderId)) {
-        processedOrdersByDate[orderDate]!.add(orderId);
-
-        if (totalAmountByDate.containsKey(orderDate)) {
-          totalAmountByDate[orderDate] =
-              totalAmountByDate[orderDate]! + totalAmount;
-        } else {
-          totalAmountByDate[orderDate] = totalAmount;
-        }
-      }
-    }
-
-    return [
-      LineChartBarData(
-        spots: totalAmountByDate.entries.map((e) {
-          return FlSpot(e.key.millisecondsSinceEpoch.toDouble(), e.value);
-        }).toList(),
-      ),
-    ];
-  }
-
-  List<PieChartSectionData> _createPieChartData() {
-    Map<String, double> customerTotalAmount = {};
-
-    Map<String, Set<int>> processedOrders = {};
-
-    for (var row in _reportData!.skip(1)) {
-      String customer = row[2];
-      int orderId = row[0];
-      double totalAmount = row[4] is num ? row[4].toDouble() : 0.0;
-
-      processedOrders.putIfAbsent(customer, () => <int>{});
-
-      if (!processedOrders[customer]!.contains(orderId)) {
-        processedOrders[customer]!.add(orderId);
-
-        if (customerTotalAmount.containsKey(customer)) {
-          customerTotalAmount[customer] =
-              customerTotalAmount[customer]! + totalAmount;
-        } else {
-          customerTotalAmount[customer] = totalAmount;
-        }
-      }
-    }
-
-    return customerTotalAmount.entries.map((entry) {
-      return PieChartSectionData(
-        value: entry.value,
-        title: entry.key,
-        color: Colors.primaries[entry.key.hashCode % Colors.primaries.length],
-      );
-    }).toList();
-  }
-
-  Widget _buildTop5OrdersTable() {
-    final Map<int, Map<String, dynamic>> groupedOrders = {};
-
-    for (var order in _reportData!.skip(1)) {
-      int orderId = order[0];
-      if (!groupedOrders.containsKey(orderId)) {
-        groupedOrders[orderId] = {
-          'OrderDate': order[1],
-          'Customer': order[2],
-          'CustomerType': order[3],
-          'TotalAmount': order[4],
-          'ClientDiscount': order[6],
-        };
-      } else {
-        groupedOrders[orderId]!['TotalAmount'] = order[4];
-      }
-    }
-
-    final List<Map<String, dynamic>> sortedOrders = groupedOrders.values
-        .toList()
-      ..sort((a, b) => b['TotalAmount'].compareTo(a['TotalAmount']));
-
-    final top5Orders = sortedOrders.take(5).toList();
-
-    return DataTable(
-      columns: const [
-        DataColumn(label: Text('Order Date')),
-        DataColumn(label: Text('Customer')),
-        DataColumn(label: Text('Customer Type')),
-        DataColumn(label: Text('Total Amount')),
-        DataColumn(label: Text('Client Discount')),
-      ],
-      rows: top5Orders.map((order) {
-        return DataRow(cells: [
-          DataCell(Text(order['OrderDate'].toString())),
-          DataCell(Text(order['Customer'].toString())),
-          DataCell(Text(order['CustomerType'].toString())),
-          DataCell(Text(order['TotalAmount'].toString())),
-          DataCell(Text(order['ClientDiscount'].toString())),
-        ]);
-      }).toList(),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1151,27 +1043,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                       onPressed: _openFilterDialog,
                                       child: const Text('Generate Report'),
                                     ),
-                                    const SizedBox(width: 10),
-                                    DropdownButton<String>(
-                                      value: _selectedChartType,
-                                      items: _chartTypes.map((String type) {
-                                        return DropdownMenuItem<String>(
-                                          value: type,
-                                          child: Text(type),
-                                        );
-                                      }).toList(),
-                                      onChanged: (String? newChartType) {
-                                        setState(() {
-                                          _selectedChartType = newChartType!;
-                                        });
-                                      },
-                                    ),
+                                    if (_reportData != null) ...[
+                                      const SizedBox(width: 10),
+                                      DropdownButton<String>(
+                                        value: _selectedChartType,
+                                        items: _chartTypes.map((String type) {
+                                          return DropdownMenuItem<String>(
+                                            value: type,
+                                            child: Text(type),
+                                          );
+                                        }).toList(),
+                                        onChanged: (String? newChartType) {
+                                          setState(() {
+                                            _selectedChartType = newChartType!;
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(width: 10),
+                                      ElevatedButton(
+                                        onPressed: _saveReportToFile,
+                                        child: const Text(
+                                            'Save report data to CSV'),
+                                      ),
+                                    ],
                                   ],
                                 ),
                                 const SizedBox(height: 10.0),
                                 Expanded(
                                   child: _reportData != null
-                                      ? _buildChart()
+                                      ? buildChart(
+                                          _reportData!, _selectedChartType)
                                       : const Center(
                                           child: Text("No report available."),
                                         ),
@@ -1188,47 +1089,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildChart() {
-    switch (_selectedChartType) {
-      case 'Revenue per customer type':
-        return BarChart(
-          BarChartData(
-            barGroups: _createBarChartData(),
-            titlesData: _buildTitles(),
-          ),
-        );
-      case 'Revenue over time':
-        return LineChart(
-          LineChartData(
-            lineBarsData: _createLineChartData(),
-            titlesData: _buildTitles(),
-          ),
-        );
-      case 'Revenue per customer':
-        return PieChart(
-          PieChartData(
-            sections: _createPieChartData(),
-          ),
-        );
-      case 'Top 5 orders':
-        return _buildTop5OrdersTable();
-      default:
-        return const Text('Select a chart type');
-    }
-  }
-
-  FlTitlesData _buildTitles() {
-    return const FlTitlesData(
-      bottomTitles: AxisTitles(
-        axisNameWidget: const Text('Orders'),
-        sideTitles: SideTitles(showTitles: true),
-      ),
-      leftTitles: AxisTitles(
-        sideTitles: SideTitles(showTitles: false),
       ),
     );
   }
