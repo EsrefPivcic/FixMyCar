@@ -1,4 +1,5 @@
 using AutoMapper;
+using FixMyCar.API.SignalR;
 using FixMyCar.Filters;
 using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
@@ -75,6 +76,8 @@ builder.Services.AddTransient<CompletedReservationState>();
 builder.Services.AddTransient<MissingPaymentReservationState>();
 builder.Services.AddTransient<PaymentFailedReservationState>();
 
+builder.Services.AddScoped<NotificationService>();
+
 builder.Services.AddTransient<SeedService>();
 
 builder.Services.AddAutoMapper(typeof(StoreItemProfile).Assembly);
@@ -123,6 +126,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<FixMyCarContext>(options =>
     options.UseSqlServer(connectionString));
 
+builder.Services.AddSignalR();
 builder.Services.AddControllers(x =>
 {
     x.Filters.Add<ErrorFilter>();
@@ -178,6 +182,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Urls.Add("https://localhost:7055");
 app.Urls.Add("http://0.0.0.0:5148");

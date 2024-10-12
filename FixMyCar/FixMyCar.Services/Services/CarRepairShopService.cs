@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FixMyCar.Model.DTOs.CarRepairShop;
+using FixMyCar.Model.DTOs.Report;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Model.Utilities;
@@ -53,6 +54,28 @@ namespace FixMyCar.Services.Services
             }
 
             return base.AddFilter(query, search);
+        }
+
+        public void GenerateReport(ReportRequestDTO request)
+        {
+            using var rabbitMQService = new RabbitMQService();
+            request.ShopType = "carrepairshop";
+            rabbitMQService.SendReportGenerationRequest(request);
+        }
+
+        public async Task<byte[]> GetReport(string username)
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
+            var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"report_{username}.csv");
+
+            if (File.Exists(reportFilePath))
+            {
+                return await File.ReadAllBytesAsync(reportFilePath);
+            }
+
+            throw new UserException($"Report for {username} not found.");
         }
 
         public async Task UpdateWorkDetails(CarRepairShopWorkDetailsUpdateDTO request)

@@ -1,4 +1,5 @@
-﻿using FixMyCar.Controllers;
+﻿using FixMyCar.API.SignalR;
+using FixMyCar.Controllers;
 using FixMyCar.Model.DTOs.CarRepairShopService;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
@@ -11,8 +12,10 @@ namespace FixMyCar.API.Controllers
 {
     public class CarRepairShopServiceController : BaseController<CarRepairShopService, CarRepairShopServiceGetDTO, CarRepairShopServiceInsertDTO, CarRepairShopServiceUpdateDTO, CarRepairShopServiceSearchObject>
     {
-        public CarRepairShopServiceController(ICarRepairShopServiceService service, ILogger<BaseController<CarRepairShopService, CarRepairShopServiceGetDTO, CarRepairShopServiceInsertDTO, CarRepairShopServiceUpdateDTO, CarRepairShopServiceSearchObject>> logger) : base(service, logger)
+        private readonly NotificationService _notificationService;
+        public CarRepairShopServiceController(ICarRepairShopServiceService service, ILogger<BaseController<CarRepairShopService, CarRepairShopServiceGetDTO, CarRepairShopServiceInsertDTO, CarRepairShopServiceUpdateDTO, CarRepairShopServiceSearchObject>> logger, NotificationService notificationService) : base(service, logger)
         {
+            _notificationService = notificationService;
         }
 
         [HttpPost()]
@@ -36,7 +39,20 @@ namespace FixMyCar.API.Controllers
         [HttpPut("{id}/Activate")]
         public virtual async Task<CarRepairShopServiceGetDTO> Activate(int id)
         {
-            return await (_service as ICarRepairShopServiceService).Activate(id);
+            try
+            {
+                var activatedService = await (_service as ICarRepairShopServiceService).Activate(id);
+
+                var message = $"New service ({activatedService.Name}) offered in car repair shop: {activatedService.CarRepairShopName}.";
+
+                await _notificationService.SendServiceNotification(message, "newservice");
+
+                return activatedService;
+            }
+            catch (UserException)
+            {
+                throw;
+            }
         }
 
         [HttpPut("{id}/Hide")]

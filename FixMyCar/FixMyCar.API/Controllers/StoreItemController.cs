@@ -1,3 +1,4 @@
+using FixMyCar.API.SignalR;
 using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
@@ -12,13 +13,30 @@ namespace FixMyCar.Controllers
     [ApiController]
     public class StoreItemController : BaseController<StoreItem, StoreItemGetDTO, StoreItemInsertDTO, StoreItemUpdateDTO, StoreItemSearchObject>
     {
-        public StoreItemController(IStoreItemService service, ILogger<BaseController<StoreItem, StoreItemGetDTO, StoreItemInsertDTO, StoreItemUpdateDTO, StoreItemSearchObject>> logger) : base(service, logger)
+        private readonly NotificationService _notificationService;
+        public StoreItemController(IStoreItemService service, ILogger<BaseController<StoreItem, StoreItemGetDTO, StoreItemInsertDTO, StoreItemUpdateDTO, StoreItemSearchObject>> logger, NotificationService notificationService) : base(service, logger)
         {
+            _notificationService = notificationService;
         }
 
         [HttpPut("{id}/Activate")]
         public virtual async Task<StoreItemGetDTO> Activate(int id)
         {
+            try
+            {
+                var activatedStoreItem = await (_service as IStoreItemService).Activate(id);
+
+                var message = $"New product ({activatedStoreItem.Name}) available in store: {activatedStoreItem.CarPartsShopName}.";
+
+                await _notificationService.SendServiceNotification(message, "newstoreitem");
+
+                return activatedStoreItem;
+            }
+            catch (UserException)
+            {
+
+                throw;
+            }
             return await (_service as IStoreItemService).Activate(id);
         }
 

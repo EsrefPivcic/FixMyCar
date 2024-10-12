@@ -29,7 +29,8 @@ namespace FixMyCar.Services.Mapping
                 .ForMember(dest => dest.ImageData, opt =>
                     opt.MapFrom(src => src.ImageData != null ? Convert.ToBase64String(src.ImageData) : string.Empty))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.StoreItemCategory != null ? src.StoreItemCategory.Name : string.Empty))
-                .ForMember(dest => dest.CarModels, opt => opt.MapFrom(src => src.CarModels ?? null));
+                .ForMember(dest => dest.CarModels, opt => opt.MapFrom(src => src.CarModels ?? null))
+                 .ForMember(dest => dest.CarPartsShopName, opt => opt.MapFrom(src => src.CarPartsShop != null ? src.CarPartsShop.Username : string.Empty));
         }
     }
 }

@@ -1,4 +1,6 @@
+import 'package:csv/csv.dart';
 import 'package:fixmycar_car_repair_shop/constants.dart';
+import 'package:fixmycar_car_repair_shop/src/models/report_filter/report_filter.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update_image.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update_password.dart';
@@ -7,6 +9,7 @@ import 'package:fixmycar_car_repair_shop/src/models/user/user_update_work_detail
 import 'package:fixmycar_car_repair_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/login_screen.dart';
+import 'package:fixmycar_car_repair_shop/src/widgets/charts.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/user_provider.dart';
@@ -37,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
+      _fetchReport();
     });
   }
 
@@ -568,6 +572,183 @@ class _HomeScreenState extends State<HomeScreen> {
     ;
   }
 
+  List<List<dynamic>>? _reportData;
+  String? _csvReport;
+  String? _username;
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  Future<void> _fetchReport() async {
+    final report =
+        await Provider.of<CarRepairShopProvider>(context, listen: false)
+            .getReport();
+
+    if (report != null) {
+      if (mounted) {
+        setState(() {
+          _reportData = _parseCsvReport(report);
+          _csvReport = report;
+        });
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to load report.')),
+      );
+    }
+  }
+
+  Future<void> _saveReportToFile() async {
+    if (_csvReport == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No report available to save.')),
+      );
+      return;
+    }
+
+    try {
+      String? savePath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Please select a location to save your report',
+        fileName: 'report.csv',
+      );
+
+      if (savePath == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Save operation canceled.')),
+        );
+        return;
+      }
+
+      final file = File(savePath);
+      await file.writeAsString(_csvReport!);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Report saved to $savePath')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to save report.')),
+      );
+    }
+  }
+
+  Future<void> _openFilterDialog() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Generate Report'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: "Username"),
+                    onChanged: (value) {
+                      setState(() {
+                        _username = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: _startDate ?? DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: _endDate ?? DateTime.now(),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _startDate = picked;
+                              });
+                            }
+                          },
+                          child: Text(_startDate != null
+                              ? "Start: ${_startDate!.toLocal().toIso8601String().split('T')[0]}"
+                              : "Select Start Date"),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: _endDate ?? DateTime.now(),
+                              firstDate: _startDate ?? DateTime(2000),
+                              lastDate: DateTime.now(),
+                            );
+                            if (picked != null) {
+                              setState(() {
+                                _endDate = picked;
+                              });
+                            }
+                          },
+                          child: Text(_endDate != null
+                              ? "End: ${_endDate!.toLocal().toIso8601String().split('T')[0]}"
+                              : "Select End Date"),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _endDate = null;
+                      _startDate = null;
+                      _username = null;
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _generateReport();
+                  },
+                  child: Text('Generate'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<List<dynamic>> _parseCsvReport(String csvData) {
+    return CsvToListConverter().convert(csvData);
+  }
+
+  Future<void> _generateReport() async {
+    final filter = ReportFilter(
+      _username,
+      _startDate,
+      _endDate,
+    );
+    await Provider.of<CarRepairShopProvider>(context, listen: false)
+        .generateReport(filter: filter);
+    await _fetchReport();
+  }
+
+  String _selectedChartType = 'Revenue per reservation type';
+
+  final List<String> _chartTypes = [
+    'Revenue per reservation type',
+    'Revenue over time',
+    'Revenue per customer',
+    'Top 10 reservations'
+  ];
+
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
@@ -777,7 +958,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       onPressed: _updateWorkDetails,
                                       icon: const Icon(
                                           Icons.work_history_outlined),
-                                      label: const Text('Apply Work Details Changes'),
+                                      label: const Text(
+                                          'Apply Work Details Changes'),
                                     ),
                                     const SizedBox(height: 16.0),
                                     const Text.rich(TextSpan(
@@ -789,8 +971,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         _showChangeUsernameForm();
                                       },
                                       icon: const Icon(Icons.person),
-                                      label: const Text(
-                                          'Change Username'),
+                                      label: const Text('Change Username'),
                                     ),
                                     const SizedBox(height: 8.0),
                                     ElevatedButton.icon(
@@ -817,40 +998,65 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(width: 16.0, height: 16.0),
                     Expanded(
-                      child: Card(
-                        elevation: 4.0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.0),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Business Report',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          Expanded(
                             child: Column(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
-                                  Icons.bar_chart,
-                                  size: 100,
-                                  color: Colors.grey,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: _fetchReport,
+                                      child: const Text('Refresh Report'),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ElevatedButton(
+                                      onPressed: _openFilterDialog,
+                                      child: const Text('Generate Report'),
+                                    ),
+                                    if (_reportData != null) ...[
+                                      const SizedBox(width: 10),
+                                      DropdownButton<String>(
+                                        value: _selectedChartType,
+                                        items: _chartTypes.map((String type) {
+                                          return DropdownMenuItem<String>(
+                                            value: type,
+                                            child: Text(type),
+                                          );
+                                        }).toList(),
+                                        onChanged: (String? newChartType) {
+                                          setState(() {
+                                            _selectedChartType = newChartType!;
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(width: 10),
+                                      ElevatedButton(
+                                        onPressed: _saveReportToFile,
+                                        child: const Text(
+                                            'Save report data to CSV'),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                const SizedBox(height: 16.0),
-                                Text(
-                                  'Business Reports',
-                                  style:
-                                      Theme.of(context).textTheme.headlineSmall,
-                                ),
-                                const SizedBox(height: 8.0),
-                                Text(
-                                  'In development...',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge
-                                      ?.copyWith(color: Colors.grey),
+                                const SizedBox(height: 10.0),
+                                Expanded(
+                                  child: _reportData != null
+                                      ? buildChart(
+                                          _reportData!, _selectedChartType)
+                                      : const Center(
+                                          child: Text("No report available."),
+                                        ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ],

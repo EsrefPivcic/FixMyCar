@@ -1,4 +1,5 @@
 ﻿using FixMyCar.Model.DTOs.CarRepairShop;
+using FixMyCar.Model.DTOs.Report;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using System;
@@ -12,5 +13,7 @@ namespace FixMyCar.Services.Interfaces
     public interface ICarRepairShopService : IBaseService<CarRepairShop, CarRepairShopGetDTO, CarRepairShopInsertDTO, CarRepairShopUpdateDTO, CarRepairShopSearchObject>
     {
         Task UpdateWorkDetails(CarRepairShopWorkDetailsUpdateDTO request);
+        void GenerateReport(ReportRequestDTO request);
+        Task<byte[]> GetReport(string username);
     }
 }

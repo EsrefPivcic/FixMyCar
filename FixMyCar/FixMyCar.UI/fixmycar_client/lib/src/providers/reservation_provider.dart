@@ -106,7 +106,8 @@ class ReservationProvider
   }
 
   void _handleError(dynamic response, {required String step}) {
-    final errors = response['errors'] as Map<String, dynamic>?;
+    final responseBody = jsonDecode(response.body);
+    final errors = responseBody['errors'] as Map<String, dynamic>?;
     if (errors != null) {
       final userErrors = errors['UserError'] as List<dynamic>?;
       if (userErrors != null && userErrors.isNotEmpty) {

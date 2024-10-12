@@ -41,10 +41,6 @@ namespace FixMyCar.Services.StateMachineServices.CarRepairShopServiceStateMachin
 
             await _context.SaveChangesAsync();
 
-            using var rabbitMQService = new RabbitMQService();
-            var message = $"New service ({entity.Name}) offered in car repair shop: {entity.CarRepairShop.Username}.";
-            rabbitMQService.SendNotification(message, "service_notifications");
-
             return _mapper.Map<CarRepairShopServiceGetDTO>(entity);
         }
 

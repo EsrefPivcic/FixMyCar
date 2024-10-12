@@ -57,10 +57,6 @@ namespace FixMyCar.Services.StateMachineServices.StoreItemStateMachine
 
             await _context.SaveChangesAsync();
 
-            using var rabbitMQService = new RabbitMQService();
-            var message = $"New product ({entity.Name}) available in store: {entity.CarPartsShop.Username}.";
-            rabbitMQService.SendNotification(message, "product_notifications");
-
             return _mapper.Map<StoreItemGetDTO>(entity);
         }
 

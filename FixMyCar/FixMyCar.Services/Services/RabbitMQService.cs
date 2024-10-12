@@ -20,30 +20,11 @@ namespace FixMyCar.Services.Services
             var factory = new ConnectionFactory() { HostName = "localhost" };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
-            _channel.QueueDeclare(queue: "product_notifications",
-                                 durable: false,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
-            _channel.QueueDeclare(queue: "service_notifications",
-                                 durable: false,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
             _channel.QueueDeclare(queue: "generate_report",
                                  durable: false,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
-        }
-        
-        public void SendNotification(string message, string queue)
-        {
-            var body = Encoding.UTF8.GetBytes(message);
-            _channel.BasicPublish(exchange: "",
-                                  routingKey: queue,
-                                  basicProperties: null,
-                                  body: body);
         }
 
         public void SendReportGenerationRequest(ReportRequestDTO reportRequest)

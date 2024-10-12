@@ -118,9 +118,16 @@ namespace FixMyCar.Services.Services
         {
             var entity = await _context.StoreItems.Include("CarPartsShop").FirstOrDefaultAsync(si => si.Id == id);
 
-            var state = _baseStoreItemState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseStoreItemState.CreateState(entity.State);
 
-            return await state.Activate(entity);
+                return await state.Activate(entity);
+            }
+            else
+            {
+                throw new UserException($"Entity ({id}) doesn't exist!");
+            }
         }
         
         public async Task<StoreItemGetDTO> Hide (int id)

@@ -11,6 +11,7 @@ namespace FixMyCar.Model.DTOs.StoreItem
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string CarPartsShopName { get; set; }
         public double Price { get; set; }
         public string State { get; set; }
         public double Discount { get; set; }

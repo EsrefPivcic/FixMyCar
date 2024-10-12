@@ -148,7 +148,7 @@ namespace FixMyCar.HelperAPI.Services
                 ReservationId = reservation.Id,
                 ReservationCreatedDate = reservation.ReservationCreatedDate.ToString("yyyy-MM-dd"),
                 ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
-                Customer = reservation.Client.Username,
+                Customer = reservation.Client.Name + " " + reservation.Client.Surname + $" ({reservation.Client.Username})",
                 TotalAmount = reservation.TotalAmount,
                 Type = reservation.Type,
                 PartsOrderedBy = reservation.ClientOrder == null ? "No order" : (bool)reservation.ClientOrder ? "Client" : "Shop",
