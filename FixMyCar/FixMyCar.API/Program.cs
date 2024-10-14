@@ -77,6 +77,7 @@ builder.Services.AddTransient<MissingPaymentReservationState>();
 builder.Services.AddTransient<PaymentFailedReservationState>();
 
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddTransient<IChatService, ChatService>();
 
 builder.Services.AddTransient<SeedService>();
 
@@ -118,6 +119,20 @@ builder.Services.AddAuthentication(options =>
             {
                 context.Fail("Session expired.");
             }
+        },
+
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) &&
+                (path.StartsWithSegments("/chathub")))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
         }
     };
 });
@@ -183,6 +198,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<ChatHub>("/chatHub");
 
 app.Urls.Add("https://localhost:7055");
 app.Urls.Add("http://0.0.0.0:5148");

@@ -37,6 +37,7 @@ namespace FixMyCar.Services.Database
         public virtual DbSet<ServiceType> ServiceTypes { get; set; }
         public virtual DbSet<Reservation> Reservations { get; set; }
         public virtual DbSet<ReservationDetail> ReservationDetails { get; set; }
+        public virtual DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -776,6 +776,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
+      showBackButton: false,
       child: Consumer<CarPartsShopProvider>(
         builder: (context, userProvider, child) {
           final user = userProvider.user;

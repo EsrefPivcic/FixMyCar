@@ -741,6 +741,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final isLoading = ordersProvider.isLoading;
 
     return MasterScreen(
+      showBackButton: false,
       child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Row(

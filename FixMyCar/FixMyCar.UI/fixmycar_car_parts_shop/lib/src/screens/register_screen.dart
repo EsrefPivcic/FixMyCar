@@ -64,7 +64,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _errorMessage = null;
       });
 
-      final userProvider = Provider.of<CarPartsShopProvider>(context, listen: false);
+      final userProvider =
+          Provider.of<CarPartsShopProvider>(context, listen: false);
       try {
         final newUser = UserRegister(
           _nameController.text,
@@ -145,6 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
+      showBackButton: false,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppPadding.defaultPadding),
@@ -190,7 +192,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 16.0),
                         DropdownButtonFormField<String>(
                           value: _gender,
-                          items: ['Female', 'Male', 'Custom'].map((String value) {
+                          items:
+                              ['Female', 'Male', 'Custom'].map((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(value),

@@ -4,6 +4,7 @@ import 'package:fixmycar_car_repair_shop/src/providers/car_parts_shop_provider.d
 import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_discount_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_service_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/chat_history_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/order_detail_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/order_essential_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/order_provider.dart';
@@ -40,7 +41,8 @@ void main() {
         ChangeNotifierProvider(
             create: (_) => CarModelsByManufacturerProvider()),
         ChangeNotifierProvider(create: (_) => CarPartsShopDiscountProvider()),
-        ChangeNotifierProvider(create: (_) => RecommenderProvider())
+        ChangeNotifierProvider(create: (_) => RecommenderProvider()),
+        ChangeNotifierProvider(create: (_) => ChatHistoryProvider())
       ],
       child: const MyApp(),
     ),

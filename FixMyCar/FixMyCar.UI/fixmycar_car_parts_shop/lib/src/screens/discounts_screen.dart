@@ -111,8 +111,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
 
     if (_selectedRole != 'All') {
       role = _selectedRole == "Car Repair Shop" ? "carrepairshop" : "client";
-    }
-    else {
+    } else {
       role = null;
     }
 
@@ -219,6 +218,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
         Provider.of<CarPartsShopClientDiscountProvider>(context).isLoading;
 
     return MasterScreen(
+      showBackButton: false,
       child: Scaffold(
         body: isLoading
             ? const Center(child: CircularProgressIndicator())

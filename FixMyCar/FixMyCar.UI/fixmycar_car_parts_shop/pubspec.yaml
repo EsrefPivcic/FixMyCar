@@ -46,6 +46,7 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.3
   path_provider: ^2.1.4
+  signalr_netcore: ^1.4.0
 
 dev_dependencies:
   flutter_test:

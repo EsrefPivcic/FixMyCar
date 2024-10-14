@@ -62,6 +62,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: MasterScreen(
+        showBackButton: false,
         child: Consumer<StoreItemProvider>(
           builder: (context, provider, child) {
             return Column(
@@ -857,11 +858,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                   newStoreItem.price =
                                       double.tryParse(priceController.text) ??
                                           0;
-                                  newStoreItem.discount = discountController.text != ""
-                                        ? double.tryParse(
-                                                discountController.text)! /
-                                            100
-                                        : 0;
+                                  newStoreItem.discount =
+                                      discountController.text != ""
+                                          ? double.tryParse(
+                                                  discountController.text)! /
+                                              100
+                                          : 0;
                                   newStoreItem.imageData = base64Image;
                                   newStoreItem.details = detailsController.text;
                                   newStoreItem.carModelIds = selectedCarModels

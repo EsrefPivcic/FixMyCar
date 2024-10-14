@@ -45,6 +45,7 @@ dependencies:
   printing: ^5.13.3
   pdf: ^3.11.1
   csv: ^6.0.0
+  signalr_netcore: ^1.4.0
 
 dev_dependencies:
   flutter_test:
