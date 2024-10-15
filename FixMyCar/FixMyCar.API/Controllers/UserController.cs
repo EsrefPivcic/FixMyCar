@@ -78,6 +78,12 @@ namespace FixMyCar.Controllers
             return await (_service as IUserService).Get(search);
         }
 
+        [HttpGet("Exists/{username}")]
+        public async Task<bool> Exists(string username)
+        {
+            return await (_service as IUserService).Exists(username);
+        }
+
         [HttpPut("ChangeActiveStatus")]
         public async Task ChangeActiveStatus(int id)
         {

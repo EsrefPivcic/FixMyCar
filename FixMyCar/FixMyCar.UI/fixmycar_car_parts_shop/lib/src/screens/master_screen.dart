@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+import 'package:fixmycar_car_parts_shop/src/models/user/user_minimal.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/chat_history_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -48,11 +53,19 @@ class MasterScreen extends StatelessWidget {
                     _buildNavButton(context, 'Orders'),
                     _buildNavButton(context, 'Items'),
                     _buildNavButton(context, 'Discounts'),
-                    _buildNavButton(context, 'Chat'),
                   ],
                 ),
               ),
-            if (isLoggedIn)
+            if (isLoggedIn) ...[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                  icon: const Icon(Icons.chat, color: Colors.white),
+                  onPressed: () {
+                    _startChatDialog(context);
+                  },
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: IconButton(
@@ -62,6 +75,7 @@ class MasterScreen extends StatelessWidget {
                   },
                 ),
               ),
+            ]
           ],
         ),
       ),
@@ -92,8 +106,6 @@ class MasterScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (context) => const OrdersScreen()),
           );
-        } else if (label == 'Chat') {
-          _chatUserDialog(context);
         } else {
           print('$label button pressed');
         }
@@ -104,19 +116,69 @@ class MasterScreen extends StatelessWidget {
 
   final _usernameController = TextEditingController();
 
-  void _chatUserDialog(BuildContext context) {
+  void _startChatDialog(BuildContext context) async {
+    List<UserMinimal> chats = [];
+
+    var chatHistoryProvider =
+        Provider.of<ChatHistoryProvider>(context, listen: false);
+
+    chats = await chatHistoryProvider.getChats();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Chat'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('Enter recipient username to start a chat.'),
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-          ]),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Enter recipient username to start a new chat.'),
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(labelText: 'Username'),
+              ),
+              const SizedBox(height: 20),
+              const Text('Previous chats:'),
+              if (chats.isNotEmpty) ...[
+                SizedBox(
+                  height: 200,
+                  child: Column(
+                    children: List.generate(chats.length, (index) {
+                      final user = chats[index];
+                      return ListTile(
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                recipientUserId: user.username,
+                              ),
+                            ),
+                          );
+                        },
+                        leading: user.image != null && user.image!.isNotEmpty
+                            ? CircleAvatar(
+                                maxRadius: 25,
+                                backgroundImage:
+                                    MemoryImage(base64Decode(user.image!)),
+                              )
+                            : const CircleAvatar(
+                                maxRadius: 25,
+                                child: Icon(Icons.person),
+                              ),
+                        title: Text(
+                          '${user.name} ${user.surname} (${user.username})',
+                        ),
+                      );
+                    }),
+                  ),
+                )
+              ] else ...[
+                const Text('No previous chats found.'),
+              ]
+            ],
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -128,15 +190,27 @@ class MasterScreen extends StatelessWidget {
               onPressed: () async {
                 Navigator.of(context).pop();
                 if (_usernameController.text.isNotEmpty) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ChatScreen(
-                              recipientUserId: _usernameController.text,
-                            )),
-                  ).then((_) {
-                    _usernameController.text = "";
-                  });
+                  var userProvider =
+                      Provider.of<UserProvider>(context, listen: false);
+                  bool userExists = await userProvider.exists(
+                      username: _usernameController.text);
+                  if (userExists) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                                recipientUserId: _usernameController.text,
+                              )),
+                    ).then((_) {
+                      _usernameController.text = "";
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("That user doesn't exist!"),
+                      ),
+                    );
+                  }
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -145,7 +219,7 @@ class MasterScreen extends StatelessWidget {
                   );
                 }
               },
-              child: const Text('Chat'),
+              child: const Text('New Chat'),
             ),
           ],
         );

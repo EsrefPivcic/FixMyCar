@@ -1,4 +1,6 @@
-﻿using FixMyCar.Model.Entities;
+﻿using FixMyCar.Model.DTOs.User;
+using FixMyCar.Model.Entities;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +30,31 @@ namespace FixMyCar.Services.Services
                 .ToListAsync();
 
             return chatHistory;
+        }
+
+        public async Task<PagedResult<UserMinimalGetDTO>> GetChats(string username)
+        {
+            var participants = await _context.ChatMessages
+                .Where(cm => cm.SenderUserId == username || cm.RecipientUserId == username)
+                .Select(cm => cm.SenderUserId == username ? cm.RecipientUserId : cm.SenderUserId)
+                .Distinct()
+                .ToListAsync();
+
+            var users = await _context.Users
+                .Where(u => participants.Contains(u.Username))
+                .Select(u => new UserMinimalGetDTO
+                {
+                    Username = u.Username,
+                    Name = u.Name,
+                    Surname = u.Surname,
+                    Image = u.Image != null ? Convert.ToBase64String(u.Image) : ""
+                })
+                .ToListAsync();
+
+            PagedResult<UserMinimalGetDTO> pagedResult = new PagedResult<UserMinimalGetDTO>();
+            pagedResult.Result = users;
+            pagedResult.Count = users.Count;
+            return pagedResult;
         }
     }
 }

@@ -28,6 +28,20 @@ namespace FixMyCar.Services.Services
             return base.AddInclude(query, search);
         }
 
+        public async Task<bool> Exists(string username)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == username);
+
+            if (user != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public override IQueryable<User> AddFilter(IQueryable<User> query, UserSearchObject? search = null)
         {
             if (search != null)

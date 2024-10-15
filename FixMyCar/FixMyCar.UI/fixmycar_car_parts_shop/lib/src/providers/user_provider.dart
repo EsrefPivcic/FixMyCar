@@ -14,6 +14,51 @@ class UserProvider extends BaseProvider<User, UserRegister> {
   User? user;
   bool isLoading = false;
 
+  Future<bool> exists({required String username}) async {
+    notifyListeners();
+
+    try {
+      String url = '${BaseProvider.baseUrl}/$endpoint/Exists/$username';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: await createHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        String responseBody = response.body.trim();
+        bool exists = responseBody.toLowerCase() == 'true';
+        return exists;
+      } else {
+        _handleErrors(response);
+        throw Exception('Error occurred while checking if user exists.');
+      }
+    } catch (e) {
+      print('Error checking if user exists: $e');
+      rethrow;
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  void _handleErrors(http.Response response) {
+    final responseBody = jsonDecode(response.body);
+    final errors = responseBody['errors'] as Map<String, dynamic>?;
+    if (errors != null) {
+      final userErrors = errors['UserError'] as List<dynamic>?;
+      if (userErrors != null) {
+        for (var error in userErrors) {
+          throw Exception(
+              'User error: $error. Status code: ${response.statusCode}');
+        }
+      } else {
+        throw Exception(
+            'Server side error. Status code: ${response.statusCode}');
+      }
+    } else {
+      throw Exception('Unknown error. Status code: ${response.statusCode}');
+    }
+  }
+
   Future<void> updateByToken({required UserUpdate user}) async {
     toJson(UserUpdate user) => user.toJson();
     try {
@@ -51,7 +96,7 @@ class UserProvider extends BaseProvider<User, UserRegister> {
 
   Future<void> updatePassword(
       {required UserUpdatePassword updatePassword}) async {
-      toJson(UserUpdatePassword updatePassword) => updatePassword.toJson();
+    toJson(UserUpdatePassword updatePassword) => updatePassword.toJson();
     try {
       final response = await http.put(
         Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdatePasswordByToken'),
@@ -86,7 +131,7 @@ class UserProvider extends BaseProvider<User, UserRegister> {
 
   Future<void> updateUsername(
       {required UserUpdateUsername updateUsername}) async {
-      toJson(UserUpdateUsername updateUsername) => updateUsername.toJson();
+    toJson(UserUpdateUsername updateUsername) => updateUsername.toJson();
     try {
       final response = await http.put(
         Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdateUsernameByToken'),
@@ -119,9 +164,8 @@ class UserProvider extends BaseProvider<User, UserRegister> {
     }
   }
 
-  Future<void> updateImage(
-      {required UserUpdateImage updateImage}) async {
-      toJson(UserUpdateImage updateImage) => updateImage.toJson();
+  Future<void> updateImage({required UserUpdateImage updateImage}) async {
+    toJson(UserUpdateImage updateImage) => updateImage.toJson();
     try {
       final response = await http.put(
         Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdateImageByToken'),
