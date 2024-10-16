@@ -1,4 +1,5 @@
 import 'package:fixmycar_client/src/providers/auth_provider.dart';
+import 'package:fixmycar_client/src/screens/chat_history_screen.dart';
 import 'package:fixmycar_client/src/screens/home_screen.dart';
 import 'package:fixmycar_client/src/screens/login_screen.dart';
 import 'package:fixmycar_client/src/screens/order_history_screen.dart';
@@ -73,7 +74,7 @@ class MasterScreen extends StatelessWidget {
                             fontSize: 24,
                           ),
                         ),
-                        const Spacer(), 
+                        const Spacer(),
                         InkWell(
                           onTap: () {
                             Navigator.of(context).pop();
@@ -98,7 +99,9 @@ class MasterScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 5,)
+                        const SizedBox(
+                          height: 5,
+                        )
                       ],
                     ),
                   ),
@@ -111,6 +114,19 @@ class MasterScreen extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.chat),
+                    title: const Text('Messages'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ChatHistoryScreen(),
                         ),
                       );
                     },
@@ -136,7 +152,8 @@ class MasterScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ReservationHistoryScreen(),
+                          builder: (context) =>
+                              const ReservationHistoryScreen(),
                         ),
                       );
                     },

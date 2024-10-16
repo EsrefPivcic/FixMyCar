@@ -11,6 +11,7 @@ import 'package:fixmycar_admin/src/models/user/user_update_username.dart';
 import 'package:fixmycar_admin/src/providers/admin_provider.dart';
 import 'package:fixmycar_admin/src/providers/auth_provider.dart';
 import 'package:fixmycar_admin/src/providers/user_provider.dart';
+import 'package:fixmycar_admin/src/screens/chat_screen.dart';
 import 'package:fixmycar_admin/src/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -814,6 +815,7 @@ class _HomeScreenState extends State<HomeScreen> {
               DataColumn(label: Text('Role')),
               DataColumn(label: Text('Active')),
               DataColumn(label: Text('Manage')),
+              DataColumn(label: Text('Message')),
             ],
             rows: _users.map<DataRow>((user) {
               return DataRow(cells: [
@@ -830,6 +832,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () =>
                         _changeActiveStatus(user.id, user.username),
                     child: Text(user.active ? 'Deactivate' : 'Activate'),
+                  ),
+                ),
+                DataCell(
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            recipientUserId: user.username,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Message'),
                   ),
                 ),
               ]);

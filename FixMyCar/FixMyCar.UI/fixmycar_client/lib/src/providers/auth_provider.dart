@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:fixmycar_client/src/providers/base_provider.dart';
-import 'package:fixmycar_client/src/services/signalr_service.dart';
+import 'package:fixmycar_client/src/services/signalr_notifications_service.dart';
 import 'package:http/http.dart' as http;
 
 class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
@@ -8,7 +8,7 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
 
   bool _isLoggedIn = false;
   bool get isLoggedIn => _isLoggedIn;
-  SignalRService signalrService = SignalRService();
+  SignalRNotificationsService signalrService = SignalRNotificationsService();
 
   set isLoggedIn(bool value) {
     _isLoggedIn = value;

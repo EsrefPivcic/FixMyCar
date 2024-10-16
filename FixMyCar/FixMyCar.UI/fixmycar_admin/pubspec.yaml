@@ -41,6 +41,7 @@ dependencies:
   json_annotation: ^4.9.0
   file_picker: ^8.1.2
   intl: ^0.19.0
+  signalr_netcore: ^1.4.0
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,6 @@
-import 'package:fixmycar_car_parts_shop/src/models/chat_message/chat_message.dart';
-import 'package:fixmycar_car_parts_shop/src/providers/chat_history_provider.dart';
-import 'package:fixmycar_car_parts_shop/src/services/chat_service.dart';
+import 'package:fixmycar_client/src/models/chat_message/chat_message.dart';
+import 'package:fixmycar_client/src/providers/chat_history_provider.dart';
+import 'package:fixmycar_client/src/services/signalr_chat_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +17,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> _messages = [];
   final TextEditingController _controller = TextEditingController();
-  final ChatService _chatService = ChatService();
+  final SignalRChatService _chatService = SignalRChatService();
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -64,7 +64,6 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _scrollToBottom();
       });
-      _focusNode.requestFocus();
     });
   }
 
@@ -158,70 +157,63 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
         body: Center(
-          child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.6,
-              child: Card(
-                  child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
+          child: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  itemCount: _messages.length,
+                  padding: const EdgeInsets.symmetric(vertical: 15.0),
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+                    bool isMe = message["sender"] == "Me";
+                    return _buildMessageBubble(
+                      message["sender"] ?? "",
+                      message["message"] ?? "",
+                      isMe,
+                    );
+                  },
+                ),
+              ),
+              const Divider(height: 1.0),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
                   children: [
                     Expanded(
-                      child: ListView.builder(
-                        controller: _scrollController,
-                        itemCount: _messages.length,
-                        padding: const EdgeInsets.symmetric(vertical: 15.0),
-                        itemBuilder: (context, index) {
-                          final message = _messages[index];
-                          bool isMe = message["sender"] == "Me";
-                          return _buildMessageBubble(
-                            message["sender"] ?? "",
-                            message["message"] ?? "",
-                            isMe,
-                          );
+                      child: TextField(
+                        focusNode: _focusNode,
+                        onSubmitted: (value) {
+                          _sendMessage();
+                          _focusNode.requestFocus();
                         },
+                        maxLines: 1,
+                        controller: _controller,
+                        decoration: InputDecoration(
+                          hintText: "Enter message...",
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 10.0, horizontal: 15.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.0),
+                            borderSide: const BorderSide(color: Colors.grey),
+                          ),
+                        ),
                       ),
                     ),
-                    const Divider(height: 1.0),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              focusNode: _focusNode,
-                              onSubmitted: (value) {
-                                _sendMessage();
-                                _focusNode.requestFocus();
-                              },
-                              maxLines: 1,
-                              controller: _controller,
-                              decoration: InputDecoration(
-                                hintText: "Enter message...",
-                                contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 10.0, horizontal: 15.0),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                  borderSide:
-                                      const BorderSide(color: Colors.grey),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8.0),
-                          FloatingActionButton(
-                            onPressed: () {
-                              _sendMessage();
-                              _focusNode.requestFocus();
-                            },
-                            backgroundColor: Theme.of(context).primaryColor,
-                            child: const Icon(Icons.send),
-                          ),
-                        ],
-                      ),
+                    const SizedBox(width: 8.0),
+                    FloatingActionButton(
+                      onPressed: () {
+                        _sendMessage();
+                        _focusNode.requestFocus();
+                      },
+                      backgroundColor: Theme.of(context).primaryColor,
+                      child: const Icon(Icons.send),
                     ),
                   ],
                 ),
-              ))),
+              ),
+            ],
+          ),
         ));
   }
 

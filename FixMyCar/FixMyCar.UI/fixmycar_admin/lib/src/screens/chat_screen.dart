@@ -1,6 +1,6 @@
-import 'package:fixmycar_car_parts_shop/src/models/chat_message/chat_message.dart';
-import 'package:fixmycar_car_parts_shop/src/providers/chat_history_provider.dart';
-import 'package:fixmycar_car_parts_shop/src/services/chat_service.dart';
+import 'package:fixmycar_admin/src/models/chat_message/chat_message.dart';
+import 'package:fixmycar_admin/src/providers/chat_history_provider.dart';
+import 'package:fixmycar_admin/src/services/chat_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';

@@ -2,11 +2,11 @@ import 'package:fixmycar_client/src/models/notification/notification.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import 'notification_service.dart';
 
-class SignalRService {
+class SignalRNotificationsService {
   late HubConnection connection;
   final NotificationService notificationService = NotificationService();
 
-  SignalRService() {
+  SignalRNotificationsService() {
     connection = HubConnectionBuilder()
         .withUrl('http://10.0.2.2:5148/notificationHub')
         .build();
