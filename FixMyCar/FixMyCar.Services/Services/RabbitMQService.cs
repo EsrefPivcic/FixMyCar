@@ -25,6 +25,11 @@ namespace FixMyCar.Services.Services
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
+            _channel.QueueDeclare(queue: "generate_monthly_report",
+                                 durable: false,
+                                 exclusive: false,
+                                 autoDelete: false,
+                                 arguments: null);
         }
 
         public void SendReportGenerationRequest(ReportRequestDTO reportRequest)
@@ -35,6 +40,18 @@ namespace FixMyCar.Services.Services
 
             _channel.BasicPublish(exchange: "",
                                   routingKey: "generate_report",
+                                  basicProperties: null,
+                                  body: body);
+        }
+
+        public void SendMonthlyReportGenerationRequest(MonthlyReportRequestDTO reportRequest)
+        {
+            var message = JsonSerializer.Serialize(reportRequest);
+
+            var body = Encoding.UTF8.GetBytes(message);
+
+            _channel.BasicPublish(exchange: "",
+                                  routingKey: "generate_monthly_report",
                                   basicProperties: null,
                                   body: body);
         }

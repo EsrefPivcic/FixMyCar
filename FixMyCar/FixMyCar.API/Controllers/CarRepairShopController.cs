@@ -44,6 +44,16 @@ namespace FixMyCar.API.Controllers
             return Ok();
         }
 
+        [HttpPost("GenerateMonthlyReport")]
+        public IActionResult GenerateMonthlyReport()
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            MonthlyReportRequestDTO request = new MonthlyReportRequestDTO();
+            request.ShopName = username;
+            (_service as ICarRepairShopService).GenerateMonthlyReports(request);
+            return Ok();
+        }
+
         [HttpGet("GetReport")]
         public async Task<IActionResult> GetReport()
         {
@@ -55,7 +65,59 @@ namespace FixMyCar.API.Controllers
             }
 
             return File(report, "text/csv", "report.csv");
-        } 
+        }
+
+        [HttpGet("GetMonthlyRevenuePerReservationTypeReport")]
+        public async Task<IActionResult> GetMonthlyRevenuePerReservationTypeReport()
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var report = await (_service as ICarRepairShopService).GetMonthlyRevenuePerReservationTypeReport(username);
+            if (report == null)
+            {
+                return NotFound();
+            }
+
+            return File(report, "text/csv", "report.csv");
+        }
+
+        [HttpGet("GetMonthlyRevenuePerDayReport")]
+        public async Task<IActionResult> GetMonthlyRevenuePerDayReport()
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var report = await (_service as ICarRepairShopService).GetMonthlyRevenuePerDayReport(username);
+            if (report == null)
+            {
+                return NotFound();
+            }
+
+            return File(report, "text/csv", "report.csv");
+        }
+
+        [HttpGet("GetTop10CustomersMonthlyReport")]
+        public async Task<IActionResult> GetTop10CustomersMonthlyReport()
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var report = await (_service as ICarRepairShopService).GetTop10CustomersMonthlyReport(username);
+            if (report == null)
+            {
+                return NotFound();
+            }
+
+            return File(report, "text/csv", "report.csv");
+        }
+
+        [HttpGet("GetTop10ReservationsMonthlyReport")]
+        public async Task<IActionResult> GetTop10ReservationsMonthlyReport()
+        {
+            string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var report = await (_service as ICarRepairShopService).GetTop10ReservationsMonthlyReport(username);
+            if (report == null)
+            {
+                return NotFound();
+            }
+
+            return File(report, "text/csv", "report.csv");
+        }
 
         [HttpGet("GetByToken")]
         public async Task<PagedResult<CarRepairShopGetDTO>> GetByToken([FromQuery] CarRepairShopSearchObject? search = null)

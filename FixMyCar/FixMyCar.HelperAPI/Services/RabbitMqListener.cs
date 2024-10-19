@@ -27,6 +27,12 @@ namespace FixMyCar.HelperAPI.Services
                                   exclusive: false,
                                   autoDelete: false,
                                   arguments: null);
+
+            _channel.QueueDeclare(queue: "generate_monthly_report",
+                                  durable: false,
+                                  exclusive: false,
+                                  autoDelete: false,
+                                  arguments: null);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,23 +44,35 @@ namespace FixMyCar.HelperAPI.Services
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
 
-                var reportRequest = JsonSerializer.Deserialize<ReportRequestDTO>(message);
-
                 using (var scope = _serviceProvider.CreateScope())
                 {
-                    var generateReportService = scope.ServiceProvider.GetRequiredService<IGenerateReportService>();
-
-                    if (reportRequest!.ShopType == "carpartsshop")
+                    if (ea.RoutingKey == "generate_report")
                     {
-                        await generateReportService.GenerateReportCarPartsShop(reportRequest);
+                        var reportRequest = JsonSerializer.Deserialize<ReportRequestDTO>(message);
+                        if (reportRequest!.ShopType == "carpartsshop")
+                        {
+                            var generateReportService = scope.ServiceProvider.GetRequiredService<IGenerateCarPartsShopReportService>();
+                            await generateReportService.GenerateReport(reportRequest);
+                        }
+                        else if (reportRequest.ShopType == "carrepairshop")
+                        {
+                            var generateReportService = scope.ServiceProvider.GetRequiredService<IGenerateCarRepairShopReportService>();
+                            await generateReportService.GenerateReport(reportRequest);
+                        }
                     }
-                    else if (reportRequest.ShopType == "carrepairshop")
+                    else if (ea.RoutingKey == "generate_monthly_report")
                     {
-                        await generateReportService.GenerateReportCarRepairShop(reportRequest);
-                    }
-                    else
-                    {
-                        throw new UserException("Not allowed.");
+                        var reportRequest = JsonSerializer.Deserialize<MonthlyReportRequestDTO>(message);
+                        if (reportRequest!.ShopType == "carpartsshop")
+                        {
+                            var generateReportService = scope.ServiceProvider.GetRequiredService<IGenerateCarPartsShopReportService>();
+                            await generateReportService.GenerateMonthlyReports(reportRequest.ShopName);
+                        }
+                        else if (reportRequest.ShopType == "carrepairshop")
+                        {
+                            var generateReportService = scope.ServiceProvider.GetRequiredService<IGenerateCarRepairShopReportService>();
+                            await generateReportService.GenerateMonthlyReports(reportRequest.ShopName);
+                        }
                     }
                 }
             };
@@ -62,6 +80,10 @@ namespace FixMyCar.HelperAPI.Services
             _channel.BasicConsume(queue: "generate_report",
                                   autoAck: true,
                                   consumer: consumer);
+
+            _channel.BasicConsume(queue: "generate_monthly_report",
+                              autoAck: true,
+                              consumer: consumer);
 
             return Task.CompletedTask;
         }

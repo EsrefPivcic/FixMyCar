@@ -63,6 +63,13 @@ namespace FixMyCar.Services.Services
             rabbitMQService.SendReportGenerationRequest(request);
         }
 
+        public void GenerateMonthlyReports(MonthlyReportRequestDTO request)
+        {
+            using var rabbitMQService = new RabbitMQService();
+            request.ShopType = "carrepairshop";
+            rabbitMQService.SendMonthlyReportGenerationRequest(request);
+        }
+
         public async Task<byte[]> GetReport(string username)
         {
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -76,6 +83,66 @@ namespace FixMyCar.Services.Services
             }
 
             throw new UserException($"Report for {username} not found.");
+        }
+
+        public async Task<byte[]> GetMonthlyRevenuePerReservationTypeReport(string username)
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
+            var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"monthly_revenue_per_reservation_type_{username}.csv");
+
+            if (File.Exists(reportFilePath))
+            {
+                return await File.ReadAllBytesAsync(reportFilePath);
+            }
+
+            throw new UserException($"Monthly revenue per reservation type report for {username} not found.");
+        }
+
+        public async Task<byte[]> GetMonthlyRevenuePerDayReport(string username)
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
+            var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"monthly_revenue_per_day_{username}.csv");
+
+            if (File.Exists(reportFilePath))
+            {
+                return await File.ReadAllBytesAsync(reportFilePath);
+            }
+
+            throw new UserException($"Monthly revenue per day report for {username} not found.");
+        }
+
+        public async Task<byte[]> GetTop10CustomersMonthlyReport(string username)
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
+            var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"top_10_customers_monthly_{username}.csv");
+
+            if (File.Exists(reportFilePath))
+            {
+                return await File.ReadAllBytesAsync(reportFilePath);
+            }
+
+            throw new UserException($"Top 10 monthly customers report for {username} not found.");
+        }
+
+        public async Task<byte[]> GetTop10ReservationsMonthlyReport(string username)
+        {
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
+            var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"top_10_reservations_monthly_{username}.csv");
+
+            if (File.Exists(reportFilePath))
+            {
+                return await File.ReadAllBytesAsync(reportFilePath);
+            }
+
+            throw new UserException($"Top 10 monthly reservations report for {username} not found.");
         }
 
         public async Task UpdateWorkDetails(CarRepairShopWorkDetailsUpdateDTO request)

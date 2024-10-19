@@ -14,6 +14,11 @@ namespace FixMyCar.Services.Interfaces
     {
         Task UpdateWorkDetails(CarPartsShopWorkDetailsUpdateDTO request);
         void GenerateReport(ReportRequestDTO request);
+        void GenerateMonthlyReports(MonthlyReportRequestDTO request);
         Task<byte[]> GetReport(string username);
+        Task<byte[]> GetMonthlyRevenuePerCustomerTypeReport(string username);
+        Task<byte[]> GetMonthlyRevenuePerDayReport(string username);
+        Task<byte[]> GetTop10CustomersMonthlyReport(string username);
+        Task<byte[]> GetTop10OrdersMonthlyReport(string username);
     }
 }

@@ -10,7 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IGenerateReportService, GenerateReportService>();
+builder.Services.AddScoped<IGenerateCarPartsShopReportService, GenerateCarPartsShopReportService>();
+builder.Services.AddScoped<IGenerateCarRepairShopReportService, GenerateCarRepairShopReportService>();
 builder.Services.AddHostedService<RabbitMqListener>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

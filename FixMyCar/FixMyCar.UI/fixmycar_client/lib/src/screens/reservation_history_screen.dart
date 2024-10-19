@@ -317,45 +317,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
     );
   }
 
-  Future _confirmResend(int reservationId) async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Resend'),
-        content: const Text('Are you sure you want to resend this order?'),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              try {
-                await Provider.of<ReservationProvider>(context, listen: false)
-                    .resend(reservationId)
-                    .then((_) {
-                  Provider.of<ReservationProvider>(context, listen: false)
-                      .getByClient(reservationSearch: filterCriteria);
-                });
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(e.toString()),
-                  ),
-                );
-              }
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _showReservationDetails(
       BuildContext context, Reservation reservation) async {
     final reservationDetailProvider =
@@ -669,20 +630,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                     const Color.fromARGB(255, 31, 75, 157),
                               ),
                               child: const Text('Update Reservation'),
-                            )),
-                            const SizedBox(width: 8.0),
-                          ],
-                          if (reservation.state == "cancelled") ...[
-                            Center(
-                                child: ElevatedButton(
-                              onPressed: () async {
-                                await _confirmResend(reservation.id);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 34, 138, 37),
-                              ),
-                              child: const Text('Resend Reservation'),
                             )),
                             const SizedBox(width: 8.0),
                           ],

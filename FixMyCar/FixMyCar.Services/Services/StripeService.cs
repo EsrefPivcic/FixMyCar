@@ -22,6 +22,18 @@ namespace FixMyCar.Services.Services
             StripeConfiguration.ApiKey = _stripeSettings.SecretKey;
         }
 
+        public async Task CreateRefundAsync(string paymentIntentId)
+        {
+            var refundService = new RefundService();
+
+            var options = new RefundCreateOptions
+            {
+                PaymentIntent = paymentIntentId
+            };
+
+            await refundService.CreateAsync(options);
+        }
+
         public async Task<PaymentResponseDTO> ConfirmPayment(PaymentCreateDTO request)
         {
             var intentOptions = new PaymentIntentCreateOptions

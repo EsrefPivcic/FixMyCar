@@ -1,4 +1,5 @@
 using AutoMapper;
+using FixMyCar.API;
 using FixMyCar.API.SignalR;
 using FixMyCar.Filters;
 using FixMyCar.Model.Utilities;
@@ -77,7 +78,10 @@ builder.Services.AddTransient<MissingPaymentReservationState>();
 builder.Services.AddTransient<PaymentFailedReservationState>();
 
 builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<ReportNotificationService>();
 builder.Services.AddTransient<IChatService, ChatService>();
+
+builder.Services.AddHostedService<RabbitMqListener>();
 
 builder.Services.AddTransient<SeedService>();
 
@@ -127,7 +131,7 @@ builder.Services.AddAuthentication(options =>
 
             var path = context.HttpContext.Request.Path;
             if (!string.IsNullOrEmpty(accessToken) &&
-                (path.StartsWithSegments("/chathub")))
+            (path.StartsWithSegments("/chathub") || path.StartsWithSegments("/reportNotificationHub")))
             {
                 context.Token = accessToken;
             }
@@ -199,6 +203,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<ReportNotificationHub>("/reportNotificationHub");
 
 app.Urls.Add("https://localhost:7055");
 app.Urls.Add("http://0.0.0.0:5148");

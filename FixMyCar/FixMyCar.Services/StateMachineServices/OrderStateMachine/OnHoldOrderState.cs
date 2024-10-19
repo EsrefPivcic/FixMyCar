@@ -3,7 +3,10 @@ using FixMyCar.Model.DTOs.Order;
 using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
 using FixMyCar.Services.Database;
+using FixMyCar.Services.Interfaces;
+using FixMyCar.Services.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,6 +92,8 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
 
             await _context.SaveChangesAsync();
 
+            await _serviceProvider.GetRequiredService<IStripeService>().CreateRefundAsync(entity.PaymentIntentId!);
+
             return _mapper.Map<OrderGetDTO>(entity);
         }
 
@@ -105,6 +110,8 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             }
 
             await _context.SaveChangesAsync();
+
+            await _serviceProvider.GetRequiredService<IStripeService>().CreateRefundAsync(entity.PaymentIntentId!);
 
             return _mapper.Map<OrderGetDTO>(entity);
         }

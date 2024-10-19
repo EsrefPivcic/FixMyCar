@@ -180,24 +180,6 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
     }
   }
 
-  Future<void> resend(int id) async {
-    try {
-      final response = await http.put(
-          Uri.parse('${BaseProvider.baseUrl}/$endpoint/Resend/$id'),
-          headers: await createHeaders());
-      if (response.statusCode == 200) {
-        print('Resend successful.');
-        notifyListeners();
-      } else {
-        throw Exception(
-            'Failed to resend the order. Status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error resending the order: $e');
-      rethrow;
-    }
-  }
-
   void _handleError(dynamic response, {required String step}) {
     final errors = response['errors'] as Map<String, dynamic>?;
     if (errors != null) {

@@ -12,5 +12,6 @@ namespace FixMyCar.Services.Interfaces
     {
         Task<PaymentResponseDTO> ConfirmPayment(PaymentCreateDTO request);
         Task<IntentResponseDTO> CreatePaymentIntent(PaymentCreateDTO request);
+        Task CreateRefundAsync(string paymentIntentId);
     }
 }

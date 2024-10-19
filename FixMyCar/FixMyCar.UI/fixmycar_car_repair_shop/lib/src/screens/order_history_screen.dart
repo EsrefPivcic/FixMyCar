@@ -187,45 +187,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     );
   }
 
-  Future _confirmResend(int orderId) async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Resend'),
-        content: const Text('Are you sure you want to resend this order?'),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              try {
-                await Provider.of<OrderProvider>(context, listen: false)
-                    .resend(orderId)
-                    .then((_) {
-                  Provider.of<OrderProvider>(context, listen: false)
-                      .getByCarRepairShop(orderSearch: filterCriteria);
-                });
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(e.toString()),
-                  ),
-                );
-              }
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Color _getStateColor(String state) {
     switch (state) {
       case 'missingpayment':
@@ -452,20 +413,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             ),
                             const SizedBox(width: 8.0),
                           ],
-                          if (order.state == "cancelled") ...[
-                            ElevatedButton(
-                              onPressed: () async {
-                                await _confirmResend(order.id);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green.shade800,
-                              ),
-                              child: const Text('Resend Order'),
-                            ),
-                            const SizedBox(width: 8.0),
-                          ],
-                          if (order.state == "cancelled" ||
-                              order.state == "onhold") ...[
+                          if (order.state == "onhold") ...[
                             ElevatedButton(
                               onPressed: () async {
                                 showUpdateForm(order);

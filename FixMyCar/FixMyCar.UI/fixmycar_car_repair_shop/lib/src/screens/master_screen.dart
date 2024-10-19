@@ -89,28 +89,28 @@ class MasterScreen extends StatelessWidget {
     return TextButton(
       onPressed: () {
         if (label == 'Home') {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
         } else if (label == 'Discounts') {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const DiscountsScreen()),
           );
         } else if (label == 'Reservations') {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const ReservationsScreen()),
           );
         } else if (label == 'Car Parts') {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(
                 builder: (context) => const CarPartsShopsScreen()),
           );
         } else if (label == 'Services') {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const ServicesScreen()),
           );

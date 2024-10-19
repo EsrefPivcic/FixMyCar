@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FixMyCar.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 {
@@ -128,6 +130,8 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
             await _context.SaveChangesAsync();
 
+            await _serviceProvider.GetRequiredService<IStripeService>().CreateRefundAsync(entity.PaymentIntentId!);
+
             return _mapper.Map<ReservationGetDTO>(entity);
         }
 
@@ -136,6 +140,8 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             entity.State = "cancelled";
 
             await _context.SaveChangesAsync();
+
+            await _serviceProvider.GetRequiredService<IStripeService>().CreateRefundAsync(entity.PaymentIntentId!);
 
             return _mapper.Map<ReservationGetDTO>(entity);
         }

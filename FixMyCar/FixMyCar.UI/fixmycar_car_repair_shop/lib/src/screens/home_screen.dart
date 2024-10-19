@@ -9,8 +9,10 @@ import 'package:fixmycar_car_repair_shop/src/models/user/user_update_work_detail
 import 'package:fixmycar_car_repair_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/login_screen.dart';
+import 'package:fixmycar_car_repair_shop/src/services/report_notification_service.dart';
 import 'package:fixmycar_car_repair_shop/src/widgets/charts.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/user_provider.dart';
 import 'master_screen.dart';
@@ -34,13 +36,19 @@ class _HomeScreenState extends State<HomeScreen> {
   TimeOfDay _openingTime = TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _closingTime = TimeOfDay(hour: 16, minute: 0);
   bool _isInitialized = false;
+  final ReportNotificationService _notificationService =
+      ReportNotificationService();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
-      _fetchReport();
+
+      if (mounted) {
+        _fetchReport();
+        _initializeNotifications(context);
+      }
     });
   }
 
@@ -48,6 +56,29 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _editingField = _editingField == field ? null : field;
     });
+  }
+
+  void _initializeNotifications(BuildContext context) async {
+    final FlutterSecureStorage storage = const FlutterSecureStorage();
+    String? token = await storage.read(key: 'jwt_token');
+
+    _notificationService.onNotificationReceived =
+        (String notificationType, String message) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+      if (notificationType == "customreport") {
+        _fetchReport();
+      } else if (notificationType == "monthlystatistics") {
+        fetchAllStatistics(context);
+      }
+    };
+    if (mounted) {
+      await _notificationService.initConnection(token!);
+    }
   }
 
   void _updateUser(String field) {
@@ -579,21 +610,23 @@ class _HomeScreenState extends State<HomeScreen> {
   DateTime? _endDate;
 
   Future<void> _fetchReport() async {
-    final report =
-        await Provider.of<CarRepairShopProvider>(context, listen: false)
-            .getReport();
+    if (mounted) {
+      final report =
+          await Provider.of<CarRepairShopProvider>(context, listen: false)
+              .getReport();
 
-    if (report != null) {
-      if (mounted) {
-        setState(() {
-          _reportData = _parseCsvReport(report);
-          _csvReport = report;
-        });
+      if (report != null) {
+        if (mounted) {
+          setState(() {
+            _reportData = _parseCsvReport(report);
+            _csvReport = report;
+          });
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load report.')),
+        );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load report.')),
-      );
     }
   }
 
@@ -729,6 +762,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return CsvToListConverter().convert(csvData);
   }
 
+  Future<void> _updateMonthlyStatistics() async {
+    await Provider.of<CarRepairShopProvider>(context, listen: false)
+        .updateMonthlyStatistics();
+  }
+
   Future<void> _generateReport() async {
     final filter = ReportFilter(
       _username,
@@ -737,15 +775,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     await Provider.of<CarRepairShopProvider>(context, listen: false)
         .generateReport(filter: filter);
-    await _fetchReport();
   }
 
   String _selectedChartType = 'Revenue per reservation type';
 
   final List<String> _chartTypes = [
     'Revenue per reservation type',
-    'Revenue over time',
-    'Revenue per customer',
+    'Daily revenue',
+    'Top 10 customers',
     'Top 10 reservations'
   ];
 
@@ -1000,62 +1037,93 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: Column(
                         children: [
-                          Text(
-                            'Business Report',
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: _fetchReport,
-                                      child: const Text('Refresh Report'),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    ElevatedButton(
-                                      onPressed: _openFilterDialog,
-                                      child: const Text('Generate Report'),
-                                    ),
-                                    if (_reportData != null) ...[
-                                      const SizedBox(width: 10),
-                                      DropdownButton<String>(
-                                        value: _selectedChartType,
-                                        items: _chartTypes.map((String type) {
-                                          return DropdownMenuItem<String>(
-                                            value: type,
-                                            child: Text(type),
-                                          );
-                                        }).toList(),
-                                        onChanged: (String? newChartType) {
-                                          setState(() {
-                                            _selectedChartType = newChartType!;
-                                          });
-                                        },
-                                      ),
-                                      const SizedBox(width: 10),
-                                      ElevatedButton(
-                                        onPressed: _saveReportToFile,
-                                        child: const Text(
-                                            'Save report data to CSV'),
-                                      ),
-                                    ],
-                                  ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Custom Report:',
+                                style:
+                                    Theme.of(context).textTheme.headlineSmall,
+                              ),
+                              const SizedBox(width: 10),
+                              if (_reportData != null) ...[
+                                const Text("Custom report is ready."),
+                                const SizedBox(width: 5),
+                                ElevatedButton(
+                                  onPressed: _saveReportToFile,
+                                  child: const Text(
+                                      'Save custom report data to CSV'),
                                 ),
-                                const SizedBox(height: 10.0),
-                                Expanded(
-                                  child: _reportData != null
-                                      ? buildChart(
-                                          _reportData!, _selectedChartType)
-                                      : const Center(
-                                          child: Text("No report available."),
-                                        ),
-                                ),
+                              ] else ...[
+                                const SizedBox(width: 10),
+                                const Text("No custom report available."),
                               ],
-                            ),
+                              const SizedBox(width: 10),
+                              ElevatedButton(
+                                onPressed: _openFilterDialog,
+                                child: const Text('Generate New Custom Report'),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 10.0),
+                          Expanded(
+                              child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Monthly Statistics:',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  DropdownButton<String>(
+                                    value: _selectedChartType,
+                                    items: _chartTypes.map((String type) {
+                                      return DropdownMenuItem<String>(
+                                        value: type,
+                                        child: Text(type),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? newChartType) {
+                                      setState(() {
+                                        _selectedChartType = newChartType!;
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(width: 10),
+                                  ElevatedButton(
+                                    onPressed: _updateMonthlyStatistics,
+                                    child:
+                                        const Text('Update Monthly Statistics'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 10),
+                              FutureBuilder<Widget>(
+                                future: buildChart(_selectedChartType, context),
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<Widget> snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(
+                                        child:
+                                            Text('Error: ${snapshot.error}'));
+                                  } else if (snapshot.hasData) {
+                                    return snapshot.data!;
+                                  } else {
+                                    return const Center(
+                                        child: Text('No data available'));
+                                  }
+                                },
+                              ),
+                            ],
+                          )),
                         ],
                       ),
                     ),
@@ -1067,5 +1135,11 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _notificationService.stopConnection();
+    super.dispose();
   }
 }
