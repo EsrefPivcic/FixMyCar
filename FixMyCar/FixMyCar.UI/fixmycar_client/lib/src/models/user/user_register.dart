@@ -10,6 +10,8 @@ class UserRegister {
   String phone;
   String username;
   String gender;
+  String address;
+  String postalCode;
   String password;
   String passwordConfirm;
   String? image;
@@ -22,6 +24,8 @@ class UserRegister {
       this.phone,
       this.username,
       this.gender,
+      this.address,
+      this.postalCode,
       this.password,
       this.passwordConfirm,
       this.image,

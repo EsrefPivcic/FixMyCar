@@ -1,5 +1,4 @@
 import 'package:fixmycar_admin/src/providers/auth_provider.dart';
-import 'package:fixmycar_admin/src/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../constants.dart';
@@ -136,19 +135,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               child: const Text(AppConstants.loginButtonLabel),
                             ),
-                            const SizedBox(height: 16.0),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RegisterScreen(),
-                            ),
-                          );
-                        },
-                        child:
-                            const Text("Don't have an account? Register here."),
-                      ),
                     ],
                   ),
                 ),

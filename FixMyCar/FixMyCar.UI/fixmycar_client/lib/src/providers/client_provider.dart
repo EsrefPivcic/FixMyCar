@@ -1,12 +1,21 @@
 import 'package:fixmycar_client/src/models/search_result.dart';
 import 'package:fixmycar_client/src/models/user/user.dart';
+import 'package:fixmycar_client/src/models/user/user_register.dart';
 import 'package:fixmycar_client/src/providers/base_provider.dart';
 
-class ClientProvider extends BaseProvider<User, User> {
+class ClientProvider extends BaseProvider<User, UserRegister> {
   ClientProvider() : super('Client');
 
   User? user;
   bool isLoading = false;
+
+  Future<void> insertUser(UserRegister userInsert) async {
+    await insert(
+      userInsert,
+      customEndpoint: 'InsertClient',
+      toJson: (userInsert) => userInsert.toJson(),
+    );
+  }
 
   Future<void> getByToken() async {
     isLoading = true;

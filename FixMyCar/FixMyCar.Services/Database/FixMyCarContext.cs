@@ -43,11 +43,11 @@ namespace FixMyCar.Services.Database
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<City>(entity =>
+            /*modelBuilder.Entity<City>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Name).IsRequired();
-            });
+            });*/
 
             modelBuilder.Entity<User>(entity =>
             {

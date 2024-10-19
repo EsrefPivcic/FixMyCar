@@ -25,8 +25,8 @@ namespace FixMyCar.Services.Services
 
             TDb entity = _mapper.Map<TDb>(request);
 
-            await set.AddAsync(entity);
             await BeforeInsert(entity, request);
+            await set.AddAsync(entity);
             await _context.SaveChangesAsync();
 
             return _mapper.Map<TGet>(entity);

@@ -1,13 +1,14 @@
-import 'package:fixmycar_admin/src/providers/admin_provider.dart';
-import 'package:fixmycar_admin/src/screens/login_screen.dart';
+import 'package:fixmycar_client/src/providers/city_provider.dart';
+import 'package:fixmycar_client/src/providers/client_provider.dart';
+import 'package:fixmycar_client/src/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fixmycar_admin/constants.dart';
+import 'package:fixmycar_client/constants.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'master_screen.dart';
-import 'package:fixmycar_admin/src/models/user/user_register.dart';
+import 'package:fixmycar_client/src/models/user/user_register.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,12 +18,25 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  List<String>? _cities;
+  String? _selectedCity;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _fetchCities();
+    });
+  }
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _customGenderController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
   final TextEditingController _cityController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordConfirmController =
@@ -32,6 +46,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _errorMessage;
   String? _selectedImagePath;
   String _gender = 'Female';
+
+  Future _fetchCities() async {
+    if (mounted) {
+      var cityProvider = Provider.of<CityProvider>(context, listen: false);
+      await cityProvider.getCities().then((_) {
+        setState(() {
+          _cities = cityProvider.cities.map((city) => city.name).toList();
+          _cities!.add("Custom");
+          _selectedCity = _cities![0];
+        });
+      });
+    }
+  }
 
   Future<void> _pickImage() async {
     final FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
@@ -58,8 +85,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _errorMessage = null;
       });
 
-      final userProvider =
-          Provider.of<AdminProvider>(context, listen: false);
+      final clientProvider =
+          Provider.of<ClientProvider>(context, listen: false);
       try {
         final newUser = UserRegister(
           _nameController.text,
@@ -68,12 +95,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _phoneController.text,
           _usernameController.text,
           _gender == 'Custom' ? _customGenderController.text : _gender,
+          _addressController.text,
+          _postalCodeController.text,
           _passwordController.text,
           _passwordConfirmController.text,
           _convertImageToBase64(_selectedImagePath),
-          _cityController.text
+          _selectedCity == 'Custom' ? _cityController.text : _selectedCity!,
         );
-        await userProvider.insertUser(newUser);
+        await clientProvider.insertUser(newUser);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -93,12 +122,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
-      showBackButton: false,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppPadding.defaultPadding),
           child: SizedBox(
-            width: 700,
+            width: MediaQuery.of(context).size.width * 0.9,
             child: Card(
               color: Theme.of(context).colorScheme.surfaceContainerLow,
               shape: RoundedRectangleBorder(
@@ -182,8 +210,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             AppConstants.passwordConfirmLabel,
                             AppConstants.passwordConfirmError,
                             obscureText: true),
-                        const SizedBox(height: 24.0),
-                        _buildSectionTitle(context, 'Company Details'),
                         const SizedBox(height: 16.0),
                         _buildTextField(
                             _usernameController,
@@ -198,8 +224,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             AppConstants.phoneLabel, AppConstants.phoneError,
                             keyboardType: TextInputType.phone),
                         const SizedBox(height: 16.0),
-                        _buildTextField(_cityController, AppConstants.cityLabel,
-                            AppConstants.cityError),
+                        _buildTextField(
+                            _addressController,
+                            AppConstants.addressLabel,
+                            AppConstants.addressError),
+                        const SizedBox(height: 16.0),
+                        _buildTextField(
+                            _postalCodeController,
+                            AppConstants.postalCodeLabel,
+                            AppConstants.postalCodeError),
+                        const SizedBox(height: 16.0),
+                        if (_cities != null && _cities!.isNotEmpty) ...[
+                          DropdownButtonFormField<String>(
+                            value: _selectedCity,
+                            items: _cities!.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              setState(() {
+                                _selectedCity = newValue!;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              labelText: AppConstants.cityLabel,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppRadius.textFieldRadius),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return AppConstants.cityError;
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                        if (_selectedCity == 'Custom' ||
+                            (_cities == null || _cities!.isEmpty)) ...[
+                          const SizedBox(height: 16.0),
+                          _buildTextField(_cityController, 'Custom City',
+                              'Please enter your city'),
+                        ],
                         const SizedBox(height: 24.0),
                         if (_errorMessage != null)
                           Text(
@@ -229,7 +298,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         const SizedBox(height: 16.0),
                         TextButton(
                           onPressed: () {
-                            Navigator.push(
+                            Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const LoginScreen(),

@@ -1,4 +1,5 @@
 import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/city_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,17 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  List<String>? _cities;
+  String? _selectedCity;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _fetchCities();
+    });
+  }
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -38,6 +50,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TimeOfDay _openingTime = TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _closingTime = TimeOfDay(hour: 16, minute: 0);
   List<int> _selectedWorkDays = [0, 1, 2, 3, 4];
+
+  Future _fetchCities() async {
+    if (mounted) {
+      var cityProvider = Provider.of<CityProvider>(context, listen: false);
+      await cityProvider.getCities().then((_) {
+        setState(() {
+          _cities = cityProvider.cities.map((city) => city.name).toList();
+          _cities!.add("Custom");
+          _selectedCity = _cities![0];
+        });
+      });
+    }
+  }
 
   Future<void> _pickImage() async {
     final FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
@@ -79,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _passwordController.text,
           _passwordConfirmController.text,
           _convertImageToBase64(_selectedImagePath),
-          _cityController.text,
+          _selectedCity == 'Custom' ? _cityController.text : _selectedCity!,
           _selectedWorkDays,
           'PT${_openingTime.hour}H${_openingTime.minute}M',
           'PT${_closingTime.hour}H${_closingTime.minute}M',
@@ -261,8 +286,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             AppConstants.postalCodeLabel,
                             AppConstants.postalCodeError),
                         const SizedBox(height: 16.0),
-                        _buildTextField(_cityController, AppConstants.cityLabel,
-                            AppConstants.cityError),
+                        if (_cities != null && _cities!.isNotEmpty) ...[
+                          DropdownButtonFormField<String>(
+                            value: _selectedCity,
+                            items: _cities!.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              setState(() {
+                                _selectedCity = newValue!;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              labelText: AppConstants.cityLabel,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppRadius.textFieldRadius),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return AppConstants.cityError;
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                        if (_selectedCity == 'Custom' ||
+                            (_cities == null || _cities!.isEmpty)) ...[
+                          const SizedBox(height: 16.0),
+                          _buildTextField(_cityController, 'Custom City',
+                              'Please enter your city'),
+                        ],
                         const SizedBox(height: 24.0),
                         _buildSectionTitle(context, 'Work Details'),
                         const SizedBox(height: 16.0),

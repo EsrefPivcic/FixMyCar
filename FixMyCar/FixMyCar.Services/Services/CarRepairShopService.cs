@@ -188,12 +188,11 @@ namespace FixMyCar.Services.Services
                 }
                 else
                 {
-                    var citySet = _context.Set<City>();
                     City newCity = new City
                     {
                         Name = request.City
                     };
-                    await citySet.AddAsync(newCity);
+                    await _context.Cities.AddAsync(newCity);
                     await _context.SaveChangesAsync();
 
                     entity.CityId = newCity.Id;

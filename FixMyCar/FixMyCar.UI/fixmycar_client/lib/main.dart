@@ -6,6 +6,7 @@ import 'package:fixmycar_client/src/providers/car_repair_shop_discount_provider.
 import 'package:fixmycar_client/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_services_provider.dart';
 import 'package:fixmycar_client/src/providers/chat_history_provider.dart';
+import 'package:fixmycar_client/src/providers/city_provider.dart';
 import 'package:fixmycar_client/src/providers/client_provider.dart';
 import 'package:fixmycar_client/src/providers/auth_provider.dart';
 import 'package:fixmycar_client/src/providers/order_detail_provider.dart';
@@ -52,7 +53,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CarPartsShopDiscountProvider()),
         ChangeNotifierProvider(create: (_) => ItemsRecommenderProvider()),
         ChangeNotifierProvider(create: (_) => ServicesRecommenderProvider()),
-        ChangeNotifierProvider(create: (_) => ChatHistoryProvider())
+        ChangeNotifierProvider(create: (_) => ChatHistoryProvider()),
+        ChangeNotifierProvider(create: (_) => CityProvider())
       ],
       child: const MyApp(),
     ),

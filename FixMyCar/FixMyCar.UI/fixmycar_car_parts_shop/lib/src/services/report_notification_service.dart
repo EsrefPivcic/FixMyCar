@@ -3,6 +3,7 @@ import 'package:signalr_netcore/signalr_client.dart';
 class ReportNotificationService {
   late HubConnection _connection;
   final String _baseUrl = "https://localhost:7055/reportNotificationHub";
+  bool _initialized = false;
 
   Function(String notificationType, String message)? onNotificationReceived;
 
@@ -19,6 +20,10 @@ class ReportNotificationService {
     await _connection.start();
 
     _connection.on("ReportNotification", _onReportNotification);
+
+    if (_connection.state == HubConnectionState.Connected) {
+      _initialized = true;
+    }
   }
 
   void _onReportNotification(List<Object?>? arguments) {
@@ -32,8 +37,9 @@ class ReportNotificationService {
   }
 
   Future<void> stopConnection() async {
-    if (_connection.state == HubConnectionState.Connected) {
+    if (_initialized && _connection.state == HubConnectionState.Connected) {
       await _connection.stop();
+      _initialized = false;
     }
   }
 }

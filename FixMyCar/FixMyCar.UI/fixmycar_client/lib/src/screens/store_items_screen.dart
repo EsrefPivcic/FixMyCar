@@ -1,3 +1,4 @@
+import 'package:fixmycar_client/constants.dart';
 import 'package:fixmycar_client/src/models/car_manufacturer/car_manufacturer.dart';
 import 'package:fixmycar_client/src/models/car_model/car_model.dart';
 import 'package:fixmycar_client/src/models/car_model/car_models_by_manufacturer.dart';
@@ -9,6 +10,7 @@ import 'package:fixmycar_client/src/models/store_item_category/store_item_catego
 import 'package:fixmycar_client/src/models/user/user.dart';
 import 'package:fixmycar_client/src/providers/car_models_by_manufacturer_provider.dart';
 import 'package:fixmycar_client/src/providers/car_parts_shop_discount_provider.dart';
+import 'package:fixmycar_client/src/providers/city_provider.dart';
 import 'package:fixmycar_client/src/providers/order_provider.dart';
 import 'package:fixmycar_client/src/providers/items_recommender_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_category_provider.dart';
@@ -35,6 +37,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late int carPartsShopId;
   late List<StoreItem> loadedItems;
   late User carPartsShopDetails;
+  List<String>? _cities;
+  String? _selectedCity;
 
   @override
   void initState() {
@@ -50,6 +54,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
 
       await _fetchCarModelsAndCategories();
       await _fetchDiscounts();
+      await _fetchCities();
     });
   }
 
@@ -69,6 +74,19 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   TextEditingController cityController = TextEditingController();
   TextEditingController addressController = TextEditingController();
   TextEditingController postalCodeController = TextEditingController();
+
+  Future _fetchCities() async {
+    if (mounted) {
+      var cityProvider = Provider.of<CityProvider>(context, listen: false);
+      await cityProvider.getCities().then((_) {
+        setState(() {
+          _cities = cityProvider.cities.map((city) => city.name).toList();
+          _cities!.add("Custom");
+          _selectedCity = _cities![0];
+        });
+      });
+    }
+  }
 
   TimeOfDay parseTimeOfDay(String timeString) {
     final parts = timeString.split(':');
@@ -184,10 +202,44 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       ],
                     ),
                     if (!useProfileAddress) ...[
-                      TextField(
-                        controller: cityController,
-                        decoration: const InputDecoration(labelText: 'City'),
-                      ),
+                      if (_cities != null && _cities!.isNotEmpty) ...[
+                        const SizedBox(height: 10.0),
+                        DropdownButtonFormField<String>(
+                          value: _selectedCity,
+                          items: _cities!.map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
+                            setState(() {
+                              _selectedCity = newValue!;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            labelText: AppConstants.cityLabel,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppRadius.textFieldRadius),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppConstants.cityError;
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                      if (_selectedCity == 'Custom' ||
+                          (_cities == null || _cities!.isEmpty)) ...[
+                        TextField(
+                          controller: cityController,
+                          decoration:
+                              const InputDecoration(labelText: 'Custom City'),
+                        ),
+                      ],
                       TextField(
                         controller: addressController,
                         decoration: const InputDecoration(labelText: 'Address'),
@@ -267,6 +319,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   cityController.clear();
                   addressController.clear();
                   postalCodeController.clear();
+                  _selectedCity = _cities![0];
                 });
                 Navigator.pop(context);
                 Navigator.pop(context);
@@ -301,12 +354,22 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   newOrder = OrderInsertUpdate(
                       carPartsShopId,
                       useProfileAddress,
-                      cityController.text,
+                      useProfileAddress
+                          ? ""
+                          : _selectedCity == 'Custom'
+                              ? cityController.text
+                              : _selectedCity!,
                       addressController.text,
                       postalCodeController.text,
                       orderedItems);
                 }
-                bool validateInputs = cityController.text.trim().isNotEmpty &&
+                bool validateCityInput =
+                    (cityController.text.trim().isNotEmpty &&
+                            _selectedCity == "Custom") ||
+                        (_selectedCity != null &&
+                            _selectedCity!.isNotEmpty &&
+                            _selectedCity != "Custom");
+                bool validateInputs = validateCityInput &&
                     addressController.text.trim().isNotEmpty &&
                     postalCodeController.text.trim().isNotEmpty;
                 if (useProfileAddress ||
@@ -322,6 +385,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         cityController.clear();
                         addressController.clear();
                         postalCodeController.clear();
+                        _selectedCity = _cities![0];
                       });
                       Navigator.push(
                         context,

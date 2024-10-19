@@ -44,7 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
-
       if (mounted) {
         _fetchReport();
         _initializeNotifications(context);
