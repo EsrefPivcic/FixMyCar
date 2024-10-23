@@ -14,5 +14,6 @@ namespace FixMyCar.Model.DTOs.CarRepairShop
         public List<DayOfWeek> WorkDays { get; set; }
         public string OpeningTime { get; set; }
         public string ClosingTime { get; set; }
+        public int Employees { get; set; }
     }
 }

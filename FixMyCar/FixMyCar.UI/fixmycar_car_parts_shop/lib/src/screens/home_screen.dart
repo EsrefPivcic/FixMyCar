@@ -31,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   UserUpdate? _userUpdate;
   String? _editingField;
   String? _editValue;
+  late Future<Widget> _chartFuture;
 
   List<int> _selectedWorkDays = [];
   TimeOfDay _openingTime = TimeOfDay(hour: 8, minute: 0);
@@ -38,10 +39,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isInitialized = false;
   final ReportNotificationService _notificationService =
       ReportNotificationService();
+  String _selectedChartType = 'Revenue per customer type';
 
   @override
   void initState() {
     super.initState();
+    _chartFuture = buildChart(_selectedChartType, context);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarPartsShopProvider>(context, listen: false).getByToken();
       if (mounted) {
@@ -66,7 +69,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (notificationType == "customreport") {
         _fetchReport();
       } else if (notificationType == "monthlystatistics") {
-        fetchAllStatistics(context);
+        fetchAllStatistics(context).then((_) {
+          _chartFuture = buildChart(_selectedChartType, context);
+        });
       }
     };
     if (mounted) {
@@ -801,8 +806,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await _fetchReport();
   }
 
-  String _selectedChartType = 'Revenue per customer type';
-
   final List<String> _chartTypes = [
     'Revenue per customer type',
     'Revenue over time',
@@ -1115,6 +1118,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     onChanged: (String? newChartType) {
                                       setState(() {
                                         _selectedChartType = newChartType!;
+                                        _chartFuture = buildChart(
+                                            _selectedChartType, context);
                                       });
                                     },
                                   ),
@@ -1128,7 +1133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width: 10),
                               FutureBuilder<Widget>(
-                                future: buildChart(_selectedChartType, context),
+                                future: _chartFuture,
                                 builder: (BuildContext context,
                                     AsyncSnapshot<Widget> snapshot) {
                                   if (snapshot.connectionState ==

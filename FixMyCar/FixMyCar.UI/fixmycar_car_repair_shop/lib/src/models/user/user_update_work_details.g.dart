@@ -14,6 +14,7 @@ UserUpdateWorkDetails _$UserUpdateWorkDetailsFromJson(
           .toList(),
       json['openingTime'] as String,
       json['closingTime'] as String,
+      (json['employees'] as num).toInt(),
     );
 
 Map<String, dynamic> _$UserUpdateWorkDetailsToJson(
@@ -22,4 +23,5 @@ Map<String, dynamic> _$UserUpdateWorkDetailsToJson(
       'workDays': instance.workDays,
       'openingTime': instance.openingTime,
       'closingTime': instance.closingTime,
+      'employees': instance.employees,
     };

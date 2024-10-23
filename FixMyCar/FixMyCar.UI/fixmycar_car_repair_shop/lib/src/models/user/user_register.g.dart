@@ -24,6 +24,7 @@ UserRegister _$UserRegisterFromJson(Map<String, dynamic> json) => UserRegister(
           .toList(),
       json['openingTime'] as String,
       json['closingTime'] as String,
+      (json['employees'] as num).toInt(),
     );
 
 Map<String, dynamic> _$UserRegisterToJson(UserRegister instance) =>
@@ -43,4 +44,5 @@ Map<String, dynamic> _$UserRegisterToJson(UserRegister instance) =>
       'workDays': instance.workDays,
       'openingTime': instance.openingTime,
       'closingTime': instance.closingTime,
+      'employees': instance.employees,
     };

@@ -24,6 +24,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       json['openingTime'] as String,
       json['closingTime'] as String,
       json['workingHours'] as String,
+      (json['employees'] as num).toInt(),
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
@@ -44,4 +45,5 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'openingTime': instance.openingTime,
       'closingTime': instance.closingTime,
       'workingHours': instance.workingHours,
+      'employees': instance.employees,
     };

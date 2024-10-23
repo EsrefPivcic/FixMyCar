@@ -46,6 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _errorMessage;
   String? _selectedImagePath;
   String _gender = 'Female';
+  int _employees = 1;
 
   TimeOfDay _openingTime = TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _closingTime = TimeOfDay(hour: 16, minute: 0);
@@ -93,22 +94,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Provider.of<CarRepairShopProvider>(context, listen: false);
       try {
         final newUser = UserRegister(
-          _nameController.text,
-          _surnameController.text,
-          _emailController.text,
-          _phoneController.text,
-          _usernameController.text,
-          _gender == 'Custom' ? _customGenderController.text : _gender,
-          _addressController.text,
-          _postalCodeController.text,
-          _passwordController.text,
-          _passwordConfirmController.text,
-          _convertImageToBase64(_selectedImagePath),
-          _selectedCity == 'Custom' ? _cityController.text : _selectedCity!,
-          _selectedWorkDays,
-          'PT${_openingTime.hour}H${_openingTime.minute}M',
-          'PT${_closingTime.hour}H${_closingTime.minute}M',
-        );
+            _nameController.text,
+            _surnameController.text,
+            _emailController.text,
+            _phoneController.text,
+            _usernameController.text,
+            _gender == 'Custom' ? _customGenderController.text : _gender,
+            _addressController.text,
+            _postalCodeController.text,
+            _passwordController.text,
+            _passwordConfirmController.text,
+            _convertImageToBase64(_selectedImagePath),
+            _selectedCity == 'Custom' ? _cityController.text : _selectedCity!,
+            _selectedWorkDays,
+            'PT${_openingTime.hour}H${_openingTime.minute}M',
+            'PT${_closingTime.hour}H${_closingTime.minute}M',
+            _employees);
         await userProvider.insertUser(newUser);
         Navigator.pushReplacement(
           context,
@@ -323,6 +324,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ],
                         const SizedBox(height: 24.0),
                         _buildSectionTitle(context, 'Work Details'),
+                        const SizedBox(height: 16.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              onPressed: _employees > 1
+                                  ? () {
+                                      setState(() {
+                                        _employees = _employees - 1;
+                                      });
+                                    }
+                                  : null,
+                              icon: const Icon(Icons.remove),
+                            ),
+                            Text('$_employees',
+                                style: Theme.of(context).textTheme.bodyLarge),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _employees = _employees + 1;
+                                });
+                              },
+                              icon: const Icon(Icons.add),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 16.0),
                         _buildWorkDaysSelector(),
                         const SizedBox(height: 16.0),

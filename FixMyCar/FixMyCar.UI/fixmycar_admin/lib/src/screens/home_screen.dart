@@ -1,18 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:fixmycar_admin/constants.dart';
 import 'package:fixmycar_admin/src/models/user/user.dart';
 import 'package:fixmycar_admin/src/models/user/user_search_object.dart';
 import 'package:fixmycar_admin/src/models/user/user_update.dart';
 import 'package:fixmycar_admin/src/models/user/user_update_image.dart';
-import 'package:fixmycar_admin/src/models/user/user_update_password.dart';
-import 'package:fixmycar_admin/src/models/user/user_update_username.dart';
 import 'package:fixmycar_admin/src/providers/admin_provider.dart';
-import 'package:fixmycar_admin/src/providers/auth_provider.dart';
+import 'package:fixmycar_admin/src/providers/recommender_provider.dart';
 import 'package:fixmycar_admin/src/providers/user_provider.dart';
 import 'package:fixmycar_admin/src/screens/chat_screen.dart';
-import 'package:fixmycar_admin/src/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
@@ -130,200 +126,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  final _oldPasswordController = TextEditingController();
-  final _newPasswordController = TextEditingController();
-  final _confirmNewPasswordController = TextEditingController();
-
-  void _showChangePasswordForm() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Change Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _oldPasswordController,
-                decoration: const InputDecoration(labelText: 'Old Password'),
-                obscureText: true,
-              ),
-              TextField(
-                controller: _newPasswordController,
-                decoration: const InputDecoration(labelText: 'New Password'),
-                obscureText: true,
-              ),
-              TextField(
-                controller: _confirmNewPasswordController,
-                decoration:
-                    const InputDecoration(labelText: 'Confirm New Password'),
-                obscureText: true,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _oldPasswordController.clear();
-                _newPasswordController.clear();
-                _confirmNewPasswordController.clear();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (_oldPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Old password is required!'),
-                    ),
-                  );
-                } else if (_newPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('New password is required!'),
-                    ),
-                  );
-                } else if (_confirmNewPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter your new password again!'),
-                    ),
-                  );
-                } else {
-                  UserUpdatePassword updatePassword = UserUpdatePassword(
-                      _oldPasswordController.text,
-                      _newPasswordController.text,
-                      _confirmNewPasswordController.text);
-                  try {
-                    await Provider.of<UserProvider>(context, listen: false)
-                        .updatePassword(updatePassword: updatePassword)
-                        .then((_) {
-                      Provider.of<AuthProvider>(context, listen: false)
-                          .logout();
-                      _oldPasswordController.clear();
-                      _newPasswordController.clear();
-                      _confirmNewPasswordController.clear();
-                      Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Password changed successfully! Please log in again.'),
-                        ),
-                      );
-                    });
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  final _passwordController = TextEditingController();
-  final _usernameController = TextEditingController();
-
-  void _showChangeUsernameForm() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Change Username'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'New Username'),
-              ),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Your Password'),
-                obscureText: true,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _usernameController.clear();
-                _passwordController.clear();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (_usernameController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('New username is required!'),
-                    ),
-                  );
-                } else if (_passwordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password is required!'),
-                    ),
-                  );
-                } else {
-                  UserUpdateUsername updateUsername = UserUpdateUsername(
-                      _usernameController.text, _passwordController.text);
-                  try {
-                    await Provider.of<UserProvider>(context, listen: false)
-                        .updateUsername(updateUsername: updateUsername)
-                        .then((_) {
-                      Provider.of<AuthProvider>(context, listen: false)
-                          .logout();
-                      _usernameController.clear();
-                      _passwordController.clear();
-                      Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Username changed successfully! Please log in again.'),
-                        ),
-                      );
-                    });
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   UserUpdate? _userUpdate;
   String? _editingField;
   String? _editValue;
@@ -357,21 +159,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String? _dropdownValue;
   Widget _buildEditableField({
     required String label,
     required String value,
     required String field,
   }) {
-    if (field == 'gender') {
-      _dropdownValue ??=
-          (value == 'Female' || value == 'Male') ? value : 'Custom';
-
-      if (_editValue == null && _dropdownValue == 'Custom') {
-        _editValue = value;
-      }
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -380,79 +172,25 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_editingField == field)
           Row(
             children: [
-              if (field == 'gender') ...[
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _dropdownValue,
-                    items: ['Female', 'Male', 'Custom'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        _dropdownValue = newValue;
-                        if (_dropdownValue == 'Custom') {
-                          _editValue = value;
-                        } else {
-                          _editValue = _dropdownValue;
-                        }
-                      });
-                    },
-                    decoration: InputDecoration(
-                      labelText: AppConstants.genderLabel,
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.textFieldRadius),
-                      ),
+              Expanded(
+                child: TextFormField(
+                  initialValue: value,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
                     ),
-                    validator: (_dropdownValue) {
-                      if (_dropdownValue == null || _dropdownValue.isEmpty) {
-                        return AppConstants.genderError;
-                      }
-                      return null;
-                    },
                   ),
+                  onChanged: (newValue) {
+                    _editValue = newValue;
+                  },
                 ),
-                if (_dropdownValue == 'Custom') ...[
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: '',
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                      ),
-                      onChanged: (newValue) {
-                        _editValue = newValue;
-                      },
-                    ),
-                  ),
-                ]
-              ] else ...[
-                Expanded(
-                  child: TextFormField(
-                    initialValue: value,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                    ),
-                    onChanged: (newValue) {
-                      _editValue = newValue;
-                    },
-                  ),
-                ),
-              ],
+              ),
               const SizedBox(width: 8.0),
               TextButton(
                 onPressed: () {
                   _toggleEdit(field);
                   setState(() {
                     _editValue = null;
-                    _dropdownValue = null;
                   });
                 },
                 child: const Text('Cancel'),
@@ -470,14 +208,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           .getByToken();
                       setState(() {
                         _editValue = null;
-                        _dropdownValue = null;
                       });
                       _toggleEdit(field);
                     });
                   } else {
                     setState(() {
                       _editValue = null;
-                      _dropdownValue = null;
                     });
                     _toggleEdit(field);
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -523,6 +259,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (imagePath == null) return null;
     final bytes = File(imagePath).readAsBytesSync();
     return base64Encode(bytes);
+  }
+
+  Future<void> _trainOrdersRecommender() async {
+    await Provider.of<RecommenderProvider>(context, listen: false)
+        .trainOrdersModel();
+  }
+
+  Future<void> _trainReservationsRecommender() async {
+    await Provider.of<RecommenderProvider>(context, listen: false)
+        .trainReservationsModel();
   }
 
   @override
@@ -664,11 +410,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       field: 'surname',
                                     ),
                                     _buildEditableField(
-                                      label: 'Gender',
-                                      value: user.gender,
-                                      field: 'gender',
-                                    ),
-                                    _buildEditableField(
                                       label: 'Email',
                                       value: user.email,
                                       field: 'email',
@@ -680,23 +421,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     const SizedBox(height: 8.0),
                                     const Text.rich(TextSpan(
-                                        text: 'Account',
+                                        text: 'System',
                                         style: TextStyle(fontSize: 18))),
                                     const SizedBox(height: 8.0),
                                     ElevatedButton.icon(
-                                      onPressed: () {
-                                        _showChangeUsernameForm();
+                                      onPressed: () async {
+                                        await _trainOrdersRecommender();
                                       },
-                                      icon: const Icon(Icons.person),
-                                      label: const Text('Change Username'),
+                                      icon: const Icon(Icons.update),
+                                      label: const Text(
+                                          'Train orders recommender'),
                                     ),
                                     const SizedBox(height: 8.0),
                                     ElevatedButton.icon(
-                                      onPressed: () {
-                                        _showChangePasswordForm();
+                                      onPressed: () async {
+                                        await _trainReservationsRecommender();
                                       },
-                                      icon: const Icon(Icons.lock),
-                                      label: const Text('Change Password'),
+                                      icon: const Icon(Icons.update),
+                                      label: const Text(
+                                          'Train reservations recommender'),
                                     ),
                                   ] else ...[
                                     const Card(
@@ -842,6 +585,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         MaterialPageRoute(
                           builder: (context) => ChatScreen(
                             recipientUserId: user.username,
+                            recipientImage: user.image!,
                           ),
                         ),
                       );

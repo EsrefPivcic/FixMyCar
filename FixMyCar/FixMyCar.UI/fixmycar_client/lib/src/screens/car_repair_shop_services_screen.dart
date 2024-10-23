@@ -705,7 +705,18 @@ class _CarRepairShopServicesScreenState
                                       onChanged: (bool? value) {
                                         setState(() {
                                           if (value == true) {
-                                            selectedServiceIds.add(service.id);
+                                            if (selectedServiceIds.length < 5) {
+                                              selectedServiceIds
+                                                  .add(service.id);
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      "You can't reserve more than 5 services per day!"),
+                                                ),
+                                              );
+                                            }
                                           } else {
                                             selectedServiceIds
                                                 .remove(service.id);

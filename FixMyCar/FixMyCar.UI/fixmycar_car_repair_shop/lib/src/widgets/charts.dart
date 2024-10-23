@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:csv/csv.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +17,11 @@ List<List<dynamic>>? _monthlyRevenuePerDayReportData;
 List<List<dynamic>>? _monthlyRevenuePerCustomerReportData;
 List<List<dynamic>>? _top10MonthlyReservationsReportData;
 
+String? _monthlyRevenuePerReservationTypeReportDataCsv;
+String? _monthlyRevenuePerDayReportDataCsv;
+String? _monthlyRevenuePerCustomerReportDataCsv;
+String? _top10MonthlyReservationsReportDataCsv;
+
 List<List<dynamic>> _parseCsvReport(String csvData) {
   return CsvToListConverter().convert(csvData);
 }
@@ -27,6 +34,7 @@ Future<void> _fetchMonthlyRevenuePerReservationTypeReport(
 
   if (report != null) {
     _monthlyRevenuePerReservationTypeReportData = _parseCsvReport(report);
+    _monthlyRevenuePerReservationTypeReportDataCsv = report;
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Failed to load report.')),
@@ -41,6 +49,7 @@ Future<void> _fetchMonthlyRevenuePerDayReport(BuildContext context) async {
 
   if (report != null) {
     _monthlyRevenuePerDayReportData = _parseCsvReport(report);
+    _monthlyRevenuePerDayReportDataCsv = report;
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Failed to load report.')),
@@ -55,6 +64,7 @@ Future<void> _fetchMonthlyRevenuePerCustomerReport(BuildContext context) async {
 
   if (report != null) {
     _monthlyRevenuePerCustomerReportData = _parseCsvReport(report);
+    _monthlyRevenuePerCustomerReportDataCsv = report;
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Failed to load report.')),
@@ -69,6 +79,7 @@ Future<void> _fetchTop10MonthlyReservationsReport(BuildContext context) async {
 
   if (report != null) {
     _top10MonthlyReservationsReportData = _parseCsvReport(report);
+    _top10MonthlyReservationsReportDataCsv = report;
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Failed to load report.')),
@@ -353,6 +364,41 @@ Future<void> _exportChartToPDF(GlobalKey chartKey) async {
   );
 }
 
+Future<void> _saveMonthlyReportToFile(
+    BuildContext context, String? csvReport) async {
+  if (csvReport == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('No report available to save.')),
+    );
+    return;
+  }
+
+  try {
+    String? savePath = await FilePicker.platform.saveFile(
+      dialogTitle: 'Please select a location to save your report',
+      fileName: 'monthlyreport.csv',
+    );
+
+    if (savePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Save operation canceled.')),
+      );
+      return;
+    }
+
+    final file = File(savePath);
+    await file.writeAsString(csvReport);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Report saved to $savePath')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Failed to save report.')),
+    );
+  }
+}
+
 Future<Widget> buildChart(
     String selectedChartType, BuildContext context) async {
   final GlobalKey _chartKey = GlobalKey();
@@ -393,9 +439,20 @@ Future<Widget> buildChart(
             ),
           ),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => _exportChartToPDF(_chartKey),
-            child: const Text("Export this chart to PDF"),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => _exportChartToPDF(_chartKey),
+                child: const Text("Export this chart to PDF"),
+              ),
+              const SizedBox(width: 5),
+              ElevatedButton(
+                onPressed: () => _saveMonthlyReportToFile(
+                    context, _monthlyRevenuePerReservationTypeReportDataCsv),
+                child: const Text('Save this diagram data to CSV'),
+              ),
+            ],
           ),
         ]);
       } else {
@@ -433,9 +490,20 @@ Future<Widget> buildChart(
             ),
           ),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => _exportChartToPDF(_chartKey),
-            child: const Text("Export this chart to PDF"),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => _exportChartToPDF(_chartKey),
+                child: const Text("Export this chart to PDF"),
+              ),
+              const SizedBox(width: 5),
+              ElevatedButton(
+                onPressed: () => _saveMonthlyReportToFile(
+                    context, _monthlyRevenuePerDayReportDataCsv),
+                child: const Text('Save this diagram data to CSV'),
+              ),
+            ],
           ),
         ]);
       } else {
@@ -472,9 +540,20 @@ Future<Widget> buildChart(
             )),
           ),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => _exportChartToPDF(_chartKey),
-            child: const Text("Export this chart to PDF"),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => _exportChartToPDF(_chartKey),
+                child: const Text("Export this chart to PDF"),
+              ),
+              const SizedBox(width: 5),
+              ElevatedButton(
+                onPressed: () => _saveMonthlyReportToFile(
+                    context, _monthlyRevenuePerCustomerReportDataCsv),
+                child: const Text('Save this diagram data to CSV'),
+              ),
+            ],
           ),
         ]);
       } else {
@@ -505,9 +584,20 @@ Future<Widget> buildChart(
             ),
           ),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () => _exportChartToPDF(_chartKey),
-            child: const Text("Export this table to PDF"),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () => _exportChartToPDF(_chartKey),
+                child: const Text("Export this chart to PDF"),
+              ),
+              const SizedBox(width: 5),
+              ElevatedButton(
+                onPressed: () => _saveMonthlyReportToFile(
+                    context, _top10MonthlyReservationsReportDataCsv),
+                child: const Text('Save this diagram data to CSV'),
+              ),
+            ],
           ),
         ]);
       } else {

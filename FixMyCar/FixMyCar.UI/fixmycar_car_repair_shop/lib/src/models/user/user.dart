@@ -21,6 +21,7 @@ class User {
   String openingTime;
   String closingTime;
   String workingHours;
+  int employees;
 
   User(
       this.id,
@@ -39,7 +40,8 @@ class User {
       this.workDays,
       this.openingTime,
       this.closingTime,
-      this.workingHours);
+      this.workingHours,
+      this.employees);
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 

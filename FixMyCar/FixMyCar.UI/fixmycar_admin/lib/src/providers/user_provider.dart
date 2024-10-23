@@ -1,10 +1,9 @@
 import 'package:fixmycar_admin/src/models/search_result.dart';
 import 'package:fixmycar_admin/src/models/user/user.dart';
+import 'package:fixmycar_admin/src/models/user/user_minimal.dart';
 import 'package:fixmycar_admin/src/models/user/user_search_object.dart';
 import 'package:fixmycar_admin/src/models/user/user_update.dart';
 import 'package:fixmycar_admin/src/models/user/user_update_image.dart';
-import 'package:fixmycar_admin/src/models/user/user_update_password.dart';
-import 'package:fixmycar_admin/src/models/user/user_update_username.dart';
 import 'package:fixmycar_admin/src/providers/base_provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -18,7 +17,7 @@ class UserProvider extends BaseProvider<User, User> {
   User? user;
   bool isLoading = false;
 
-  Future<bool> exists({required String username}) async {
+  Future<UserMinimal> exists({required String username}) async {
     notifyListeners();
 
     try {
@@ -29,9 +28,9 @@ class UserProvider extends BaseProvider<User, User> {
       );
 
       if (response.statusCode == 200) {
-        String responseBody = response.body.trim();
-        bool exists = responseBody.toLowerCase() == 'true';
-        return exists;
+        final responseBody = jsonDecode(response.body);
+        UserMinimal user = UserMinimal.fromJson(responseBody);
+        return user;
       } else {
         _handleErrors(response);
         throw Exception('Error occurred while checking if user exists.');
@@ -149,76 +148,6 @@ class UserProvider extends BaseProvider<User, User> {
       );
       if (response.statusCode == 200) {
         print('Update successful.');
-        notifyListeners();
-      } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> updatePassword(
-      {required UserUpdatePassword updatePassword}) async {
-    toJson(UserUpdatePassword updatePassword) => updatePassword.toJson();
-    try {
-      final response = await http.put(
-        Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdatePasswordByToken'),
-        headers: await createHeaders(),
-        body: jsonEncode(toJson(updatePassword)),
-      );
-      if (response.statusCode == 200) {
-        notifyListeners();
-      } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> updateUsername(
-      {required UserUpdateUsername updateUsername}) async {
-    toJson(UserUpdateUsername updateUsername) => updateUsername.toJson();
-    try {
-      final response = await http.put(
-        Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdateUsernameByToken'),
-        headers: await createHeaders(),
-        body: jsonEncode(toJson(updateUsername)),
-      );
-      if (response.statusCode == 200) {
         notifyListeners();
       } else {
         final responseBody = jsonDecode(response.body);

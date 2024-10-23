@@ -284,6 +284,7 @@ namespace FixMyCar.Services.Database
                     OpeningTime = new TimeSpan(8, 0, 0),
                     ClosingTime = new TimeSpan(16, 0, 0),
                     WorkingHours = new TimeSpan(8, 0, 0),
+                    Employees = 2,
                     Active = true
                 }
             );

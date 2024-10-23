@@ -79,10 +79,11 @@ namespace FixMyCar.Controllers
         }
 
         [HttpGet("Exists/{username}")]
-        public async Task<bool> Exists(string username)
+        public async Task<UserMinimalGetDTO> Exists(string username)
         {
-            return await (_service as IUserService).Exists(username);
-        }
+            string? senderUsername = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return await (_service as IUserService).Exists(username, senderUsername);
+        } 
 
         [HttpPut("ChangeActiveStatus")]
         public async Task ChangeActiveStatus(int id)

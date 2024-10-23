@@ -47,85 +47,112 @@ namespace FixMyCar.HelperAPI.Services
 
             var reservations = await query.ToListAsync();
 
-            var reportData = reservations.Select(reservation => new
-            {
-                ReservationId = reservation.Id,
-                ReservationCreatedDate = reservation.ReservationCreatedDate.ToString("yyyy-MM-dd"),
-                ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
-                Customer = reservation.Client.Name + " " + reservation.Client.Surname + $" ({reservation.Client.Username})",
-                TotalAmount = reservation.TotalAmount,
-                Type = reservation.Type,
-                PartsOrderedBy = reservation.ClientOrder == null ? "No order" : (bool)reservation.ClientOrder ? "Client" : "Shop",
-                ClientDiscount = reservation.CarRepairShopDiscount != null ? $"{(reservation.CarRepairShopDiscount.Value * 100):F2}%" : "No client discount",
-                Services = reservation.ReservationDetails.Select(rd => new
+            if (!reservations.IsNullOrEmpty()) {
+                var reportData = reservations.Select(reservation => new
                 {
-                    rd.ServiceName,
-                    rd.ServicePrice,
-                    Discount = rd.ServiceDiscount > 0 ? $"{(rd.ServiceDiscount * 100):F2}%" : "No service discount",
-                    rd.ServiceDiscountedPrice
-                })
-            }).ToList();
+                    ReservationId = reservation.Id,
+                    ReservationCreatedDate = reservation.ReservationCreatedDate.ToString("yyyy-MM-dd"),
+                    ReservationDate = reservation.ReservationDate.ToString("yyyy-MM-dd"),
+                    Customer = reservation.Client.Name + " " + reservation.Client.Surname + $" ({reservation.Client.Username})",
+                    TotalAmount = reservation.TotalAmount,
+                    Type = reservation.Type,
+                    PartsOrderedBy = reservation.ClientOrder == null ? "No order" : (bool)reservation.ClientOrder ? "Client" : "Shop",
+                    ClientDiscount = reservation.CarRepairShopDiscount != null ? $"{(reservation.CarRepairShopDiscount.Value * 100):F2}%" : "No client discount",
+                    Services = reservation.ReservationDetails.Select(rd => new
+                    {
+                        rd.ServiceName,
+                        rd.ServicePrice,
+                        Discount = rd.ServiceDiscount > 0 ? $"{(rd.ServiceDiscount * 100):F2}%" : "No service discount",
+                        rd.ServiceDiscountedPrice
+                    })
+                }).ToList();
 
-            var csvReport = new StringBuilder();
-            csvReport.AppendLine("ReservationId,ReservationCreatedDate,ReservationDate,Customer," +
-                "TotalAmount,Type,PartsOrderedBy,ClientDiscount,ServiceName,ServicePrice,Discount,ServiceDiscountedPrice");
+                var csvReport = new StringBuilder();
+                csvReport.AppendLine("ReservationId,ReservationCreatedDate,ReservationDate,Customer," +
+                    "TotalAmount,Type,PartsOrderedBy,ClientDiscount,ServiceName,ServicePrice,Discount,ServiceDiscountedPrice");
 
-            foreach (var reservation in reportData)
-            {
-                foreach (var service in reservation.Services)
+                foreach (var reservation in reportData)
                 {
-                    csvReport.AppendLine($"{reservation.ReservationId},{reservation.ReservationCreatedDate:yyyy-MM-dd}," +
-                        $"{reservation.ReservationDate:yyyy-MM-dd},{reservation.Customer},{reservation.TotalAmount:F2}," +
-                        $"{reservation.Type},{reservation.PartsOrderedBy},{reservation.ClientDiscount},{service.ServiceName}," +
-                        $"{service.ServicePrice:F2},{service.Discount},{service.ServiceDiscountedPrice:F2}");
+                    foreach (var service in reservation.Services)
+                    {
+                        csvReport.AppendLine($"{reservation.ReservationId},{reservation.ReservationCreatedDate:yyyy-MM-dd}," +
+                            $"{reservation.ReservationDate:yyyy-MM-dd},{reservation.Customer},{reservation.TotalAmount:F2}," +
+                            $"{reservation.Type},{reservation.PartsOrderedBy},{reservation.ClientDiscount},{service.ServiceName}," +
+                            $"{service.ServicePrice:F2},{service.Discount},{service.ServiceDiscountedPrice:F2}");
+                    }
                 }
+
+                var fileName = $"report_{request.ShopName}.csv";
+                var filePath = Path.Combine("Reports", fileName);
+
+                await File.WriteAllTextAsync(filePath, csvReport.ToString());
+
+                Console.WriteLine($"Report generated and saved at {filePath}");
+
+                using var rabbitMQService = new RabbitMQService();
+                ReportNotificationDTO notification = new ReportNotificationDTO
+                {
+                    Username = request.ShopName,
+                    NotificationType = "customreport",
+                    Message = "New custom report generated!"
+                };
+                rabbitMQService.SendReportNotification(notification);
             }
-
-            var fileName = $"report_{request.ShopName}.csv";
-            var filePath = Path.Combine("Reports", fileName);
-
-            await File.WriteAllTextAsync(filePath, csvReport.ToString());
-
-            Console.WriteLine($"Report generated and saved at {filePath}");
-
-            using var rabbitMQService = new RabbitMQService();
-            ReportNotificationDTO notification = new ReportNotificationDTO
+            else
             {
-                Username = request.ShopName,
-                NotificationType = "customreport",
-                Message = "New custom report generated!"
-            };
-            rabbitMQService.SendReportNotification(notification);
+                using var rabbitMQService = new RabbitMQService();
+                ReportNotificationDTO notification = new ReportNotificationDTO
+                {
+                    Username = request.ShopName,
+                    NotificationType = "customreport",
+                    Message = "Can't generate report, there aren't any reservations!"
+                };
+                rabbitMQService.SendReportNotification(notification);
+            }
         }
 
         public async Task GenerateMonthlyReports(string shopName)
-        {
-            await MonthlyRevenuePerReservationType(shopName);
-            await MonthlyRevenuePerDay(shopName);
-            await Top10CustomersMonthly(shopName);
-            await Top10ReservationsMonthly(shopName);
-            using var rabbitMQService = new RabbitMQService();
-            ReportNotificationDTO notification = new ReportNotificationDTO
-            {
-                Username = shopName,
-                NotificationType = "monthlystatistics",
-                Message = "Monthly statistics updated!"
-            };
-            rabbitMQService.SendReportNotification(notification);
-        }
-
-        public async Task MonthlyRevenuePerReservationType(string shopName)
         {
             var query = _context.Set<Reservation>().AsQueryable();
 
             DateTime oneMonthOlder = DateTime.Now.AddMonths(-1);
 
             query = query.Where(r => r.CarRepairShop.Username == shopName)
-                .Where(r => r.ReservationCreatedDate.Date >= oneMonthOlder.Date && 
+                .Where(r => r.ReservationCreatedDate.Date >= oneMonthOlder.Date &&
                 r.ReservationCreatedDate.Date <= DateTime.Now.Date);
 
             var reservations = await query.ToListAsync();
 
+            if (!reservations.IsNullOrEmpty())
+            {
+                await MonthlyRevenuePerReservationType(shopName, reservations);
+                await MonthlyRevenuePerDay(shopName, reservations, oneMonthOlder);
+                await Top10CustomersMonthly(shopName, reservations);
+                await Top10ReservationsMonthly(shopName, reservations);
+                using var rabbitMQService = new RabbitMQService();
+                ReportNotificationDTO notification = new ReportNotificationDTO
+                {
+                    Username = shopName,
+                    NotificationType = "monthlystatistics",
+                    Message = "Monthly statistics updated!"
+                };
+                rabbitMQService.SendReportNotification(notification);
+            }
+            else
+            {
+                using var rabbitMQService = new RabbitMQService();
+                ReportNotificationDTO notification = new ReportNotificationDTO
+                {
+                    Username = shopName,
+                    NotificationType = "monthlystatistics",
+                    Message = "Can't generate report, there are no reservations in the past month!"
+                };
+                rabbitMQService.SendReportNotification(notification);
+            }
+        }
+
+        public async Task MonthlyRevenuePerReservationType(string shopName, List<Reservation> reservations)
+        {
             double diagnosticsRevenue = 0;
             double repairsRevenue = 0;
             double repairsDiagnosticsRevenue = 0;
@@ -160,23 +187,12 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task MonthlyRevenuePerDay(string shopName)
+        public async Task MonthlyRevenuePerDay(string shopName, List<Reservation> reservations, DateTime oneMonthOlder)
         {
-            var query = _context.Set<Reservation>().AsQueryable();
-
-            DateTime oneMonthOlder = DateTime.Now.AddMonths(-1).Date;
-            DateTime today = DateTime.Now.Date;
-
-            query = query.Where(r => r.CarRepairShop.Username == shopName)
-                .Where(r => r.ReservationCreatedDate.Date >= oneMonthOlder &&
-                            r.ReservationCreatedDate.Date <= today);
-
-            var reservations = await query.ToListAsync();
-
             var csvReport = new StringBuilder();
             csvReport.AppendLine("Day,Revenue");
 
-            for (DateTime date = oneMonthOlder; date <= today; date = date.AddDays(1))
+            for (DateTime date = oneMonthOlder; date <= DateTime.Now.Date; date = date.AddDays(1))
             {
                 var dailyReservations = reservations
                     .Where(r => r.ReservationCreatedDate.Date == date)
@@ -195,20 +211,8 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task Top10CustomersMonthly(string shopName)
+        public async Task Top10CustomersMonthly(string shopName, List<Reservation> reservations)
         {
-            var query = _context.Set<Reservation>().AsQueryable();
-
-            DateTime oneMonthOlder = DateTime.Now.AddMonths(-1).Date;
-            DateTime today = DateTime.Now.Date;
-
-            query = query.Include(r => r.Client)
-                .Where(r => r.CarRepairShop.Username == shopName)
-                .Where(r => r.ReservationCreatedDate.Date >= oneMonthOlder &&
-                            r.ReservationCreatedDate.Date <= today);
-
-            var reservations = await query.ToListAsync();
-
             var customerRevenue = reservations
                 .GroupBy(r => r.Client)
                 .Select(group => new
@@ -237,23 +241,8 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task Top10ReservationsMonthly(string shopName)
+        public async Task Top10ReservationsMonthly(string shopName, List<Reservation> reservations)
         {
-            var query = _context.Set<Reservation>().AsQueryable();
-
-            DateTime oneMonthOlder = DateTime.Now.AddMonths(-1).Date;
-            DateTime today = DateTime.Now.Date;
-
-            query = query.Include(r => r.Client)
-                .Include(r => r.CarRepairShopDiscount)
-                .Where(r => r.CarRepairShop.Username == shopName)
-                .Where(r => r.ReservationCreatedDate.Date >= oneMonthOlder &&
-                            r.ReservationCreatedDate.Date <= today)
-                .OrderByDescending(r => r.TotalAmount)
-                .Take(10);
-
-            var reservations = await query.ToListAsync();
-
             var csvReport = new StringBuilder();
             csvReport.AppendLine("ReservationCreatedDate,ReservationDate,Customer,TotalAmount,Type,Discount");
 

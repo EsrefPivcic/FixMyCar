@@ -148,28 +148,31 @@ class MasterScreen extends StatelessWidget {
               const SizedBox(height: 5),
               TextButton(
                 onPressed: () async {
-                  Navigator.of(context).pop();
                   if (_usernameController.text.isNotEmpty) {
                     var userProvider =
                         Provider.of<UserProvider>(context, listen: false);
-                    bool userExists = await userProvider.exists(
-                        username: _usernameController.text);
-                    if (userExists) {
+
+                    try {
+                      UserMinimal userExists = await userProvider.exists(
+                          username: _usernameController.text);
+                      Navigator.of(context).pop();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => ChatScreen(
-                                  recipientUserId: _usernameController.text,
+                                  recipientUserId: userExists.username,
+                                  recipientImage: userExists.image!,
                                 )),
                       ).then((_) {
                         _usernameController.text = "";
                       });
-                    } else {
+                    } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("That user doesn't exist!"),
+                          content: Text("This user doesn't exist!"),
                         ),
                       );
+                      Navigator.of(context).pop();
                     }
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -199,6 +202,7 @@ class MasterScreen extends StatelessWidget {
                               MaterialPageRoute(
                                 builder: (context) => ChatScreen(
                                   recipientUserId: user.username,
+                                  recipientImage: user.image!,
                                 ),
                               ),
                             ).then((_) {
@@ -245,6 +249,7 @@ class MasterScreen extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (context) => ChatScreen(
                             recipientUserId: "admin",
+                            recipientImage: "",
                           )),
                 ).then((_) {
                   _usernameController.text = "";

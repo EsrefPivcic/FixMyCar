@@ -71,6 +71,10 @@ void showShopDetailsDialog(
                       .join(', '),
                   context,
                 ),
+                if (shopDetails.employees != null) ...[
+                  _buildDetailRow(
+                      'Number of Employees', shopDetails.employees!, context),
+                ],
                 if (carRepairShopdiscounts != null &&
                     carRepairShopdiscounts.isNotEmpty) ...[
                   const SizedBox(height: 16),

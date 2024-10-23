@@ -19,6 +19,7 @@ class UserRegister {
   List<int> workDays;
   String openingTime;
   String closingTime;
+  int employees;
 
   UserRegister(
       this.name,
@@ -35,7 +36,8 @@ class UserRegister {
       this.city,
       this.workDays,
       this.openingTime,
-      this.closingTime);
+      this.closingTime,
+      this.employees);
 
   factory UserRegister.fromJson(Map<String, dynamic> json) =>
       _$UserRegisterFromJson(json);

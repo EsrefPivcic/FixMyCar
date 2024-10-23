@@ -7,8 +7,10 @@ class UserUpdateWorkDetails {
   List<int> workDays;
   String openingTime;
   String closingTime;
+  int employees;
 
-  UserUpdateWorkDetails(this.workDays, this.openingTime, this.closingTime);
+  UserUpdateWorkDetails(
+      this.workDays, this.openingTime, this.closingTime, this.employees);
 
   factory UserUpdateWorkDetails.fromJson(Map<String, dynamic> json) =>
       _$UserUpdateWorkDetailsFromJson(json);

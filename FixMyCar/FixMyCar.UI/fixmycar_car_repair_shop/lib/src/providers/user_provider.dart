@@ -1,4 +1,5 @@
 import 'package:fixmycar_car_repair_shop/src/models/user/user.dart';
+import 'package:fixmycar_car_repair_shop/src/models/user/user_minimal.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_register.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_update_image.dart';
@@ -14,7 +15,7 @@ class UserProvider extends BaseProvider<User, UserRegister> {
   User? user;
   bool isLoading = false;
 
-  Future<bool> exists({required String username}) async {
+  Future<UserMinimal> exists({required String username}) async {
     notifyListeners();
 
     try {
@@ -25,9 +26,9 @@ class UserProvider extends BaseProvider<User, UserRegister> {
       );
 
       if (response.statusCode == 200) {
-        String responseBody = response.body.trim();
-        bool exists = responseBody.toLowerCase() == 'true';
-        return exists;
+        final responseBody = jsonDecode(response.body);
+        UserMinimal user = UserMinimal.fromJson(responseBody);
+        return user;
       } else {
         _handleErrors(response);
         throw Exception('Error occurred while checking if user exists.');

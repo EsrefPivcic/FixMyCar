@@ -16,7 +16,7 @@ namespace FixMyCar.Services.Utilities
             return repairShop.WorkDays.Contains(reservationDay);
         }
 
-        public static bool IsWithinWorkHours(TimeSpan reservationDuration, TimeSpan repairShopWorkHours, List<Reservation> reservations)
+        public static bool IsWithinWorkHours(TimeSpan reservationDuration, TimeSpan repairShopEmployeeWorkHours, List<Reservation> reservations)
         {
             TimeSpan duration = TimeSpan.Zero;
             foreach (Reservation reservation in reservations) 
@@ -25,7 +25,7 @@ namespace FixMyCar.Services.Utilities
             }
             duration += reservationDuration;
 
-            if (duration <= repairShopWorkHours)
+            if (duration <= repairShopEmployeeWorkHours)
             {
                 return true;
             }

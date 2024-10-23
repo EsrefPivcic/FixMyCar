@@ -16,6 +16,6 @@ namespace FixMyCar.Services.Interfaces
         Task UpdateUsernameByToken(UserUpdateUsernameDTO request);
         Task UpdateImageByToken(UserUpdateImageDTO request);
         Task ChangeActiveStatus(int id);
-        Task<bool> Exists(string username);
+        Task<UserMinimalGetDTO> Exists(string username, string sender);
     }
 }

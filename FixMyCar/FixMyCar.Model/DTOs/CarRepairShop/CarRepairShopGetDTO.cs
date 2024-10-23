@@ -15,5 +15,6 @@ namespace FixMyCar.Model.DTOs.CarRepairShop
         public TimeSpan OpeningTime { get; set; }
         public TimeSpan ClosingTime { get; set; }
         public TimeSpan WorkingHours { get; set; }
+        public int Employees { get; set; }
     }
 }

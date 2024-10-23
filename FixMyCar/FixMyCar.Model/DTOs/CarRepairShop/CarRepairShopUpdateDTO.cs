@@ -11,6 +11,5 @@ namespace FixMyCar.Model.DTOs.CarRepairShop
     public class CarRepairShopUpdateDTO
     {
         public string? Username { get; set; }
-        public int? RoleId { get; set; }
     }
 }

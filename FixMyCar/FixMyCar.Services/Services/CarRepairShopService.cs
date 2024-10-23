@@ -156,6 +156,7 @@ namespace FixMyCar.Services.Services
                 entity.OpeningTime = XmlConvert.ToTimeSpan(request.OpeningTime);
                 entity.ClosingTime = XmlConvert.ToTimeSpan(request.ClosingTime);
                 entity.WorkingHours = entity.ClosingTime - entity.OpeningTime;
+                entity.Employees = request.Employees;
 
                 await _context.SaveChangesAsync();
             }
@@ -211,6 +212,7 @@ namespace FixMyCar.Services.Services
                 }
 
                 entity.WorkingHours = XmlConvert.ToTimeSpan(request.ClosingTime) - XmlConvert.ToTimeSpan(request.OpeningTime);
+                entity.Employees = request.Employees;
                 entity.Active = false;
 
                 await base.BeforeInsert(entity, request);

@@ -31,17 +31,21 @@ class _HomeScreenState extends State<HomeScreen> {
   UserUpdate? _userUpdate;
   String? _editingField;
   String? _editValue;
+  late Future<Widget> _chartFuture;
 
   List<int> _selectedWorkDays = [];
   TimeOfDay _openingTime = TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _closingTime = TimeOfDay(hour: 16, minute: 0);
+  int? _employees;
   bool _isInitialized = false;
   final ReportNotificationService _notificationService =
       ReportNotificationService();
+  String _selectedChartType = 'Revenue per reservation type';
 
   @override
   void initState() {
     super.initState();
+    _chartFuture = buildChart(_selectedChartType, context);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
       if (mounted) {
@@ -72,7 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (notificationType == "customreport") {
         _fetchReport();
       } else if (notificationType == "monthlystatistics") {
-        fetchAllStatistics(context);
+        fetchAllStatistics(context).then((_) {
+          _chartFuture = buildChart(_selectedChartType, context);
+        });
       }
     };
     if (mounted) {
@@ -589,10 +595,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _updateWorkDetails() async {
     final updateWorkDetails = UserUpdateWorkDetails(
-      _selectedWorkDays,
-      'PT${_openingTime.hour}H${_openingTime.minute}M',
-      'PT${_closingTime.hour}H${_closingTime.minute}M',
-    );
+        _selectedWorkDays,
+        'PT${_openingTime.hour}H${_openingTime.minute}M',
+        'PT${_closingTime.hour}H${_closingTime.minute}M',
+        _employees!);
 
     await Provider.of<CarRepairShopProvider>(context, listen: false)
         .updateWorkDetails(updateWorkDetails: updateWorkDetails)
@@ -776,8 +782,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .generateReport(filter: filter);
   }
 
-  String _selectedChartType = 'Revenue per reservation type';
-
   final List<String> _chartTypes = [
     'Revenue per reservation type',
     'Daily revenue',
@@ -797,6 +801,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedWorkDays = parseWorkDays(user.workDays);
             _openingTime = parseTimeOfDay(user.openingTime);
             _closingTime = parseTimeOfDay(user.closingTime);
+            _employees = user.employees;
             _isInitialized = true;
           }
 
@@ -971,6 +976,43 @@ class _HomeScreenState extends State<HomeScreen> {
                                         style: TextStyle(fontSize: 18))),
                                     const SizedBox(height: 8.0),
                                     const Text.rich(TextSpan(
+                                        text: 'Number of Employees:',
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500))),
+                                    if (_employees != null) ...[
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          IconButton(
+                                            onPressed: _employees! > 1
+                                                ? () {
+                                                    setState(() {
+                                                      _employees =
+                                                          _employees! - 1;
+                                                    });
+                                                  }
+                                                : null,
+                                            icon: const Icon(Icons.remove),
+                                          ),
+                                          Text('$_employees',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge),
+                                          IconButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _employees = _employees! + 1;
+                                              });
+                                            },
+                                            icon: const Icon(Icons.add),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                    const SizedBox(height: 8.0),
+                                    const Text.rich(TextSpan(
                                         text: 'Work Days:',
                                         style: TextStyle(
                                             fontSize: 14,
@@ -1089,6 +1131,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     onChanged: (String? newChartType) {
                                       setState(() {
                                         _selectedChartType = newChartType!;
+                                        _chartFuture = buildChart(
+                                            _selectedChartType, context);
                                       });
                                     },
                                   ),
@@ -1102,7 +1146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width: 10),
                               FutureBuilder<Widget>(
-                                future: buildChart(_selectedChartType, context),
+                                future: _chartFuture,
                                 builder: (BuildContext context,
                                     AsyncSnapshot<Widget> snapshot) {
                                   if (snapshot.connectionState ==

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fixmycar_car_parts_shop/src/models/chat_message/chat_message.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/chat_history_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/services/chat_service.dart';
@@ -7,8 +9,9 @@ import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String recipientUserId;
+  final String recipientImage;
 
-  ChatScreen({required this.recipientUserId});
+  ChatScreen({required this.recipientUserId, required this.recipientImage});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -149,9 +152,16 @@ class _ChatScreenState extends State<ChatScreen> {
         appBar: AppBar(
           title: Row(
             children: [
-              /*CircleAvatar(
-              child: Text(widget.recipientUserId[0]),
-            ),*/
+              if (widget.recipientImage.isNotEmpty) ...[
+                CircleAvatar(
+                  backgroundImage:
+                      MemoryImage(base64Decode(widget.recipientImage)),
+                )
+              ] else ...[
+                const CircleAvatar(
+                  child: Icon(Icons.person),
+                )
+              ],
               const SizedBox(width: 8),
               Text("Chat with ${widget.recipientUserId}"),
             ],

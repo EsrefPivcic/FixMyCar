@@ -71,72 +71,70 @@ namespace FixMyCar.HelperAPI.Services
 
             var orders = await query.ToListAsync();
 
-            var reportData = orders.Select(order => new
+            if (!orders.IsNullOrEmpty())
             {
-                OrderId = order.Id,
-                OrderDate = order.OrderDate.ToString("yyyy-MM-dd"),
-                Customer = order.Client != null ? order.Client.Name + " " + order.Client.Surname + $" ({order.Client.Username})" :
+                var reportData = orders.Select(order => new
+                {
+                    OrderId = order.Id,
+                    OrderDate = order.OrderDate.ToString("yyyy-MM-dd"),
+                    Customer = order.Client != null ? order.Client.Name + " " + order.Client.Surname + $" ({order.Client.Username})" :
                 order.CarRepairShop!.Name + " " + order.CarRepairShop.Surname + $" ({order.CarRepairShop.Username})",
-                CustomerType = order.Client != null ? "Client" : "Car Repair Shop",
-                TotalAmount = order.TotalAmount,
-                ShippingDate = order.ShippingDate?.ToString("yyyy-MM-dd") ?? "Pending",
-                ClientDiscount = order.ClientDiscount != null ? $"{(order.ClientDiscount.Value * 100):F2}%" : "No client discount",
-                StoreItems = order.OrderDetails.Select(od => new
-                {
-                    od.StoreItem.Name,
-                    od.Quantity,
-                    od.UnitPrice,
-                    Discount = od.Discount > 0 ? $"{(od.Discount * 100):F2}%" : "No item discount",
-                    od.TotalItemsPrice,
-                    od.TotalItemsPriceDiscounted
-                })
-            }).ToList();
+                    CustomerType = order.Client != null ? "Client" : "Car Repair Shop",
+                    TotalAmount = order.TotalAmount,
+                    ShippingDate = order.ShippingDate?.ToString("yyyy-MM-dd") ?? "Pending",
+                    ClientDiscount = order.ClientDiscount != null ? $"{(order.ClientDiscount.Value * 100):F2}%" : "No client discount",
+                    StoreItems = order.OrderDetails.Select(od => new
+                    {
+                        od.StoreItem.Name,
+                        od.Quantity,
+                        od.UnitPrice,
+                        Discount = od.Discount > 0 ? $"{(od.Discount * 100):F2}%" : "No item discount",
+                        od.TotalItemsPrice,
+                        od.TotalItemsPriceDiscounted
+                    })
+                }).ToList();
 
-            var csvReport = new StringBuilder();
-            csvReport.AppendLine("OrderId,OrderDate,Customer,CustomerType,TotalAmount,ShippingDate,ClientDiscount,StoreItemName,Quantity,UnitPrice,TotalItemsPrice,Discount,TotalItemsPriceDiscounted");
+                var csvReport = new StringBuilder();
+                csvReport.AppendLine("OrderId,OrderDate,Customer,CustomerType,TotalAmount,ShippingDate,ClientDiscount,StoreItemName,Quantity,UnitPrice,TotalItemsPrice,Discount,TotalItemsPriceDiscounted");
 
-            foreach (var order in reportData)
-            {
-                foreach (var item in order.StoreItems)
+                foreach (var order in reportData)
                 {
-                    csvReport.AppendLine($"{order.OrderId},{order.OrderDate:yyyy-MM-dd},{order.Customer},{order.CustomerType},{order.TotalAmount:F2},{order.ShippingDate},{order.ClientDiscount},{item.Name},{item.Quantity},{item.UnitPrice:F2},{item.TotalItemsPrice:F2},{item.Discount},{item.TotalItemsPriceDiscounted:F2}");
+                    foreach (var item in order.StoreItems)
+                    {
+                        csvReport.AppendLine($"{order.OrderId},{order.OrderDate:yyyy-MM-dd},{order.Customer},{order.CustomerType},{order.TotalAmount:F2},{order.ShippingDate},{order.ClientDiscount},{item.Name},{item.Quantity},{item.UnitPrice:F2},{item.TotalItemsPrice:F2},{item.Discount},{item.TotalItemsPriceDiscounted:F2}");
+                    }
                 }
+
+                var fileName = $"report_{request.ShopName}.csv";
+                var filePath = Path.Combine("Reports", fileName);
+
+                await File.WriteAllTextAsync(filePath, csvReport.ToString());
+
+                Console.WriteLine($"Report generated and saved at {filePath}");
+
+                using var rabbitMQService = new RabbitMQService();
+                ReportNotificationDTO notification = new ReportNotificationDTO
+                {
+                    Username = request.ShopName,
+                    NotificationType = "customreport",
+                    Message = "Custom report generated!"
+                };
+                rabbitMQService.SendReportNotification(notification);
             }
-
-            var fileName = $"report_{request.ShopName}.csv";
-            var filePath = Path.Combine("Reports", fileName);
-
-            await File.WriteAllTextAsync(filePath, csvReport.ToString());
-
-            Console.WriteLine($"Report generated and saved at {filePath}");
-
-            using var rabbitMQService = new RabbitMQService();
-            ReportNotificationDTO notification = new ReportNotificationDTO
+            else
             {
-                Username = request.ShopName,
-                NotificationType = "customreport",
-                Message = "Custom report generated!"
-            };
-            rabbitMQService.SendReportNotification(notification);
+                using var rabbitMQService = new RabbitMQService();
+                ReportNotificationDTO notification = new ReportNotificationDTO
+                {
+                    Username = request.ShopName,
+                    NotificationType = "customreport",
+                    Message = "Can't generate report, there aren't any orders!"
+                };
+                rabbitMQService.SendReportNotification(notification);
+            }
         }
 
         public async Task GenerateMonthlyReports(string shopName)
-        {
-            await MonthlyRevenuePerCustomerType(shopName);
-            await MonthlyRevenuePerDay(shopName);
-            await Top10CustomersMonthly(shopName);
-            await Top10OrdersMonthly(shopName);
-            using var rabbitMQService = new RabbitMQService();
-            ReportNotificationDTO notification = new ReportNotificationDTO
-            {
-                Username = shopName,
-                NotificationType = "monthlystatistics",
-                Message = "Monthly statistics updated!"
-            };
-            rabbitMQService.SendReportNotification(notification);
-        }
-
-        public async Task MonthlyRevenuePerCustomerType(string shopName)
         {
             var query = _context.Set<Order>().AsQueryable();
 
@@ -149,6 +147,36 @@ namespace FixMyCar.HelperAPI.Services
 
             var orders = await query.ToListAsync();
 
+            if (!orders.IsNullOrEmpty())
+            {
+                await MonthlyRevenuePerCustomerType(shopName, orders);
+                await MonthlyRevenuePerDay(shopName, orders, oneMonthOlder);
+                await Top10CustomersMonthly(shopName, orders);
+                await Top10OrdersMonthly(shopName, orders);
+                using var rabbitMQService = new RabbitMQService();
+                ReportNotificationDTO notification = new ReportNotificationDTO
+                {
+                    Username = shopName,
+                    NotificationType = "monthlystatistics",
+                    Message = "Monthly statistics updated!"
+                };
+                rabbitMQService.SendReportNotification(notification);
+            }
+            else
+            {
+                using var rabbitMQService = new RabbitMQService();
+                ReportNotificationDTO notification = new ReportNotificationDTO
+                {
+                    Username = shopName,
+                    NotificationType = "monthlystatistics",
+                    Message = "Can't generate report, there are no orders in the past month!"
+                };
+                rabbitMQService.SendReportNotification(notification);
+            }
+        }
+
+        public async Task MonthlyRevenuePerCustomerType(string shopName, List<Order> orders)
+        {
             double clientsRevenue = 0;
             double repairShopsRevenue = 0;
 
@@ -177,23 +205,12 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task MonthlyRevenuePerDay(string shopName)
+        public async Task MonthlyRevenuePerDay(string shopName, List<Order> orders, DateTime oneMonthOlder)
         {
-            var query = _context.Set<Order>().AsQueryable();
-
-            DateTime oneMonthOlder = DateTime.Now.AddMonths(-1).Date;
-            DateTime today = DateTime.Now.Date;
-
-            query = query.Where(o => o.CarPartsShop.Username == shopName)
-                .Where(o => o.OrderDate.Date >= oneMonthOlder &&
-                            o.OrderDate.Date <= today);
-
-            var orders = await query.ToListAsync();
-
             var csvReport = new StringBuilder();
             csvReport.AppendLine("Day,Revenue");
 
-            for (DateTime date = oneMonthOlder; date <= today; date = date.AddDays(1))
+            for (DateTime date = oneMonthOlder; date <= DateTime.Now.Date; date = date.AddDays(1))
             {
                 var dailyOrders = orders
                     .Where(o => o.OrderDate.Date == date)
@@ -212,21 +229,8 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task Top10CustomersMonthly(string shopName)
+        public async Task Top10CustomersMonthly(string shopName, List<Order> orders)
         {
-            var query = _context.Set<Order>().AsQueryable();
-
-            DateTime oneMonthOlder = DateTime.Now.AddMonths(-1).Date;
-            DateTime today = DateTime.Now.Date;
-
-            query = query.Include(o => o.Client)
-                .Include(o => o.CarRepairShop)
-                .Where(o => o.CarPartsShop.Username == shopName)
-                .Where(o => o.OrderDate.Date >= oneMonthOlder &&
-                            o.OrderDate.Date <= today);
-
-            var orders = await query.ToListAsync();
-
             var ordersData = orders.Select(order => new
             {
                 Customer = order.Client != null ? order.Client.Name + " " + order.Client.Surname + $" ({order.Client.Username})" :
@@ -262,24 +266,8 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task Top10OrdersMonthly(string shopName)
+        public async Task Top10OrdersMonthly(string shopName, List<Order> orders)
         {
-            var query = _context.Set<Order>().AsQueryable();
-
-            DateTime oneMonthOlder = DateTime.Now.AddMonths(-1).Date;
-            DateTime today = DateTime.Now.Date;
-
-            query = query.Include(o => o.Client)
-                .Include(o => o.CarRepairShop)
-                .Include(o => o.ClientDiscount)
-                .Where(o => o.CarPartsShop.Username == shopName)
-                .Where(o => o.OrderDate.Date >= oneMonthOlder &&
-                            o.OrderDate.Date <= today)
-                .OrderByDescending(o => o.TotalAmount)
-                .Take(10);
-
-            var orders = await query.ToListAsync();
-
             var csvReport = new StringBuilder();
             csvReport.AppendLine("OrderDate,Customer,CustomerType,TotalAmount,Discount");
 

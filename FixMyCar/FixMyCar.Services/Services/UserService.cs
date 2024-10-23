@@ -28,17 +28,24 @@ namespace FixMyCar.Services.Services
             return base.AddInclude(query, search);
         }
 
-        public async Task<bool> Exists(string username)
+        public async Task<UserMinimalGetDTO> Exists(string username, string sender)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == username);
-
-            if (user != null)
+            if (username == sender)
             {
-                return true;
+                throw new UserException("You can't message yourself!");
             }
             else
             {
-                return false;
+                var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == username);
+
+                if (user != null)
+                {
+                    return _mapper.Map<UserMinimalGetDTO>(user);
+                }
+                else
+                {
+                    throw new UserException("This user doesn't exist!");
+                }
             }
         }
 
