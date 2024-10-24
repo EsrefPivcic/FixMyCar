@@ -974,13 +974,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const Text.rich(TextSpan(
                                         text: 'Work Details',
                                         style: TextStyle(fontSize: 18))),
-                                    const SizedBox(height: 8.0),
-                                    const Text.rich(TextSpan(
-                                        text: 'Number of Employees:',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500))),
                                     if (_employees != null) ...[
+                                      const SizedBox(height: 8.0),
+                                      const Text.rich(TextSpan(
+                                          text: 'Number of Employees:',
+                                          style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500))),
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,

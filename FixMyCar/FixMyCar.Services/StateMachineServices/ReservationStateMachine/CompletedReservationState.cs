@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using FixMyCar.Model.DTOs.Reservation;
+using FixMyCar.Model.Entities;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using System;
 using System.Collections.Generic;
@@ -14,11 +17,27 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
         {
         }
 
+        public override async Task<ReservationGetDTO> SoftDelete(Reservation entity, string role)
+        {
+            if (role == "carrepairshop")
+            {
+                entity.DeletedByShop = true;
+            }
+            else if (role == "client")
+            {
+                entity.DeletedByCustomer = true;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<ReservationGetDTO>(entity);
+        }
+
         public override async Task<List<string>> AllowedActions()
         {
             var list = await base.AllowedActions();
 
-            list.Add("Completed reservations can't be updated or have its state changed.");
+            list.Add("SoftDelete");
 
             return list;
         }

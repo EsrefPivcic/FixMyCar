@@ -33,5 +33,7 @@ namespace FixMyCar.Model.Entities
         public string Type { get; set; }
         public string? PaymentIntentId { get; set; }
         public ICollection<ReservationDetail> ReservationDetails { get; set; }
+        public bool DeletedByShop { get; set; }
+        public bool DeletedByCustomer { get; set; }
     }
 }

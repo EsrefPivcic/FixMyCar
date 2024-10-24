@@ -19,11 +19,27 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
         public CancelledReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
         }
+        public override async Task<ReservationGetDTO> SoftDelete(Reservation entity, string role)
+        {
+            if (role == "carrepairshop")
+            {
+                entity.DeletedByShop = true;
+            }
+            else if (role == "client")
+            {
+                entity.DeletedByCustomer = true;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<ReservationGetDTO>(entity);
+        }
+
         public override async Task<List<string>> AllowedActions()
         {
             var list = await base.AllowedActions();
 
-            list.Add("Cancelled reservations can't be updated or have it's state changed.");
+            list.Add("SoftDelete");
 
             return list;
         }

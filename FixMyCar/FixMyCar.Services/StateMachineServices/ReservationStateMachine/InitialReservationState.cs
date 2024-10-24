@@ -158,6 +158,8 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             }
 
             entity.ReservationCreatedDate = DateTime.Now;
+            entity.DeletedByCustomer = false;
+            entity.DeletedByShop = false;
 
             var set = _context.Set<Reservation>();
 

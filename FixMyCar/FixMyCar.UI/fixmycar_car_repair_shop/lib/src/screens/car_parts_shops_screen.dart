@@ -135,7 +135,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                       child: Text(
                         _isFilterApplied
                             ? 'No results found for your search.'
-                            : 'No services available.',
+                            : 'No shops available.',
                       ),
                     ),
                   )

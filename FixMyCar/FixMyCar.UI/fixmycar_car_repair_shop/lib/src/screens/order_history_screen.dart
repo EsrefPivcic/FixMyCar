@@ -91,6 +91,50 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     );
   }
 
+  Future _confirmDelete(int orderId) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: const Text('Are you sure you want to delete this order?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<OrderProvider>(context, listen: false)
+                    .delete(orderId)
+                    .then((_) {
+                  Provider.of<OrderProvider>(context, listen: false)
+                      .getByCarRepairShop(orderSearch: filterCriteria);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Order deleted sucessfully."),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
   final _cityController = TextEditingController();
   final _addressController = TextEditingController();
   final _postalCodeController = TextEditingController();
@@ -400,8 +444,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             ),
                             child: const Text("Close"),
                           ),
-                          const SizedBox(width: 8.0),
                           if (order.state == "onhold") ...[
+                            const SizedBox(width: 8.0),
                             ElevatedButton(
                               onPressed: () async {
                                 await _confirmCancel(order.id);
@@ -412,8 +456,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               child: const Text('Cancel Order'),
                             ),
                             const SizedBox(width: 8.0),
-                          ],
-                          if (order.state == "onhold") ...[
                             ElevatedButton(
                               onPressed: () async {
                                 showUpdateForm(order);
@@ -424,8 +466,19 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               ),
                               child: const Text('Update Order'),
                             ),
+                          ],
+                          if (order.state != "onhold") ...[
                             const SizedBox(width: 8.0),
-                          ]
+                            ElevatedButton(
+                              onPressed: () async {
+                                await _confirmDelete(order.id);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              child: const Text('Delete From History'),
+                            ),
+                          ],
                         ],
                       ),
                     ],

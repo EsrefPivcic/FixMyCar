@@ -98,4 +98,22 @@ class OrderProvider extends BaseProvider<Order, OrderAccept> {
       rethrow;
     }
   }
+
+  Future<void> delete(int id) async {
+    try {
+      final response = await http.put(
+          Uri.parse('${BaseProvider.baseUrl}/$endpoint/SoftDelete/$id'),
+          headers: await createHeaders());
+      if (response.statusCode == 200) {
+        print('Delete successful.');
+        notifyListeners();
+      } else {
+        throw Exception(
+            'Failed to delete the order. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error deleting the order: $e');
+      rethrow;
+    }
+  }
 }

@@ -111,6 +111,52 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
+  Future _confirmDelete(int orderId) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: const Text(
+            'Are you sure you want to delete this order from history?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<OrderProvider>(context, listen: false)
+                    .delete(orderId)
+                    .then((_) {
+                  Provider.of<OrderProvider>(context, listen: false)
+                      .getByCarPartsShop(orderSearch: filterCriteria);
+                });
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Order deleted sucessfully."),
+                  ),
+                );
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _showOrderDetails(BuildContext context, Order order) async {
     final orderDetailProvider =
         Provider.of<OrderDetailProvider>(context, listen: false);
@@ -306,6 +352,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             child: const Text("Close"),
                           ),
                           const SizedBox(width: 8.0),
+                          if (order.state != "onhold") ...[
+                            ElevatedButton(
+                              onPressed: () async {
+                                await _confirmDelete(order.id);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              child: const Text('Delete From History'),
+                            ),
+                          ],
                           if (order.state == "onhold") ...[
                             ElevatedButton(
                               onPressed: () async {

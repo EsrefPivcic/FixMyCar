@@ -91,6 +91,8 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             }
 
             entity.OrderDate = DateTime.Now;
+            entity.DeletedByCustomer = false;
+            entity.DeletedByShop = false;
 
             set.Add(entity);
 

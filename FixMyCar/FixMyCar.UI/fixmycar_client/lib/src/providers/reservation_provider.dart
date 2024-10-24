@@ -247,6 +247,38 @@ class ReservationProvider
     }
   }
 
+  Future<void> delete(int id) async {
+    try {
+      final response = await http.put(
+          Uri.parse('${BaseProvider.baseUrl}/$endpoint/SoftDelete/$id'),
+          headers: await createHeaders());
+      if (response.statusCode == 200) {
+        print('Deleting reservation successful.');
+        notifyListeners();
+      } else {
+        final responseBody = jsonDecode(response.body);
+        final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+        if (errors != null) {
+          final userErrors = errors['UserError'] as List<dynamic>?;
+          if (userErrors != null) {
+            for (var error in userErrors) {
+              throw Exception(
+                  'User error. $error Status code: ${response.statusCode}');
+            }
+          } else {
+            throw Exception(
+                'Server side error. Status code: ${response.statusCode}');
+          }
+        } else {
+          throw Exception('Unknown error. Status code: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> cancel(int id) async {
     try {
       final response = await http.put(

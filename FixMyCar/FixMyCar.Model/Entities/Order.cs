@@ -34,5 +34,7 @@ namespace FixMyCar.Model.Entities
         public string ShippingPostalCode { get; set; }
         public string? PaymentIntentId { get; set; }
         public ICollection<OrderDetail> OrderDetails { get; set; }
+        public bool DeletedByShop { get; set; }
+        public bool DeletedByCustomer { get; set; }
     }
 }

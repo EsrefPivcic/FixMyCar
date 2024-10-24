@@ -67,6 +67,11 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
             throw new UserException("Action not allowed.");
         }
 
+        public virtual async Task<OrderGetDTO> SoftDelete(Order entity, string role)
+        {
+            throw new UserException("Action not allowed.");
+        }
+
         public virtual async Task<List<string>> AllowedActions()
         {
             return new List<string>();

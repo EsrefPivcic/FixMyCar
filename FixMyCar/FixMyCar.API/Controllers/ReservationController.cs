@@ -74,6 +74,13 @@ namespace FixMyCar.API.Controllers
             return await (_service as IReservationService)!.Complete(id);
         }
 
+        [HttpPut("SoftDelete/{id}")]
+        public virtual async Task<ReservationGetDTO> SoftDelete(int id)
+        {
+            string role = User.FindFirst(ClaimTypes.Role)?.Value!;
+            return await (_service as IReservationService)!.SoftDelete(id, role);
+        }
+
         [HttpGet("AllowedActions/{id}")]
         public virtual async Task<List<string>> AllowedActions(int id)
         {

@@ -23,6 +23,11 @@ String? _monthlyRevenuePerCustomerReportDataCsv;
 String? _top10MonthlyOrdersReportDataCsv;
 
 List<List<dynamic>> _parseCsvReport(String csvData) {
+  csvData = csvData.replaceAllMapped(
+    RegExp(r'(?<!\r)\n'),
+    (match) => '\r\n',
+  );
+
   return CsvToListConverter().convert(csvData);
 }
 

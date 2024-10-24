@@ -132,6 +132,52 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     }
   }
 
+  Future _confirmDelete(int reservationId) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content:
+            const Text('Are you sure you want to delete this reservation?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<ReservationProvider>(context, listen: false)
+                    .delete(reservationId)
+                    .then((_) {
+                  Provider.of<ReservationProvider>(context, listen: false)
+                      .getByCarRepairShop(reservationSearch: filterCriteria);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Reservation deleted successfully."),
+                    ),
+                  );
+                });
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              } catch (e) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future _confirmReject(int reservationId) async {
     showDialog(
       context: context,
@@ -655,6 +701,22 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                 backgroundColor: Colors.red,
                               ),
                               child: const Text('Reject Reservation'),
+                            ),
+                            const SizedBox(width: 8.0),
+                          ],
+                          if (reservation.state == "rejected" ||
+                              reservation.state == "cancelled" ||
+                              reservation.state == "completed" ||
+                              reservation.state == "missingpayment" ||
+                              reservation.state == "paymentfailed") ...[
+                            ElevatedButton(
+                              onPressed: () async {
+                                await _confirmDelete(reservation.id);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                              ),
+                              child: const Text('Delete From History'),
                             ),
                             const SizedBox(width: 8.0),
                           ],

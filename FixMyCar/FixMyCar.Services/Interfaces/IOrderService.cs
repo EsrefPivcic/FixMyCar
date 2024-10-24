@@ -21,5 +21,6 @@ namespace FixMyCar.Services.Interfaces
         Task<OrderGetDTO> AddSuccessfulPayment(int id, string paymentIntentId);
         Task<List<string>> AllowedActions(int id);
         Task<OrderBasicInfoGetDTO> GetBasicOrderInfo(int id);
+        Task<OrderGetDTO> SoftDelete(int id, string role);
     }
 }

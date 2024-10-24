@@ -49,6 +49,13 @@ namespace FixMyCar.API.Controllers
             return await (_service as IOrderService).Resend(id);
         }
 
+        [HttpPut("SoftDelete/{id}")]
+        public virtual async Task<OrderGetDTO> SoftDelete(int id)
+        {
+            string? role = User.FindFirst(ClaimTypes.Role)?.Value;
+            return await (_service as IOrderService).SoftDelete(id, role);
+        }
+
         [HttpPut("AddFailedPayment/{id}/{paymentIntentId}")]
         public virtual async Task<OrderGetDTO> AddFailedPayment(int id, string paymentIntentId)
         {

@@ -35,11 +35,13 @@ namespace FixMyCar.Services.Services
                 if (search?.CarRepairShopName != null)
                 {
                     query = query.Where(x => x.CarRepairShop.Username == search.CarRepairShopName);
+                    query = query.Where(x => x.DeletedByShop != true);
                 }
 
                 if (search?.ClientUsername != null)
                 {
                     query = query.Where(x => x.Client.Username == search.ClientUsername);
+                    query = query.Where(x => x.DeletedByCustomer != true);
                 }
 
                 if (search?.Discount != null)
@@ -291,6 +293,19 @@ namespace FixMyCar.Services.Services
                 var state = _baseReservationState.CreateState(entity.State);
 
                 return await state.Complete(entity);
+            }
+            throw new UserException("Entity doesn't exist!");
+        }
+
+        public async Task<ReservationGetDTO> SoftDelete(int id, string role)
+        {
+            var entity = await _context.Reservations.FindAsync(id);
+
+            if (entity != null)
+            {
+                var state = _baseReservationState.CreateState(entity.State);
+
+                return await state.SoftDelete(entity, role);
             }
             throw new UserException("Entity doesn't exist!");
         }

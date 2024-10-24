@@ -85,6 +85,11 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             throw new UserException("Action not allowed.");
         }
 
+        public virtual async Task<ReservationGetDTO> SoftDelete(Reservation entity, string role)
+        {
+            throw new UserException("Action not allowed.");
+        }
+
         public virtual async Task<List<string>> AllowedActions()
         {
             return new List<string>();

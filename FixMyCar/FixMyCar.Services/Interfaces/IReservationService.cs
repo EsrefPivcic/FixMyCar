@@ -22,5 +22,6 @@ namespace FixMyCar.Services.Interfaces
         Task<List<string>> AllowedActions(int id);
         Task<ReservationGetDTO> AddSuccessfulPayment(int id, string paymentIntentId);
         Task<ReservationGetDTO> AddFailedPayment(int id, string paymentIntentId);
+        Task<ReservationGetDTO> SoftDelete(int id, string role);
     }
 }

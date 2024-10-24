@@ -37,6 +37,7 @@ namespace FixMyCar.Services.Services
                 if (search?.CarPartsShopName != null)
                 {
                     query = query.Where(o => o.CarPartsShop.Username == search.CarPartsShopName);
+                    query = query.Where(x => x.DeletedByShop != true);
                 }
 
                 if (!string.IsNullOrEmpty(search?.Role))
@@ -49,6 +50,7 @@ namespace FixMyCar.Services.Services
                     {
                         query = query.Where(x => x.CarRepairShopId != null);
                     }
+                    query = query.Where(x => x.DeletedByCustomer != true);
                 }
 
                 if (search?.CarRepairShopName != null)
@@ -181,13 +183,32 @@ namespace FixMyCar.Services.Services
             return await state.Accept(entity, orderAccept);
         }
 
+        public async Task<OrderGetDTO> SoftDelete(int id, string role)
+        {
+            var entity = await _context.Orders.FindAsync(id);
+
+            if (entity != null)
+            {
+                var state = _baseOrderState.CreateState(entity.State);
+
+                return await state.SoftDelete(entity, role);
+            }
+
+            throw new UserException("Entity doesn't exist!");
+        }
+
         public async Task<OrderGetDTO> Reject(int id)
         {
             var entity = await _context.Orders.FindAsync(id);
 
-            var state = _baseOrderState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseOrderState.CreateState(entity.State);
 
-            return await state.Reject(entity);
+                return await state.Reject(entity);
+            }
+
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<OrderGetDTO> AddFailedPayment(int id, string paymentIntentId)
@@ -212,18 +233,28 @@ namespace FixMyCar.Services.Services
         {
             var entity = await _context.Orders.FindAsync(id);
 
-            var state = _baseOrderState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseOrderState.CreateState(entity.State);
 
-            return await state.Cancel(entity);
+                return await state.Cancel(entity);
+            }
+
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<OrderGetDTO> Resend(int id)
         {
             var entity = await _context.Orders.FindAsync(id);
 
-            var state = _baseOrderState.CreateState(entity.State);
+            if (entity != null)
+            {
+                var state = _baseOrderState.CreateState(entity.State);
 
-            return await state.Resend(entity);
+                return await state.Resend(entity);
+            }
+
+            throw new UserException("Entity doesn't exist!");
         }
 
         public async Task<List<string>> AllowedActions(int id)

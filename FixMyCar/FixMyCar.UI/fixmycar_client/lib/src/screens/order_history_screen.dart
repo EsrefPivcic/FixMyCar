@@ -52,6 +52,50 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     }
   }
 
+  Future _confirmDelete(int orderId) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: const Text('Are you sure you want to delete this order?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<OrderProvider>(context, listen: false)
+                    .delete(orderId)
+                    .then((_) {
+                  Provider.of<OrderProvider>(context, listen: false)
+                      .getByClient(orderSearch: filterCriteria);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Order deleted successfully."),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future _confirmCancel(int orderId) async {
     showDialog(
       context: context,
@@ -391,7 +435,19 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       Column(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                Navigator.of(context).pop();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).hoverColor,
+                              ),
+                              child: const Text("Close"),
+                            ),
+                          ),
                           if (order.state == "onhold") ...[
+                            const SizedBox(height: 5.0),
                             Center(
                               child: ElevatedButton(
                                 onPressed: () async {
@@ -404,8 +460,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               ),
                             ),
                             const SizedBox(height: 5.0),
-                          ],
-                          if (order.state == "onhold") ...[
                             Center(
                               child: ElevatedButton(
                                 onPressed: () async {
@@ -418,19 +472,20 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                 child: const Text('Update Order'),
                               ),
                             ),
+                          ],
+                          if (order.state != "onhold") ...[
                             const SizedBox(height: 5.0),
                             Center(
                               child: ElevatedButton(
                                 onPressed: () async {
-                                  Navigator.of(context).pop();
+                                  await _confirmDelete(order.id);
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context).hoverColor,
+                                  backgroundColor: Colors.red,
                                 ),
-                                child: const Text("Close"),
+                                child: const Text('Cancel Order'),
                               ),
                             ),
-                            const SizedBox(height: 5.0),
                           ],
                         ],
                       )

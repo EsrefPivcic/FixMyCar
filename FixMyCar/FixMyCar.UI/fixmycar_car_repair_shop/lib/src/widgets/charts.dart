@@ -23,6 +23,11 @@ String? _monthlyRevenuePerCustomerReportDataCsv;
 String? _top10MonthlyReservationsReportDataCsv;
 
 List<List<dynamic>> _parseCsvReport(String csvData) {
+  csvData = csvData.replaceAllMapped(
+    RegExp(r'(?<!\r)\n'),
+    (match) => '\r\n',
+  );
+
   return CsvToListConverter().convert(csvData);
 }
 
@@ -94,7 +99,7 @@ Future<void> fetchAllStatistics(BuildContext context) async {
   await _fetchTop10MonthlyReservationsReport(context);
 }
 
-Future<List<BarChartGroupData>> _createBarChartData() async {
+List<BarChartGroupData> _createBarChartData() {
   Map<String, double> revenueMap = {
     "Diagnostics": 0.0,
     "Repairs": 0.0,
@@ -426,7 +431,7 @@ Future<Widget> buildChart(
                     height: 600,
                     child: BarChart(
                       BarChartData(
-                        barGroups: await _createBarChartData(),
+                        barGroups: _createBarChartData(),
                         titlesData: _buildBarChartTitles(),
                       ),
                     ),

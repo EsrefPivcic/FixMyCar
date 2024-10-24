@@ -21,7 +21,7 @@ class User {
   String openingTime;
   String closingTime;
   String workingHours;
-  int employees;
+  int? employees;
 
   User(
       this.id,

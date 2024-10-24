@@ -180,6 +180,8 @@ namespace FixMyCar.Services.Database
                         CityId = 1,
                         ShippingAddress = "Kralja Tvrtka I bb",
                         ShippingPostalCode = "80101",
+                        DeletedByCustomer = false,
+                        DeletedByShop = false
                     },
                     new Order
                     {
@@ -194,6 +196,8 @@ namespace FixMyCar.Services.Database
                         CityId = 1,
                         ShippingAddress = "Kralja Tvrtka I bb",
                         ShippingPostalCode = "80101",
+                        DeletedByCustomer = false,
+                        DeletedByShop = false
                     },
                     new Order
                     {
@@ -208,6 +212,8 @@ namespace FixMyCar.Services.Database
                         CityId = 1,
                         ShippingAddress = "Kralja Tvrtka I bb",
                         ShippingPostalCode = "80101",
+                        DeletedByCustomer = false,
+                        DeletedByShop = false
                     },
                     new Order
                     {
@@ -222,6 +228,8 @@ namespace FixMyCar.Services.Database
                         CityId = 1,
                         ShippingAddress = "Kralja Tvrtka I bb",
                         ShippingPostalCode = "80101",
+                        DeletedByCustomer = false,
+                        DeletedByShop = false
                     }
                 );
 
