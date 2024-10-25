@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:csv/csv.dart';
@@ -95,6 +96,9 @@ Future<void> fetchAllStatistics(BuildContext context) async {
   await _fetchTop10MonthlyOrdersReport(context);
 }
 
+int roundedBarMaxY = 0;
+int roundedLineMaxY = 0;
+
 List<BarChartGroupData> _createBarChartData() {
   Map<String, double> revenueMap = {"Client": 0.0, "CarRepairShop": 0.0};
 
@@ -107,6 +111,9 @@ List<BarChartGroupData> _createBarChartData() {
       revenueMap[reservationType] = revenue;
     }
   }
+
+  double maxY = revenueMap.values.reduce(max);
+  roundedBarMaxY = (maxY / 1000).ceil() * 1000;
 
   return [
     BarChartGroupData(
@@ -135,6 +142,9 @@ List<LineChartBarData> _createLineChartData() {
     double revenue = row[1];
     totalAmountByDate[day] = revenue;
   }
+
+  double maxY = totalAmountByDate.values.reduce(max);
+  roundedLineMaxY = (maxY / 1000).ceil() * 1000;
 
   return [
     LineChartBarData(
@@ -178,11 +188,13 @@ Widget _buildTop10OrdersTable() {
       DataColumn(label: Text('Discount')),
     ],
     rows: _top10MonthlyOrdersReportData!.skip(1).map((order) {
+      DateTime date = DateTime.parse(order[0]);
+      String formattedDate = '${date.day}/${date.month}/${date.year}';
       return DataRow(cells: [
-        DataCell(Text(order[0].toString())),
+        DataCell(Text(formattedDate)),
         DataCell(Text(order[1].toString())),
         DataCell(Text(order[2].toString())),
-        DataCell(Text("${order[3].toString()}€")),
+        DataCell(Text("${order[3].toStringAsFixed(2)}€")),
         DataCell(Text(order[4].toString())),
       ]);
     }).toList(),
@@ -200,17 +212,29 @@ FlTitlesData _buildLineChartTitles() {
       sideTitles: SideTitles(
         showTitles: true,
         reservedSize: 40,
+        interval: roundedLineMaxY / 8,
         getTitlesWidget: (double value, TitleMeta meta) {
-          return Text('${value.toInt()}€');
+          if (value == roundedLineMaxY) return Container();
+          return Text(
+            '${value.toInt()} €',
+            style: const TextStyle(
+                fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+          );
         },
       ),
     ),
     rightTitles: AxisTitles(
       sideTitles: SideTitles(
         showTitles: true,
+        interval: roundedLineMaxY / 8,
         reservedSize: 40,
         getTitlesWidget: (double value, TitleMeta meta) {
-          return Text('${value.toInt()}€');
+          if (value == roundedLineMaxY) return Container();
+          return Text(
+            '${value.toInt()} €',
+            style: const TextStyle(
+                fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+          );
         },
       ),
     ),
@@ -259,9 +283,15 @@ FlTitlesData _buildBarChartTitles() {
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
+          interval: roundedBarMaxY / 8,
           reservedSize: 40,
           getTitlesWidget: (double value, TitleMeta meta) {
-            return Text('${value.toInt()}€');
+            if (value == roundedBarMaxY) return Container();
+            return Text(
+              '${value.toInt()} €',
+              style: const TextStyle(
+                  fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+            );
           },
         ),
       ),
@@ -312,6 +342,32 @@ Widget _buildBarLegend() {
       ),
     ],
   );
+}
+
+BarTouchData _buildBarTouchData() {
+  return BarTouchData(touchTooltipData: BarTouchTooltipData(
+    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+      String title;
+      switch (group.x.toInt()) {
+        case 0:
+          title = 'Clients';
+          break;
+        case 1:
+          title = 'Car Repair Shops';
+          break;
+        default:
+          title = '';
+          break;
+      }
+
+      String value = rod.toY.toStringAsFixed(2);
+
+      return BarTooltipItem(
+        '$title\n$value€',
+        const TextStyle(color: Colors.white),
+      );
+    },
+  ));
 }
 
 Future<Uint8List> _captureChartToImage(GlobalKey key) async {
@@ -401,6 +457,7 @@ Future<Widget> buildChart(
                       BarChartData(
                         barGroups: _createBarChartData(),
                         titlesData: _buildBarChartTitles(),
+                        barTouchData: _buildBarTouchData(),
                       ),
                     ),
                   ),

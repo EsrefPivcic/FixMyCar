@@ -12,17 +12,20 @@ namespace FixMyCar.HelperAPI.Services
     public class GenerateCarRepairShopReportService : IGenerateCarRepairShopReportService
     {
         private readonly FixMyCarContext _context;
+        private readonly RabbitMQService _rabbitMQService;
 
-        public GenerateCarRepairShopReportService(FixMyCarContext context)
+        public GenerateCarRepairShopReportService(FixMyCarContext context, RabbitMQService rabbitMQService)
         {
             _context = context;
+            _rabbitMQService = rabbitMQService;
         }
         public async Task GenerateReport(ReportRequestDTO request)
         {
             var query = _context.Set<Reservation>().AsQueryable();
 
             query = query.Include(r => r.CarRepairShopDiscount)
-                .Include(r => r.Client)               .Include(r => r.ReservationDetails)
+                .Include(r => r.Client)
+                .Include(r => r.ReservationDetails)
                 .ThenInclude(rd => rd.CarRepairShopService)
                 .Where(r => r.CarRepairShop.Username == request.ShopName);
 
@@ -89,25 +92,23 @@ namespace FixMyCar.HelperAPI.Services
 
                 Console.WriteLine($"Report generated and saved at {filePath}");
 
-                using var rabbitMQService = new RabbitMQService();
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
                     Username = request.ShopName,
                     NotificationType = "customreport",
                     Message = "New custom report generated!"
                 };
-                rabbitMQService.SendReportNotification(notification);
+                _rabbitMQService.SendReportNotification(notification);
             }
             else
             {
-                using var rabbitMQService = new RabbitMQService();
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
                     Username = request.ShopName,
                     NotificationType = "customreport",
                     Message = "Can't generate report, there aren't any reservations!"
                 };
-                rabbitMQService.SendReportNotification(notification);
+                _rabbitMQService.SendReportNotification(notification);
             }
         }
 
@@ -117,7 +118,10 @@ namespace FixMyCar.HelperAPI.Services
 
             DateTime oneMonthOlder = DateTime.Now.AddMonths(-1);
 
-            query = query.Where(r => r.CarRepairShop.Username == shopName)
+            query = query.Include(r => r.Client)
+                .Include(r => r.ReservationDetails)
+                .Include(r => r.CarRepairShopDiscount)
+                .Where(r => r.CarRepairShop.Username == shopName)
                 .Where(r => r.ReservationCreatedDate.Date >= oneMonthOlder.Date &&
                 r.ReservationCreatedDate.Date <= DateTime.Now.Date);
 
@@ -129,25 +133,23 @@ namespace FixMyCar.HelperAPI.Services
                 await MonthlyRevenuePerDay(shopName, reservations, oneMonthOlder);
                 await Top10CustomersMonthly(shopName, reservations);
                 await Top10ReservationsMonthly(shopName, reservations);
-                using var rabbitMQService = new RabbitMQService();
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
                     Username = shopName,
                     NotificationType = "monthlystatistics",
                     Message = "Monthly statistics updated!"
                 };
-                rabbitMQService.SendReportNotification(notification);
+                _rabbitMQService.SendReportNotification(notification);
             }
             else
             {
-                using var rabbitMQService = new RabbitMQService();
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
                     Username = shopName,
                     NotificationType = "monthlystatistics",
                     Message = "Can't generate report, there are no reservations in the past month!"
                 };
-                rabbitMQService.SendReportNotification(notification);
+                _rabbitMQService.SendReportNotification(notification);
             }
         }
 
@@ -252,7 +254,7 @@ namespace FixMyCar.HelperAPI.Services
                 string discount = reservation.CarRepairShopDiscountId != null
                     ? $"{(reservation.CarRepairShopDiscount.Value * 100):F2}%"
                     : "No discount";
-                csvReport.AppendLine($"{reservation.ReservationCreatedDate},{reservation.ReservationDate},{customerInfo},{reservation.TotalAmount:F2},{reservation.Type},{discount}");
+                csvReport.AppendLine($"{reservation.ReservationCreatedDate:yyyy-MM-dd},{reservation.ReservationDate:yyyy-MM-dd},{customerInfo},{reservation.TotalAmount:F2},{reservation.Type},{discount}");
             }
 
             var fileName = $"top_10_reservations_monthly_{shopName}.csv";

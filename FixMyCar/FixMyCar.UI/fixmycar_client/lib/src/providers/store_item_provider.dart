@@ -10,6 +10,8 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
   StoreItemProvider() : super('StoreItem');
 
   Future<void> getStoreItems({
+    required int pageNumber,
+    required int pageSize,
     required carPartsShopName,
     String? nameFilter,
     bool? withDiscount,
@@ -24,6 +26,8 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
 
     queryParams['CarPartsShopName'] = carPartsShopName;
     queryParams['State'] = "active";
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
 
     if (nameFilter != null && nameFilter.isNotEmpty) {
       queryParams['Contains'] = nameFilter;

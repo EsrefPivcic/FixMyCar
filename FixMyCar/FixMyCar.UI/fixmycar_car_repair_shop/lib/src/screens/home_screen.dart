@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (notificationType == "customreport") {
         _fetchReport();
       } else if (notificationType == "monthlystatistics") {
-        fetchAllStatistics(context).then((_) {
+        setState(() {
           _chartFuture = buildChart(_selectedChartType, context);
         });
       }
@@ -1081,14 +1081,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                'Custom Report:',
-                                style:
-                                    Theme.of(context).textTheme.headlineSmall,
-                              ),
-                              const SizedBox(width: 10),
                               if (_reportData != null) ...[
-                                const Text("Custom report is ready."),
+                                Text(
+                                  'Custom Report Ready:',
+                                  style:
+                                      Theme.of(context).textTheme.headlineSmall,
+                                ),
                                 const SizedBox(width: 5),
                                 ElevatedButton(
                                   onPressed: _saveReportToFile,
@@ -1096,8 +1094,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       'Save custom report data to CSV'),
                                 ),
                               ] else ...[
-                                const SizedBox(width: 10),
-                                const Text("No custom report available."),
+                                Text(
+                                  'Custom Report Not Available:',
+                                  style:
+                                      Theme.of(context).textTheme.headlineSmall,
+                                ),
                               ],
                               const SizedBox(width: 10),
                               ElevatedButton(

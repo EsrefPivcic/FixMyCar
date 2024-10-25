@@ -13,11 +13,17 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
 
   OrderProvider() : super('Order');
 
-  Future<void> getByCarRepairShop({OrderSearchObject? orderSearch}) async {
+  Future<void> getByCarRepairShop(
+      {required int pageNumber,
+      required int pageSize,
+      OrderSearchObject? orderSearch}) async {
     isLoading = true;
     notifyListeners();
 
     Map<String, dynamic> queryParams = {};
+
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
 
     if (orderSearch != null) {
       if (orderSearch.discount != null) {

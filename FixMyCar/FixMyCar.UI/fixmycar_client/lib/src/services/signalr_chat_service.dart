@@ -2,7 +2,7 @@ import 'package:signalr_netcore/signalr_client.dart';
 
 class SignalRChatService {
   late HubConnection _connection;
-  String _baseUrl = "http://10.0.2.2:5148/chatHub";
+  final String _baseUrl = "http://10.0.2.2:5148/chatHub";
 
   Function(String senderUserId, String message)? onMessageReceived;
 

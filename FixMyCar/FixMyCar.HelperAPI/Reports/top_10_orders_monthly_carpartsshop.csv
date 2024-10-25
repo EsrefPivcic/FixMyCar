@@ -1,11 +1,10 @@
 OrderDate,Customer,CustomerType,TotalAmount,Discount
-02/10/2024 00:00:00,Esref Pivcic (client),Client,1979.25,15.00%
-02/10/2024 00:00:00,Esref Pivcic (carrepairshop),Car Repair Shop,1718.25,13.00%
-10/10/2024 04:20:00,Esref Pivcic (carrepairshop),Car Repair Shop,1550.00,No discount
-02/10/2024 00:00:00,Esref Pivcic (client),Client,1000.50,15.00%
-03/10/2024 03:37:53,Esref Pivcic (carrepairshop),Car Repair Shop,925.00,No discount
-09/10/2024 23:15:42,Esref Pivcic (client),Client,837.25,15.00%
-03/10/2024 03:33:55,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,13.00%
-02/10/2024 00:00:00,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,13.00%
-05/10/2024 03:07:41,Esref Pivcic (carrepairshop),Car Repair Shop,800.00,No discount
-05/10/2024 03:07:51,Esref Pivcic (carrepairshop),Car Repair Shop,750.00,No discount
+2024-10-24,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,13.00%
+2024-10-24,Esref Pivcic (carrepairshop),Car Repair Shop,1718.25,13.00%
+2024-10-24,Esref Pivcic (client),Client,1979.25,15.00%
+2024-10-24,Esref Pivcic (client),Client,1000.50,15.00%
+2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4980.75,13.00%
+2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,3784.50,13.00%
+2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4241.25,13.00%
+2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4045.50,13.00%
+2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,3088.50,13.00%

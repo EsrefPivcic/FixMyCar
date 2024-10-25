@@ -12,10 +12,12 @@ namespace FixMyCar.HelperAPI.Services
     public class GenerateCarPartsShopReportService : IGenerateCarPartsShopReportService
     {
         private readonly FixMyCarContext _context;
+        private readonly RabbitMQService _rabbitMQService;
 
-        public GenerateCarPartsShopReportService(FixMyCarContext context)
+        public GenerateCarPartsShopReportService(FixMyCarContext context, RabbitMQService rabbitMQService)
         {
             _context = context;
+            _rabbitMQService = rabbitMQService;
         }
 
         public async Task GenerateReport(ReportRequestDTO request)
@@ -112,25 +114,23 @@ namespace FixMyCar.HelperAPI.Services
 
                 Console.WriteLine($"Report generated and saved at {filePath}");
 
-                using var rabbitMQService = new RabbitMQService();
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
                     Username = request.ShopName,
                     NotificationType = "customreport",
                     Message = "Custom report generated!"
                 };
-                rabbitMQService.SendReportNotification(notification);
+                _rabbitMQService.SendReportNotification(notification);
             }
             else
             {
-                using var rabbitMQService = new RabbitMQService();
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
                     Username = request.ShopName,
                     NotificationType = "customreport",
                     Message = "Can't generate report, there aren't any orders!"
                 };
-                rabbitMQService.SendReportNotification(notification);
+                _rabbitMQService.SendReportNotification(notification);
             }
         }
 
@@ -138,9 +138,12 @@ namespace FixMyCar.HelperAPI.Services
         {
             var query = _context.Set<Order>().AsQueryable();
 
-            DateTime oneMonthOlder = DateTime.Now.AddMonths(-1);
+            DateTime oneMonthOlder = DateTime.Now.AddMonths(-1).Date;
 
-            query = query
+            query = query.Include(o => o.CarRepairShop)
+                .Include(o => o.Client)
+                .Include(o => o.OrderDetails)
+                .Include(o => o.ClientDiscount)
                 .Where(o => o.CarPartsShop.Username == shopName)
                 .Where(o => o.OrderDate.Date >= oneMonthOlder.Date &&
                 o.OrderDate.Date <= DateTime.Now.Date);
@@ -153,25 +156,23 @@ namespace FixMyCar.HelperAPI.Services
                 await MonthlyRevenuePerDay(shopName, orders, oneMonthOlder);
                 await Top10CustomersMonthly(shopName, orders);
                 await Top10OrdersMonthly(shopName, orders);
-                using var rabbitMQService = new RabbitMQService();
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
                     Username = shopName,
                     NotificationType = "monthlystatistics",
                     Message = "Monthly statistics updated!"
                 };
-                rabbitMQService.SendReportNotification(notification);
+                _rabbitMQService.SendReportNotification(notification);
             }
             else
             {
-                using var rabbitMQService = new RabbitMQService();
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
                     Username = shopName,
                     NotificationType = "monthlystatistics",
                     Message = "Can't generate report, there are no orders in the past month!"
                 };
-                rabbitMQService.SendReportNotification(notification);
+                _rabbitMQService.SendReportNotification(notification);
             }
         }
 
@@ -194,8 +195,8 @@ namespace FixMyCar.HelperAPI.Services
 
             var csvReport = new StringBuilder();
             csvReport.AppendLine("CustomerType,Revenue");
-            csvReport.AppendLine($"Client,{clientsRevenue}");
-            csvReport.AppendLine($"CarRepairShop,{repairShopsRevenue}");
+            csvReport.AppendLine($"Client,{clientsRevenue:F2}");
+            csvReport.AppendLine($"CarRepairShop,{repairShopsRevenue:F2}");
 
             var fileName = $"monthly_revenue_per_customer_type_{shopName}.csv";
             var filePath = Path.Combine("Reports", fileName);
@@ -233,7 +234,7 @@ namespace FixMyCar.HelperAPI.Services
         {
             var ordersData = orders.Select(order => new
             {
-                Customer = order.Client != null ? order.Client.Name + " " + order.Client.Surname + $" ({order.Client.Username})" :
+                Customer = order.ClientId != null ? order.Client.Name + " " + order.Client.Surname + $" ({order.Client.Username})" :
                 order.CarRepairShop!.Name + " " + order.CarRepairShop.Surname + $" ({order.CarRepairShop.Username})",
                 TotalAmount = order.TotalAmount,
             }).ToList();
@@ -279,7 +280,7 @@ namespace FixMyCar.HelperAPI.Services
                     ? $"{(order.ClientDiscount!.Value * 100):F2}%"
                     : "No discount";
                 string customerType = order.ClientId != null ? "Client" : "Car Repair Shop";
-                csvReport.AppendLine($"{order.OrderDate},{customerInfo},{customerType},{order.TotalAmount:F2},{discount}");
+                csvReport.AppendLine($"{order.OrderDate:yyyy-MM-dd},{customerInfo},{customerType},{order.TotalAmount:F2},{discount}");
             }
 
             var fileName = $"top_10_orders_monthly_{shopName}.csv";

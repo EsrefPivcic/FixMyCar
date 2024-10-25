@@ -10,13 +10,18 @@ class CarRepairShopProvider extends BaseProvider<User, User> {
   List<User> carRepairShops = [];
   bool isLoading = false;
 
-  Future<void> getRepairShops({UserSearchObject? search}) async {
+  Future<void> getRepairShops(
+      {required int pageNumber,
+      required int pageSize,
+      UserSearchObject? search}) async {
     isLoading = true;
     notifyListeners();
 
     Map<String, dynamic> queryParams = {};
 
     queryParams['Active'] = true.toString();
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
 
     if (search != null) {
       if (search.containsUsername != null) {
@@ -25,23 +30,23 @@ class CarRepairShopProvider extends BaseProvider<User, User> {
         }
       }
     }
-    
-    try {
-        SearchResult<User> searchResult = await get(
-          filter: queryParams,
-          fromJson: (json) => User.fromJson(json),
-        );
 
-        carRepairShops = searchResult.result;
-        countOfItems = searchResult.count;
-        isLoading = false;
-      } catch (e) {
-        carRepairShops = [];
-        countOfItems = 0;
-        isLoading = false;
-      } finally {
-        isLoading = false;
-        notifyListeners();
-      }
+    try {
+      SearchResult<User> searchResult = await get(
+        filter: queryParams,
+        fromJson: (json) => User.fromJson(json),
+      );
+
+      carRepairShops = searchResult.result;
+      countOfItems = searchResult.count;
+      isLoading = false;
+    } catch (e) {
+      carRepairShops = [];
+      countOfItems = 0;
+      isLoading = false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 }

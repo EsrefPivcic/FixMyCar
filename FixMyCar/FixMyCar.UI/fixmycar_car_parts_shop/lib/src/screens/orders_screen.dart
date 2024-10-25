@@ -17,6 +17,9 @@ class OrdersScreen extends StatefulWidget {
 
 OrderSearchObject filterCriteria =
     OrderSearchObject.n(minTotalAmount: 0, maxTotalAmount: 10000);
+int _pageNumber = 1;
+const int _pageSize = 10;
+int _totalPages = 1;
 
 class _OrdersScreenState extends State<OrdersScreen> {
   @override
@@ -24,7 +27,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Provider.of<OrderProvider>(context, listen: false)
-          .getByCarPartsShop(orderSearch: filterCriteria);
+          .getByCarPartsShop(
+              orderSearch: filterCriteria,
+              pageNumber: _pageNumber,
+              pageSize: _pageSize);
     });
   }
 
@@ -85,7 +91,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     .reject(orderId)
                     .then((_) {
                   Provider.of<OrderProvider>(context, listen: false)
-                      .getByCarPartsShop(orderSearch: filterCriteria);
+                      .getByCarPartsShop(
+                          orderSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 });
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
@@ -126,7 +135,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     .delete(orderId)
                     .then((_) {
                   Provider.of<OrderProvider>(context, listen: false)
-                      .getByCarPartsShop(orderSearch: filterCriteria);
+                      .getByCarPartsShop(
+                          orderSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 });
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
@@ -394,7 +406,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       Provider.of<OrderProvider>(context,
                                               listen: false)
                                           .getByCarPartsShop(
-                                              orderSearch: filterCriteria);
+                                              orderSearch: filterCriteria,
+                                              pageNumber: _pageNumber,
+                                              pageSize: _pageSize);
                                     });
                                     Navigator.of(context).pop();
                                   } catch (e) {
@@ -781,7 +795,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
             title: ElevatedButton(
               onPressed: () async {
                 await Provider.of<OrderProvider>(context, listen: false)
-                    .getByCarPartsShop(orderSearch: filterCriteria);
+                    .getByCarPartsShop(
+                        orderSearch: filterCriteria,
+                        pageNumber: _pageNumber,
+                        pageSize: _pageSize);
               },
               child: const Text("Apply Filters"),
             ),
@@ -796,7 +813,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final ordersProvider = Provider.of<OrderProvider>(context);
     final orders = ordersProvider.orders;
     final isLoading = ordersProvider.isLoading;
-
+    if (!isLoading) {
+      _totalPages = (ordersProvider.countOfItems / _pageSize).ceil();
+    }
     return MasterScreen(
       showBackButton: false,
       child: isLoading
@@ -809,132 +828,192 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     ? const Expanded(
                         child: Center(child: Text('No orders available.')))
                     : Expanded(
-                        child: ListView.builder(
-                          itemCount: orders.length,
-                          itemBuilder: (context, index) {
-                            final order = orders[index];
-                            return ListTile(
-                              title: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Order #${order.id}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: orders.length,
+                                itemBuilder: (context, index) {
+                                  final order = orders[index];
+                                  return ListTile(
+                                    title: Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: 'Order #${order.id}',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text.rich(
-                                    TextSpan(
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const TextSpan(
-                                          text: 'Customer: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Customer: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(text: order.username)
+                                            ],
+                                          ),
                                         ),
-                                        TextSpan(text: order.username)
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Order Date: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text: _formatDate(
+                                                      order.orderDate))
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Shipping Date: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text: order.shippingDate ==
+                                                          null
+                                                      ? "No shipping date"
+                                                      : _formatDate(
+                                                          order.shippingDate!))
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Total Amount: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text:
+                                                      '€${order.totalAmount.toStringAsFixed(2)}')
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Discount: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text:
+                                                      '${order.clientDiscountValue * 100}%')
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'State: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text: _getDisplayState(
+                                                      order.state),
+                                                  style: TextStyle(
+                                                      color: _getStateColor(
+                                                          order.state))),
+                                            ],
+                                          ),
+                                        ),
                                       ],
                                     ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const TextSpan(
-                                          text: 'Order Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
+                                        IconButton(
+                                          icon: order.state == "onhold"
+                                              ? const Icon(Icons.settings)
+                                              : const Icon(Icons.info_outline),
+                                          onPressed: () {
+                                            _showOrderDetails(context, order);
+                                          },
                                         ),
-                                        TextSpan(
-                                            text: _formatDate(order.orderDate))
                                       ],
                                     ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Shipping Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: order.shippingDate == null
-                                                ? "No shipping date"
-                                                : _formatDate(
-                                                    order.shippingDate!))
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Total Amount: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text:
-                                                '€${order.totalAmount.toStringAsFixed(2)}')
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Discount: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text:
-                                                '${order.clientDiscountValue * 100}%')
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'State: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: _getDisplayState(order.state),
-                                            style: TextStyle(
-                                                color: _getStateColor(
-                                                    order.state))),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: order.state == "onhold"
-                                        ? const Icon(Icons.settings)
-                                        : const Icon(Icons.info_outline),
-                                    onPressed: () {
+                                    onTap: () {
                                       _showOrderDetails(context, order);
                                     },
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
-                              onTap: () {
-                                _showOrderDetails(context, order);
-                              },
-                            );
-                          },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: _pageNumber > 1
+                                      ? () async {
+                                          setState(() {
+                                            _pageNumber = _pageNumber - 1;
+                                          });
+                                          await Provider.of<OrderProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .getByCarPartsShop(
+                                                  orderSearch: filterCriteria,
+                                                  pageNumber: _pageNumber,
+                                                  pageSize: _pageSize);
+                                        }
+                                      : null,
+                                  icon: const Icon(
+                                      Icons.arrow_back_ios_new_rounded),
+                                ),
+                                Text('$_pageNumber',
+                                    style:
+                                        Theme.of(context).textTheme.bodyLarge),
+                                IconButton(
+                                  onPressed: _pageNumber < _totalPages
+                                      ? () async {
+                                          setState(() {
+                                            _pageNumber = _pageNumber + 1;
+                                          });
+                                          await Provider.of<OrderProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .getByCarPartsShop(
+                                                  orderSearch: filterCriteria,
+                                                  pageNumber: _pageNumber,
+                                                  pageSize: _pageSize);
+                                        }
+                                      : null,
+                                  icon: const Icon(
+                                      Icons.arrow_forward_ios_rounded),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ),
+                      )
               ],
             ),
     );

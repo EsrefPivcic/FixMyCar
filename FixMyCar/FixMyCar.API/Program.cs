@@ -82,6 +82,7 @@ builder.Services.AddScoped<ReportNotificationService>();
 builder.Services.AddTransient<IChatService, ChatService>();
 
 builder.Services.AddHostedService<RabbitMqListener>();
+builder.Services.AddSingleton<RabbitMQService>();
 
 builder.Services.AddTransient<SeedService>();
 
@@ -131,7 +132,7 @@ builder.Services.AddAuthentication(options =>
 
             var path = context.HttpContext.Request.Path;
             if (!string.IsNullOrEmpty(accessToken) &&
-            (path.StartsWithSegments("/chathub") || path.StartsWithSegments("/reportNotificationHub")))
+            (path.StartsWithSegments("/chathub") || path.StartsWithSegments("/reportNotificationHub") || path.StartsWithSegments("/notificationHub")))
             {
                 context.Token = accessToken;
             }

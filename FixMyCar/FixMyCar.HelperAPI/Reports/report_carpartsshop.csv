@@ -1,48 +1,24 @@
 OrderId,OrderDate,Customer,CustomerType,TotalAmount,ShippingDate,ClientDiscount,StoreItemName,Quantity,UnitPrice,TotalItemsPrice,Discount,TotalItemsPriceDiscounted
-1,2024-10-02,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,Pending,13.00%,EBC-Turbo,2,350.00,700.00,No item discount,700.00
-1,2024-10-02,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,Pending,13.00%,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-2,2024-10-02,Esref Pivcic (carrepairshop),Car Repair Shop,1718.25,2024-10-02,13.00%,EBC-Turbo,5,350.00,1750.00,No item discount,1750.00
-2,2024-10-02,Esref Pivcic (carrepairshop),Car Repair Shop,1718.25,2024-10-02,13.00%,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-3,2024-10-02,Esref Pivcic (client),Client,1979.25,Pending,15.00%,OEM-R32 Brembo,4,400.00,1600.00,No item discount,1600.00
-3,2024-10-02,Esref Pivcic (client),Client,1979.25,Pending,15.00%,Monster-Motorsport,3,250.00,750.00,10.00%,675.00
-4,2024-10-02,Esref Pivcic (client),Client,1000.50,Pending,15.00%,OEM-R32 Brembo,2,400.00,800.00,No item discount,800.00
-4,2024-10-02,Esref Pivcic (client),Client,1000.50,Pending,15.00%,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-5,2024-10-03,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,Pending,13.00%,EBC-Turbo,2,350.00,700.00,No item discount,700.00
-5,2024-10-03,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,Pending,13.00%,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-6,2024-10-03,Esref Pivcic (carrepairshop),Car Repair Shop,925.00,Pending,No client discount,EBC-Turbo,2,350.00,700.00,No item discount,700.00
-6,2024-10-03,Esref Pivcic (carrepairshop),Car Repair Shop,925.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-7,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,575.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-7,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,575.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-8,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,575.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-8,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,575.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-9,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,575.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-9,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,575.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-10,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,750.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-10,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,750.00,Pending,No client discount,OEM-R32 Brembo,1,400.00,400.00,No item discount,400.00
-11,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,30.00,Pending,No client discount,Test 1,1,20.00,20.00,No item discount,20.00
-11,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,30.00,Pending,No client discount,Test 2,1,10.00,10.00,No item discount,10.00
-12,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,245.00,Pending,No client discount,Test 1,1,20.00,20.00,No item discount,20.00
-12,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,245.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-13,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,800.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-13,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,800.00,Pending,No client discount,Monster-Motorsport,2,250.00,500.00,10.00%,450.00
-14,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,750.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-14,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,750.00,Pending,No client discount,OEM-R32 Brembo,1,400.00,400.00,No item discount,400.00
-15,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,255.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-15,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,255.00,Pending,No client discount,Test 1,1,20.00,20.00,No item discount,20.00
-15,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,255.00,Pending,No client discount,Test 2,1,10.00,10.00,No item discount,10.00
-16,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,615.00,Pending,No client discount,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-16,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,615.00,Pending,No client discount,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-16,2024-10-05,Esref Pivcic (carrepairshop),Car Repair Shop,615.00,Pending,No client discount,Test 1,2,20.00,40.00,No item discount,40.00
-17,2024-10-09,Esref Pivcic (client),Client,340.00,Pending,15.00%,Test 2,1,10.00,10.00,No item discount,10.00
-17,2024-10-09,Esref Pivcic (client),Client,340.00,Pending,15.00%,Test 1,2,20.00,40.00,No item discount,40.00
-17,2024-10-09,Esref Pivcic (client),Client,340.00,Pending,15.00%,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-18,2024-10-09,Esref Pivcic (client),Client,837.25,Pending,15.00%,EBC-Turbo,1,350.00,350.00,No item discount,350.00
-18,2024-10-09,Esref Pivcic (client),Client,837.25,Pending,15.00%,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-18,2024-10-09,Esref Pivcic (client),Client,837.25,Pending,15.00%,OEM-R32 Brembo,1,400.00,400.00,No item discount,400.00
-18,2024-10-09,Esref Pivcic (client),Client,837.25,Pending,15.00%,Test 2,1,10.00,10.00,No item discount,10.00
-19,2024-10-09,Esref Pivcic (client),Client,216.75,Pending,15.00%,Test 2,1,10.00,10.00,No item discount,10.00
-19,2024-10-09,Esref Pivcic (client),Client,216.75,Pending,15.00%,Test 1,1,20.00,20.00,No item discount,20.00
-19,2024-10-09,Esref Pivcic (client),Client,216.75,Pending,15.00%,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
-20,2024-10-10,Esref Pivcic (carrepairshop),Car Repair Shop,1550.00,Pending,No client discount,EBC-Turbo,2,350.00,700.00,No item discount,700.00
-20,2024-10-10,Esref Pivcic (carrepairshop),Car Repair Shop,1550.00,Pending,No client discount,Monster-Motorsport,2,250.00,500.00,10.00%,450.00
-20,2024-10-10,Esref Pivcic (carrepairshop),Car Repair Shop,1550.00,Pending,No client discount,OEM-R32 Brembo,1,400.00,400.00,No item discount,400.00
+1,2024-10-24,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,Pending,13.00%,EBC-Turbo,2,350.00,700.00,No item discount,700.00
+1,2024-10-24,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,Pending,13.00%,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+2,2024-10-24,Esref Pivcic (carrepairshop),Car Repair Shop,1718.25,2024-10-24,13.00%,EBC-Turbo,5,350.00,1750.00,No item discount,1750.00
+2,2024-10-24,Esref Pivcic (carrepairshop),Car Repair Shop,1718.25,2024-10-24,13.00%,Monster-Motorsport,1,250.00,250.00,10.00%,225.00
+3,2024-10-24,Esref Pivcic (client),Client,1979.25,Pending,15.00%,OEM-R32 Brembo,4,400.00,1600.00,No item discount,1600.00
+3,2024-10-24,Esref Pivcic (client),Client,1979.25,Pending,15.00%,Monster-Motorsport,3,250.00,750.00,10.00%,675.00
+4,2024-10-24,Esref Pivcic (client),Client,1000.50,Pending,15.00%,OEM-R32 Brembo,2,400.00,800.00,No item discount,800.00
+4,2024-10-24,Esref Pivcic (client),Client,1000.50,Pending,15.00%,EBC-Turbo,1,350.00,350.00,No item discount,350.00
+5,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4980.75,Pending,13.00%,EBC-Turbo,5,350.00,1750.00,No item discount,1750.00
+5,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4980.75,Pending,13.00%,Monster-Motorsport,7,250.00,1750.00,10.00%,1575.00
+5,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4980.75,Pending,13.00%,OEM-R32 Brembo,6,400.00,2400.00,No item discount,2400.00
+6,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,3784.50,Pending,13.00%,EBC-Turbo,3,350.00,1050.00,No item discount,1050.00
+6,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,3784.50,Pending,13.00%,Monster-Motorsport,4,250.00,1000.00,10.00%,900.00
+6,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,3784.50,Pending,13.00%,OEM-R32 Brembo,6,400.00,2400.00,No item discount,2400.00
+7,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4241.25,Pending,13.00%,EBC-Turbo,5,350.00,1750.00,No item discount,1750.00
+7,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4241.25,Pending,13.00%,Monster-Motorsport,5,250.00,1250.00,10.00%,1125.00
+7,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4241.25,Pending,13.00%,OEM-R32 Brembo,5,400.00,2000.00,No item discount,2000.00
+8,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4045.50,Pending,13.00%,OEM-R32 Brembo,5,400.00,2000.00,No item discount,2000.00
+8,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4045.50,Pending,13.00%,Monster-Motorsport,4,250.00,1000.00,10.00%,900.00
+8,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,4045.50,Pending,13.00%,EBC-Turbo,5,350.00,1750.00,No item discount,1750.00
+9,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,3088.50,Pending,13.00%,EBC-Turbo,3,350.00,1050.00,No item discount,1050.00
+9,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,3088.50,Pending,13.00%,Monster-Motorsport,4,250.00,1000.00,10.00%,900.00
+9,2024-10-25,Esref Pivcic (carrepairshop),Car Repair Shop,3088.50,Pending,13.00%,OEM-R32 Brembo,4,400.00,1600.00,No item discount,1600.00

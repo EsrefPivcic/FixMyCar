@@ -33,7 +33,8 @@ namespace FixMyCar.Services.Services
 
             if (search?.PageNumber.HasValue == true && search?.PageSize.HasValue == true)
             {
-                query = query.Take(search.PageSize.Value).Skip(search.PageNumber.Value * search.PageSize.Value);
+                int skip = search.PageNumber.Value - 1;
+                query = query.Skip(skip * search.PageSize.Value).Take(search.PageSize.Value);
             }
 
             var list = await query.ToListAsync();

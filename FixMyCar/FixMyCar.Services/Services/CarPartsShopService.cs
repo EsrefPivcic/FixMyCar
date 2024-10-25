@@ -23,9 +23,12 @@ namespace FixMyCar.Services.Services
     public class CarPartsShopService : BaseService<CarPartsShop, CarPartsShopGetDTO, CarPartsShopInsertDTO, CarPartsShopUpdateDTO, CarPartsShopSearchObject>, ICarPartsShopService
     {
         ILogger<CarPartsShopService> _logger;
-        public CarPartsShopService(FixMyCarContext context, IMapper mapper, ILogger<CarPartsShopService> logger) : base(context, mapper)
+        private readonly RabbitMQService _rabbitMQService;
+
+        public CarPartsShopService(FixMyCarContext context, IMapper mapper, ILogger<CarPartsShopService> logger, RabbitMQService rabbitMQService) : base(context, mapper)
         {
             _logger = logger;
+            _rabbitMQService = rabbitMQService;
         }
         public override IQueryable<CarPartsShop> AddInclude(IQueryable<CarPartsShop> query, CarPartsShopSearchObject? search = null)
         {
@@ -79,16 +82,14 @@ namespace FixMyCar.Services.Services
 
         public void GenerateReport(ReportRequestDTO request)
         {
-            using var rabbitMQService = new RabbitMQService();
             request.ShopType = "carpartsshop";
-            rabbitMQService.SendReportGenerationRequest(request);
+            _rabbitMQService.SendReportGenerationRequest(request);
         }
 
         public void GenerateMonthlyReports(MonthlyReportRequestDTO request)
         {
-            using var rabbitMQService = new RabbitMQService();
             request.ShopType = "carpartsshop";
-            rabbitMQService.SendMonthlyReportGenerationRequest(request);
+            _rabbitMQService.SendMonthlyReportGenerationRequest(request);
         }
 
         public async Task<byte[]> GetReport(string username)

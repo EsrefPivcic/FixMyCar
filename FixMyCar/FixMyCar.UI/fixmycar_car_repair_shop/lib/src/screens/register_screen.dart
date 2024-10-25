@@ -328,6 +328,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Text(
+                              'Number of employees:',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                             IconButton(
                               onPressed: _employees > 1
                                   ? () {

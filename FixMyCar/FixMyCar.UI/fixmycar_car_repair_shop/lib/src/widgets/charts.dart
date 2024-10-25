@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:csv/csv.dart';
@@ -99,6 +100,9 @@ Future<void> fetchAllStatistics(BuildContext context) async {
   await _fetchTop10MonthlyReservationsReport(context);
 }
 
+int roundedBarMaxY = 0;
+int roundedLineMaxY = 0;
+
 List<BarChartGroupData> _createBarChartData() {
   Map<String, double> revenueMap = {
     "Diagnostics": 0.0,
@@ -117,6 +121,9 @@ List<BarChartGroupData> _createBarChartData() {
       revenueMap[reservationType] = revenue;
     }
   }
+
+  double maxY = revenueMap.values.reduce(max);
+  roundedBarMaxY = (maxY / 1000).ceil() * 1000;
 
   return [
     BarChartGroupData(
@@ -155,6 +162,9 @@ List<LineChartBarData> _createLineChartData() {
 
     totalAmountByDate[day] = revenue;
   }
+
+  double maxY = totalAmountByDate.values.reduce(max);
+  roundedLineMaxY = (maxY / 1000).ceil() * 1000;
 
   return [
     LineChartBarData(
@@ -199,11 +209,16 @@ Widget _buildTop10ReservationsTable() {
       DataColumn(label: Text('Discount')),
     ],
     rows: _top10MonthlyReservationsReportData!.skip(1).map((reservation) {
+      DateTime dateCreated = DateTime.parse(reservation[0]);
+      String formattedDateCreated =
+          '${dateCreated.day}/${dateCreated.month}/${dateCreated.year}';
+      DateTime date = DateTime.parse(reservation[1]);
+      String formattedDate = '${date.day}/${date.month}/${date.year}';
       return DataRow(cells: [
-        DataCell(Text(reservation[0].toString())),
-        DataCell(Text(reservation[1].toString())),
+        DataCell(Text(formattedDateCreated)),
+        DataCell(Text(formattedDate)),
         DataCell(Text(reservation[2].toString())),
-        DataCell(Text("${reservation[3].toString()}€")),
+        DataCell(Text("${reservation[3].toStringAsFixed(2)}€")),
         DataCell(Text(reservation[4].toString())),
         DataCell(Text(reservation[5].toString())),
       ]);
@@ -222,8 +237,14 @@ FlTitlesData _buildLineChartTitles() {
       sideTitles: SideTitles(
         showTitles: true,
         reservedSize: 40,
+        interval: roundedLineMaxY / 8,
         getTitlesWidget: (double value, TitleMeta meta) {
-          return Text('${value.toInt()}€');
+          if (value == roundedLineMaxY) return Container();
+          return Text(
+            '${value.toInt()} €',
+            style: const TextStyle(
+                fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+          );
         },
       ),
     ),
@@ -231,8 +252,14 @@ FlTitlesData _buildLineChartTitles() {
       sideTitles: SideTitles(
         showTitles: true,
         reservedSize: 40,
+        interval: roundedLineMaxY / 8,
         getTitlesWidget: (double value, TitleMeta meta) {
-          return Text('${value.toInt()}€');
+          if (value == roundedLineMaxY) return Container();
+          return Text(
+            '${value.toInt()} €',
+            style: const TextStyle(
+                fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+          );
         },
       ),
     ),
@@ -283,13 +310,48 @@ FlTitlesData _buildBarChartTitles() {
       leftTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
+          interval: roundedBarMaxY / 8,
           reservedSize: 40,
           getTitlesWidget: (double value, TitleMeta meta) {
-            return Text('${value.toInt()}€');
+            if (value == roundedBarMaxY) return Container();
+            return Text(
+              '${value.toInt()} €',
+              style: const TextStyle(
+                  fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+            );
           },
         ),
       ),
       rightTitles: const AxisTitles());
+}
+
+BarTouchData _buildBarTouchData() {
+  return BarTouchData(touchTooltipData: BarTouchTooltipData(
+    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+      String title;
+      switch (group.x.toInt()) {
+        case 0:
+          title = 'Diagnostics';
+          break;
+        case 1:
+          title = 'Repairs';
+          break;
+        case 2:
+          title = 'Repairs and Diagnostics';
+          break;
+        default:
+          title = '';
+          break;
+      }
+
+      String value = rod.toY.toStringAsFixed(2);
+
+      return BarTooltipItem(
+        '$title\n$value€',
+        const TextStyle(color: Colors.white),
+      );
+    },
+  ));
 }
 
 Widget _buildPieLegend() {
@@ -433,6 +495,7 @@ Future<Widget> buildChart(
                       BarChartData(
                         barGroups: _createBarChartData(),
                         titlesData: _buildBarChartTitles(),
+                        barTouchData: _buildBarTouchData(),
                       ),
                     ),
                   ),

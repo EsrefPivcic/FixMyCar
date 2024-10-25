@@ -31,12 +31,16 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   List<StoreItemCategory> _categories = [];
   List<CarModelsByManufacturer> _carModelsByManufacturer = [];
   TextEditingController _nameFilterController = TextEditingController();
+  int _pageNumber = 1;
+  final int _pageSize = 10;
+  int _totalPages = 1;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Provider.of<StoreItemProvider>(context, listen: false).getStoreItems();
+      Provider.of<StoreItemProvider>(context, listen: false)
+          .getStoreItems(pageNumber: _pageNumber, pageSize: _pageSize);
       await _fetchCarModelsAndCategories();
     });
   }
@@ -65,6 +69,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         showBackButton: false,
         child: Consumer<StoreItemProvider>(
           builder: (context, provider, child) {
+            if (!provider.isLoading) {
+              _totalPages = (provider.countOfItems / _pageSize).ceil();
+            }
             return Column(
               children: [
                 Padding(
@@ -217,6 +224,37 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       },
                     ),
                   ),
+                if (provider.items.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _pageNumber > 1
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber - 1;
+                                  _applyFilters();
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      ),
+                      Text('$_pageNumber',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      IconButton(
+                        onPressed: _pageNumber < _totalPages
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber + 1;
+                                });
+                                _applyFilters();
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },
@@ -463,7 +501,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         withDiscount: discountFilter,
         state: stateFilter,
         categoryFilter: _categoryIdFilter,
-        carModelsFilter: carModels);
+        carModelsFilter: carModels,
+        pageNumber: _pageNumber,
+        pageSize: _pageSize);
   }
 
   List<Widget> _buildActionButtons(StoreItem item) {
@@ -875,7 +915,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                       .then((_) {
                                     Provider.of<StoreItemProvider>(context,
                                             listen: false)
-                                        .getStoreItems();
+                                        .getStoreItems(
+                                            pageNumber: _pageNumber,
+                                            pageSize: _pageSize);
                                   });
                                   Navigator.of(context).pop();
                                 }

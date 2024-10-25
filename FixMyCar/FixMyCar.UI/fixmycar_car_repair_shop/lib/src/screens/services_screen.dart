@@ -26,13 +26,16 @@ class _ServicesScreenState extends State<ServicesScreen> {
   String _selectedTypeFilter = 'all';
   bool _isFilterApplied = false;
   List<ServiceType> _serviceTypes = [];
+  int _pageNumber = 1;
+  final int _pageSize = 10;
+  int _totalPages = 1;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopServiceProvider>(context, listen: false)
-          .getByCarRepairShop();
+          .getByCarRepairShop(pageNumber: _pageNumber, pageSize: _pageSize);
       await _fetchServiceTypes();
     });
   }
@@ -214,7 +217,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
         discountFilter,
         stateFilter);
 
-    provider.getByCarRepairShop(serviceSearch: search);
+    provider.getByCarRepairShop(
+        serviceSearch: search, pageNumber: _pageNumber, pageSize: _pageSize);
   }
 
   void _showEditForm(
@@ -463,7 +467,9 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                     Provider.of<CarRepairShopServiceProvider>(
                                             context,
                                             listen: false)
-                                        .getByCarRepairShop();
+                                        .getByCarRepairShop(
+                                            pageNumber: _pageNumber,
+                                            pageSize: _pageSize);
                                   });
                                   Navigator.of(context).pop();
                                 }
@@ -506,6 +512,9 @@ class _ServicesScreenState extends State<ServicesScreen> {
         showBackButton: false,
         child: Consumer<CarRepairShopServiceProvider>(
           builder: (context, provider, child) {
+            if (!provider.isLoading) {
+              _totalPages = (provider.countOfItems / _pageSize).ceil();
+            }
             return Column(
               children: [
                 Padding(
@@ -659,6 +668,37 @@ class _ServicesScreenState extends State<ServicesScreen> {
                       },
                     ),
                   ),
+                if (provider.services.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _pageNumber > 1
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber - 1;
+                                  _applyFilters();
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      ),
+                      Text('$_pageNumber',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      IconButton(
+                        onPressed: _pageNumber < _totalPages
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber + 1;
+                                });
+                                _applyFilters();
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },

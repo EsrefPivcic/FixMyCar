@@ -18,6 +18,9 @@ class ReservationsScreen extends StatefulWidget {
 
 ReservationSearchObject filterCriteria =
     ReservationSearchObject.n(minTotalAmount: 0, maxTotalAmount: 10000);
+int _pageNumber = 1;
+final int _pageSize = 10;
+int _totalPages = 1;
 
 class _ReservationsScreen extends State<ReservationsScreen> {
   @override
@@ -25,7 +28,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Provider.of<ReservationProvider>(context, listen: false)
-          .getByCarRepairShop(reservationSearch: filterCriteria);
+          .getByCarRepairShop(
+              reservationSearch: filterCriteria,
+              pageNumber: _pageNumber,
+              pageSize: _pageSize);
     });
   }
 
@@ -147,7 +153,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     .delete(reservationId)
                     .then((_) {
                   Provider.of<ReservationProvider>(context, listen: false)
-                      .getByCarRepairShop(reservationSearch: filterCriteria);
+                      .getByCarRepairShop(
+                          reservationSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Reservation deleted successfully."),
@@ -193,7 +202,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     .reject(reservationId)
                     .then((_) {
                   Provider.of<ReservationProvider>(context, listen: false)
-                      .getByCarRepairShop(reservationSearch: filterCriteria);
+                      .getByCarRepairShop(
+                          reservationSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 });
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
@@ -233,7 +245,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     .start(reservationId)
                     .then((_) {
                   Provider.of<ReservationProvider>(context, listen: false)
-                      .getByCarRepairShop(reservationSearch: filterCriteria);
+                      .getByCarRepairShop(
+                          reservationSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 });
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
@@ -274,7 +289,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     .complete(reservationId)
                     .then((_) {
                   Provider.of<ReservationProvider>(context, listen: false)
-                      .getByCarRepairShop(reservationSearch: filterCriteria);
+                      .getByCarRepairShop(
+                          reservationSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 });
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
@@ -341,7 +359,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                         .addOrder(reservationId, orderId);
                     await Provider.of<ReservationProvider>(context,
                             listen: false)
-                        .getByCarRepairShop(reservationSearch: filterCriteria);
+                        .getByCarRepairShop(
+                            reservationSearch: filterCriteria,
+                            pageNumber: _pageNumber,
+                            pageSize: _pageSize);
                     _orderController.clear();
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
@@ -379,7 +400,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                     .accept(reservationId, date)
                     .then((_) {
                   Provider.of<ReservationProvider>(context, listen: false)
-                      .getByCarRepairShop(reservationSearch: filterCriteria);
+                      .getByCarRepairShop(
+                          reservationSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 });
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
@@ -1433,7 +1457,10 @@ class _ReservationsScreen extends State<ReservationsScreen> {
             title: ElevatedButton(
               onPressed: () async {
                 await Provider.of<ReservationProvider>(context, listen: false)
-                    .getByCarRepairShop(reservationSearch: filterCriteria);
+                    .getByCarRepairShop(
+                        reservationSearch: filterCriteria,
+                        pageNumber: _pageNumber,
+                        pageSize: _pageSize);
               },
               child: const Text("Apply Filters"),
             ),
@@ -1448,7 +1475,9 @@ class _ReservationsScreen extends State<ReservationsScreen> {
     final reservationProvider = Provider.of<ReservationProvider>(context);
     final reservations = reservationProvider.reservations;
     final isLoading = reservationProvider.isLoading;
-
+    if (!isLoading) {
+      _totalPages = (reservationProvider.countOfItems / _pageSize).ceil();
+    }
     return MasterScreen(
       showBackButton: false,
       child: isLoading
@@ -1462,152 +1491,222 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                         child:
                             Center(child: Text('No reservations available.')))
                     : Expanded(
-                        child: ListView.builder(
-                          itemCount: reservations.length,
-                          itemBuilder: (context, index) {
-                            final reservation = reservations[index];
-                            return ListTile(
-                              title: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Reservation #${reservation.id}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Client: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: reservation.clientUsername)
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Reservation Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: _formatDate(
-                                                reservation.reservationDate))
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Completion Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: reservation.completionDate ==
-                                                    null
-                                                ? "Not completed"
-                                                : _formatDate(reservation
-                                                    .completionDate!))
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Total Service Duration: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: reservation.totalDuration)
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Total Amount: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: reservations.length,
+                                itemBuilder: (context, index) {
+                                  final reservation = reservations[index];
+                                  return ListTile(
+                                    title: Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          TextSpan(
                                             text:
-                                                '€${reservation.totalAmount.toStringAsFixed(2)}')
-                                      ],
+                                                'Reservation #${reservation.id}',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        const TextSpan(
-                                          text: 'Discount: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Client: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text: reservation
+                                                      .clientUsername)
+                                            ],
+                                          ),
                                         ),
-                                        TextSpan(
-                                            text:
-                                                '${reservation.carRepairShopDiscountValue * 100}%')
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Reservation Date: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text: _formatDate(reservation
+                                                      .reservationDate))
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Completion Date: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text: reservation
+                                                              .completionDate ==
+                                                          null
+                                                      ? "Not completed"
+                                                      : _formatDate(reservation
+                                                          .completionDate!))
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text:
+                                                    'Total Service Duration: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text:
+                                                      reservation.totalDuration)
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Total Amount: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text:
+                                                      '€${reservation.totalAmount.toStringAsFixed(2)}')
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'Discount: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text:
+                                                      '${reservation.carRepairShopDiscountValue * 100}%')
+                                            ],
+                                          ),
+                                        ),
+                                        Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                text: 'State: ',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                  text: _getDisplayState(
+                                                      reservation.state),
+                                                  style: TextStyle(
+                                                      color: _getStateColor(
+                                                          reservation.state))),
+                                            ],
+                                          ),
+                                        ),
                                       ],
                                     ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const TextSpan(
-                                          text: 'State: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
+                                        IconButton(
+                                          icon: reservation.state ==
+                                                  "awaitingorder"
+                                              ? const Icon(Icons.settings)
+                                              : reservation.state == "ready"
+                                                  ? const Icon(Icons.settings)
+                                                  : const Icon(
+                                                      Icons.info_outline),
+                                          onPressed: () {
+                                            _showReservationDetails(
+                                                context, reservation);
+                                          },
                                         ),
-                                        TextSpan(
-                                            text: _getDisplayState(
-                                                reservation.state),
-                                            style: TextStyle(
-                                                color: _getStateColor(
-                                                    reservation.state))),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: reservation.state == "awaitingorder"
-                                        ? const Icon(Icons.settings)
-                                        : reservation.state == "ready"
-                                            ? const Icon(Icons.settings)
-                                            : const Icon(Icons.info_outline),
-                                    onPressed: () {
+                                    onTap: () {
                                       _showReservationDetails(
                                           context, reservation);
                                     },
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
-                              onTap: () {
-                                _showReservationDetails(context, reservation);
-                              },
-                            );
-                          },
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: _pageNumber > 1
+                                      ? () async {
+                                          setState(() {
+                                            _pageNumber = _pageNumber - 1;
+                                          });
+                                          await Provider.of<
+                                                      ReservationProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .getByCarRepairShop(
+                                                  reservationSearch:
+                                                      filterCriteria,
+                                                  pageNumber: _pageNumber,
+                                                  pageSize: _pageSize);
+                                        }
+                                      : null,
+                                  icon: const Icon(
+                                      Icons.arrow_back_ios_new_rounded),
+                                ),
+                                Text('$_pageNumber',
+                                    style:
+                                        Theme.of(context).textTheme.bodyLarge),
+                                IconButton(
+                                  onPressed: _pageNumber < _totalPages
+                                      ? () async {
+                                          setState(() {
+                                            _pageNumber = _pageNumber + 1;
+                                          });
+                                          await Provider.of<
+                                                      ReservationProvider>(
+                                                  context,
+                                                  listen: false)
+                                              .getByCarRepairShop(
+                                                  reservationSearch:
+                                                      filterCriteria,
+                                                  pageNumber: _pageNumber,
+                                                  pageSize: _pageSize);
+                                        }
+                                      : null,
+                                  icon: const Icon(
+                                      Icons.arrow_forward_ios_rounded),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ),
+                      )
               ],
             ),
     );

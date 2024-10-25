@@ -34,7 +34,7 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
         final token = responseBody['token'];
         await storage.write(key: 'jwt_token', value: token);
         isLoggedIn = true;
-        signalrService.startConnection();
+        signalrService.startConnection(token);
       } else {
         final responseBody = jsonDecode(response.body);
         final errors = responseBody['errors'] as Map<String, dynamic>?;

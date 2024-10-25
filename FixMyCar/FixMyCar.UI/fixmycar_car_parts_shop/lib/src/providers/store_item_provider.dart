@@ -12,6 +12,8 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItemInsertUpdate> {
   StoreItemProvider() : super('StoreItem');
 
   Future<void> getStoreItems({
+    required int pageNumber,
+    required int pageSize,
     String? nameFilter,
     bool? withDiscount,
     String? state,
@@ -22,6 +24,9 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItemInsertUpdate> {
     notifyListeners();
 
     Map<String, dynamic> queryParams = {};
+
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
 
     if (nameFilter != null && nameFilter.isNotEmpty) {
       queryParams['Contains'] = nameFilter;
@@ -42,10 +47,9 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItemInsertUpdate> {
 
     try {
       SearchResult<StoreItem> searchResult = await get(
-        filter: queryParams,
-        fromJson: (json) => StoreItem.fromJson(json),
-        customEndpoint: 'GetByToken'
-      );
+          filter: queryParams,
+          fromJson: (json) => StoreItem.fromJson(json),
+          customEndpoint: 'GetByToken');
 
       items = searchResult.result;
       countOfItems = searchResult.count;

@@ -13,6 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IGenerateCarPartsShopReportService, GenerateCarPartsShopReportService>();
 builder.Services.AddScoped<IGenerateCarRepairShopReportService, GenerateCarRepairShopReportService>();
 builder.Services.AddHostedService<RabbitMqListener>();
+builder.Services.AddSingleton<RabbitMQService>();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FixMyCarContext>(options =>

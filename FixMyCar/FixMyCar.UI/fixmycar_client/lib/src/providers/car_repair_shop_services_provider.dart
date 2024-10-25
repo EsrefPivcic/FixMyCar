@@ -3,14 +3,19 @@ import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_sh
 import 'package:fixmycar_client/src/providers/base_provider.dart';
 import 'package:fixmycar_client/src/models/search_result.dart';
 
-class CarRepairShopServiceProvider extends BaseProvider<CarRepairShopService, CarRepairShopService> {
+class CarRepairShopServiceProvider
+    extends BaseProvider<CarRepairShopService, CarRepairShopService> {
   List<CarRepairShopService> services = [];
   int countOfItems = 0;
   bool isLoading = false;
 
   CarRepairShopServiceProvider() : super('CarRepairShopService');
 
-  Future<void> getByCarRepairShop({required String carRepairShopName, CarRepairShopServiceSearchObject? serviceSearch}) async {
+  Future<void> getByCarRepairShop(
+      {required int pageNumber,
+      required int pageSize,
+      required String carRepairShopName,
+      CarRepairShopServiceSearchObject? serviceSearch}) async {
     isLoading = true;
     notifyListeners();
 
@@ -18,6 +23,8 @@ class CarRepairShopServiceProvider extends BaseProvider<CarRepairShopService, Ca
 
     queryParams['CarRepairShopName'] = carRepairShopName;
     queryParams['State'] = "active";
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
 
     if (serviceSearch != null) {
       if (serviceSearch.name != null) {

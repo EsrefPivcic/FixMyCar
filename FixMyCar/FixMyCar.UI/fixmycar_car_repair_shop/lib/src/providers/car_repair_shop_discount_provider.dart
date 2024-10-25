@@ -11,11 +11,15 @@ class CarRepairShopDiscountProvider extends BaseProvider<CarRepairShopDiscount,
 
   CarRepairShopDiscountProvider() : super('CarRepairShopDiscount');
 
-  Future<void> getByCarRepairShop({bool? active}) async {
+  Future<void> getByCarRepairShop(
+      {required int pageNumber, required int pageSize, bool? active}) async {
     isLoading = true;
     notifyListeners();
 
     Map<String, dynamic> queryParams = {};
+
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
 
     if (active != null) {
       queryParams['Active'] = active.toString();

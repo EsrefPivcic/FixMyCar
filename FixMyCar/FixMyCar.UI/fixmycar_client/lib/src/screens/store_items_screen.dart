@@ -39,6 +39,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late User carPartsShopDetails;
   List<String>? _cities;
   String? _selectedCity;
+  int _pageNumber = 1;
+  final int _pageSize = 10;
+  int _totalPages = 1;
 
   @override
   void initState() {
@@ -49,8 +52,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     carPartsShopDetails = widget.carPartsShop;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Provider.of<StoreItemProvider>(context, listen: false)
-          .getStoreItems(carPartsShopName: carPartsShopFilter);
+      Provider.of<StoreItemProvider>(context, listen: false).getStoreItems(
+          carPartsShopName: carPartsShopFilter,
+          pageNumber: _pageNumber,
+          pageSize: _pageSize);
 
       await _fetchCarModelsAndCategories();
       await _fetchDiscounts();
@@ -610,6 +615,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
       body: MasterScreen(
         child: Consumer<StoreItemProvider>(
           builder: (context, provider, child) {
+            if (!provider.isLoading) {
+              _totalPages = (provider.countOfItems / _pageSize).ceil();
+            }
             loadedItems = provider.items;
             return Column(
               children: [
@@ -815,6 +823,37 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       },
                     ),
                   ),
+                if (provider.items.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _pageNumber > 1
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber - 1;
+                                  _applyFilters();
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      ),
+                      Text('$_pageNumber',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      IconButton(
+                        onPressed: _pageNumber < _totalPages
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber + 1;
+                                });
+                                _applyFilters();
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },
@@ -1025,7 +1064,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         nameFilter: _filterName.isNotEmpty ? _filterName : null,
         withDiscount: discountFilter,
         categoryFilter: _categoryIdFilter,
-        carModelsFilter: carModels);
+        carModelsFilter: carModels,
+        pageNumber: _pageNumber,
+        pageSize: _pageSize);
   }
 
   @override

@@ -4,15 +4,19 @@ import 'notification_service.dart';
 
 class SignalRNotificationsService {
   late HubConnection connection;
+  final String _baseUrl = "http://10.0.2.2:5148/notificationHub";
   final NotificationService notificationService = NotificationService();
 
-  SignalRNotificationsService() {
+  Future<void> startConnection(String token) async {
     connection = HubConnectionBuilder()
-        .withUrl('http://10.0.2.2:5148/notificationHub')
+        .withUrl(
+          _baseUrl,
+          options: HttpConnectionOptions(
+            accessTokenFactory: () async => token,
+          ),
+        )
         .build();
-  }
 
-  Future<void> startConnection() async {
     connection.onclose(({Exception? error}) {
       print("Connection closed: ${error?.toString()}");
     });

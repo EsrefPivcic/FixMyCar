@@ -69,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (notificationType == "customreport") {
         _fetchReport();
       } else if (notificationType == "monthlystatistics") {
-        fetchAllStatistics(context).then((_) {
+        setState(() {
           _chartFuture = buildChart(_selectedChartType, context);
         });
       }

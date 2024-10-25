@@ -19,12 +19,16 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
   String _filterName = '';
   TextEditingController _nameFilterController = TextEditingController();
   bool _isFilterApplied = false;
+  int _pageNumber = 1;
+  final int _pageSize = 10;
+  int _totalPages = 1;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Provider.of<CarPartsShopProvider>(context, listen: false).getPartsShops();
+      Provider.of<CarPartsShopProvider>(context, listen: false)
+          .getPartsShops(pageNumber: _pageNumber, pageSize: _pageSize);
     });
   }
 
@@ -87,7 +91,9 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
 
     provider.getPartsShops(
         search: UserSearchObject(
-            _filterName.isNotEmpty ? _filterName : null, true, null));
+            _filterName.isNotEmpty ? _filterName : null, true, null),
+        pageNumber: _pageNumber,
+        pageSize: _pageSize);
   }
 
   @override
@@ -96,6 +102,9 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
       body: MasterScreen(
         child: Consumer<CarPartsShopProvider>(
           builder: (context, provider, child) {
+            if (!provider.isLoading) {
+              _totalPages = (provider.countOfItems / _pageSize).ceil();
+            }
             return Column(
               children: [
                 const SizedBox(height: 5),
@@ -277,6 +286,37 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                       },
                     ),
                   ),
+                if (provider.carPartsShops.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _pageNumber > 1
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber - 1;
+                                  _applyFilters();
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      ),
+                      Text('$_pageNumber',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      IconButton(
+                        onPressed: _pageNumber < _totalPages
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber + 1;
+                                });
+                                _applyFilters();
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },

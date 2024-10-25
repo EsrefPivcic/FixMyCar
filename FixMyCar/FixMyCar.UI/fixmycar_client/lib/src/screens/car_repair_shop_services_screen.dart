@@ -32,6 +32,9 @@ class _CarRepairShopServicesScreenState
   late int carRepairShopId;
   late List<CarRepairShopService> loadedServices;
   late User carRepairShopDetails;
+  int _pageNumber = 1;
+  final int _pageSize = 10;
+  int _totalPages = 1;
 
   @override
   void initState() {
@@ -43,7 +46,10 @@ class _CarRepairShopServicesScreenState
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopServiceProvider>(context, listen: false)
-          .getByCarRepairShop(carRepairShopName: carRepairShopFilter);
+          .getByCarRepairShop(
+              carRepairShopName: carRepairShopFilter,
+              pageNumber: _pageNumber,
+              pageSize: _pageSize);
 
       await _fetchDiscounts();
     });
@@ -545,6 +551,9 @@ class _CarRepairShopServicesScreenState
       body: MasterScreen(
         child: Consumer<CarRepairShopServiceProvider>(
           builder: (context, provider, child) {
+            if (!provider.isLoading) {
+              _totalPages = (provider.countOfItems / _pageSize).ceil();
+            }
             loadedServices = provider.services;
             return Column(
               children: [
@@ -734,6 +743,37 @@ class _CarRepairShopServicesScreenState
                       },
                     ),
                   ),
+                if (provider.services.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _pageNumber > 1
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber - 1;
+                                  _applyFilters();
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      ),
+                      Text('$_pageNumber',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      IconButton(
+                        onPressed: _pageNumber < _totalPages
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber + 1;
+                                });
+                                _applyFilters();
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },
@@ -881,7 +921,10 @@ class _CarRepairShopServicesScreenState
         discountFilter);
 
     provider.getByCarRepairShop(
-        carRepairShopName: carRepairShopFilter, serviceSearch: search);
+        carRepairShopName: carRepairShopFilter,
+        serviceSearch: search,
+        pageNumber: _pageNumber,
+        pageSize: _pageSize);
   }
 
   @override

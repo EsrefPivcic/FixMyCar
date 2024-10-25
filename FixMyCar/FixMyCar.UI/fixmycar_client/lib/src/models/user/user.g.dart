@@ -25,7 +25,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       json['openingTime'] as String?,
       json['closingTime'] as String?,
       json['workingHours'] as String?,
-      json['employees'] as String?,
+      (json['employees'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{

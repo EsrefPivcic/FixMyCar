@@ -72,8 +72,8 @@ void showShopDetailsDialog(
                   context,
                 ),
                 if (shopDetails.employees != null) ...[
-                  _buildDetailRow(
-                      'Number of Employees', shopDetails.employees!, context),
+                  _buildDetailRow('Number of Employees',
+                      shopDetails.employees.toString(), context),
                 ],
                 if (carRepairShopdiscounts != null &&
                     carRepairShopdiscounts.isNotEmpty) ...[

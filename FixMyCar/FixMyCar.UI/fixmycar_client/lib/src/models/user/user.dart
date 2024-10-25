@@ -22,7 +22,7 @@ class User {
   String? openingTime;
   String? closingTime;
   String? workingHours;
-  String? employees;
+  int? employees;
 
   User(
       this.id,

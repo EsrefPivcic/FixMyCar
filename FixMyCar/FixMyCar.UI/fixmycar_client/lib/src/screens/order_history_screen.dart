@@ -17,14 +17,19 @@ class OrderHistoryScreen extends StatefulWidget {
 
 OrderSearchObject filterCriteria =
     OrderSearchObject.n(minTotalAmount: 0, maxTotalAmount: 10000);
+int _pageNumber = 1;
+final int _pageSize = 10;
+int _totalPages = 1;
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await Provider.of<OrderProvider>(context, listen: false)
-          .getByClient(orderSearch: filterCriteria);
+      await Provider.of<OrderProvider>(context, listen: false).getByClient(
+          orderSearch: filterCriteria,
+          pageNumber: _pageNumber,
+          pageSize: _pageSize);
     });
   }
 
@@ -66,7 +71,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     .delete(orderId)
                     .then((_) {
                   Provider.of<OrderProvider>(context, listen: false)
-                      .getByClient(orderSearch: filterCriteria);
+                      .getByClient(
+                          orderSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Order deleted successfully."),
@@ -110,7 +118,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     .cancel(orderId)
                     .then((_) {
                   Provider.of<OrderProvider>(context, listen: false)
-                      .getByClient(orderSearch: filterCriteria);
+                      .getByClient(
+                          orderSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 });
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -207,7 +218,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         .updateOrder(order.id, updateOrder)
                         .then((_) {
                       Provider.of<OrderProvider>(context, listen: false)
-                          .getByClient(orderSearch: filterCriteria);
+                          .getByClient(
+                              orderSearch: filterCriteria,
+                              pageNumber: _pageNumber,
+                              pageSize: _pageSize);
                     });
                     _cityController.clear();
                     _addressController.clear();
@@ -819,7 +833,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               title: ElevatedButton(
                 onPressed: () async {
                   await Provider.of<OrderProvider>(context, listen: false)
-                      .getByClient(orderSearch: filterCriteria);
+                      .getByClient(
+                          orderSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                   Navigator.pop(context);
                 },
                 child: const Text("Apply Filters"),
@@ -836,7 +853,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     final ordersProvider = Provider.of<OrderProvider>(context);
     final orders = ordersProvider.orders;
     final isLoading = ordersProvider.isLoading;
-
+    if (!isLoading) {
+      _totalPages = (ordersProvider.countOfItems / _pageSize).ceil();
+    }
     return MasterScreen(
       child: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -971,6 +990,45 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       );
                     },
                   ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: _pageNumber > 1
+                          ? () async {
+                              setState(() {
+                                _pageNumber = _pageNumber - 1;
+                              });
+                              await Provider.of<OrderProvider>(context,
+                                      listen: false)
+                                  .getByClient(
+                                      orderSearch: filterCriteria,
+                                      pageNumber: _pageNumber,
+                                      pageSize: _pageSize);
+                            }
+                          : null,
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    ),
+                    Text('$_pageNumber',
+                        style: Theme.of(context).textTheme.bodyLarge),
+                    IconButton(
+                      onPressed: _pageNumber < _totalPages
+                          ? () async {
+                              setState(() {
+                                _pageNumber = _pageNumber + 1;
+                              });
+                              await Provider.of<OrderProvider>(context,
+                                      listen: false)
+                                  .getByClient(
+                                      orderSearch: filterCriteria,
+                                      pageNumber: _pageNumber,
+                                      pageSize: _pageSize);
+                            }
+                          : null,
+                      icon: const Icon(Icons.arrow_forward_ios_rounded),
+                    ),
+                  ],
                 ),
               ],
             ),

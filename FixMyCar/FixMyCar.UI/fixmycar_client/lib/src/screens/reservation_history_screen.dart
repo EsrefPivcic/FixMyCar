@@ -20,6 +20,9 @@ class ReservationHistoryScreen extends StatefulWidget {
 
 ReservationSearchObject filterCriteria =
     ReservationSearchObject.n(minTotalAmount: 0, maxTotalAmount: 10000);
+int _pageNumber = 1;
+const int _pageSize = 10;
+int _totalPages = 1;
 
 class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
   @override
@@ -27,7 +30,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await Provider.of<ReservationProvider>(context, listen: false)
-          .getByClient(reservationSearch: filterCriteria);
+          .getByClient(
+              reservationSearch: filterCriteria,
+              pageNumber: _pageNumber,
+              pageSize: _pageSize);
     });
   }
 
@@ -147,7 +153,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                     .delete(reservationId)
                     .then((_) {
                   Provider.of<ReservationProvider>(context, listen: false)
-                      .getByClient(reservationSearch: filterCriteria);
+                      .getByClient(
+                          reservationSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text("Deleting reservation successful."),
@@ -192,7 +201,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                     .cancel(reservationId)
                     .then((_) {
                   Provider.of<ReservationProvider>(context, listen: false)
-                      .getByClient(reservationSearch: filterCriteria);
+                      .getByClient(
+                          reservationSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 });
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -260,7 +272,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                         .addOrder(reservationId, orderId);
                     await Provider.of<ReservationProvider>(context,
                             listen: false)
-                        .getByClient(reservationSearch: filterCriteria);
+                        .getByClient(
+                            reservationSearch: filterCriteria,
+                            pageNumber: _pageNumber,
+                            pageSize: _pageSize);
                     _orderController.clear();
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
@@ -342,7 +357,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                       .updateReservation(reservation.id, updateReservation)
                       .then((_) {
                     Provider.of<ReservationProvider>(context, listen: false)
-                        .getByClient(reservationSearch: filterCriteria);
+                        .getByClient(
+                            reservationSearch: filterCriteria,
+                            pageNumber: _pageNumber,
+                            pageSize: _pageSize);
                   });
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1358,7 +1376,10 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
               title: ElevatedButton(
                 onPressed: () async {
                   await Provider.of<ReservationProvider>(context, listen: false)
-                      .getByClient(reservationSearch: filterCriteria);
+                      .getByClient(
+                          reservationSearch: filterCriteria,
+                          pageNumber: _pageNumber,
+                          pageSize: _pageSize);
                 },
                 child: const Text("Apply Filters"),
               ),
@@ -1374,7 +1395,9 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
     final reservationProvider = Provider.of<ReservationProvider>(context);
     final reservations = reservationProvider.reservations;
     final isLoading = reservationProvider.isLoading;
-
+    if (!isLoading) {
+      _totalPages = (reservationProvider.countOfItems / _pageSize).ceil();
+    }
     return MasterScreen(
       child: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -1508,6 +1531,45 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                           },
                         ),
                       ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: _pageNumber > 1
+                          ? () async {
+                              setState(() {
+                                _pageNumber = _pageNumber - 1;
+                              });
+                              await Provider.of<ReservationProvider>(context,
+                                      listen: false)
+                                  .getByClient(
+                                      reservationSearch: filterCriteria,
+                                      pageNumber: _pageNumber,
+                                      pageSize: _pageSize);
+                            }
+                          : null,
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    ),
+                    Text('$_pageNumber',
+                        style: Theme.of(context).textTheme.bodyLarge),
+                    IconButton(
+                      onPressed: _pageNumber < _totalPages
+                          ? () async {
+                              setState(() {
+                                _pageNumber = _pageNumber + 1;
+                              });
+                              await Provider.of<ReservationProvider>(context,
+                                      listen: false)
+                                  .getByClient(
+                                      reservationSearch: filterCriteria,
+                                      pageNumber: _pageNumber,
+                                      pageSize: _pageSize);
+                            }
+                          : null,
+                      icon: const Icon(Icons.arrow_forward_ios_rounded),
+                    ),
+                  ],
+                ),
               ],
             ),
     );

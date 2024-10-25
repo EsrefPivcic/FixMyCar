@@ -133,46 +133,47 @@ class MasterScreen extends StatelessWidget {
               const Text('Previous chats:'),
               if (chats.isNotEmpty) ...[
                 SizedBox(
-                  height: 200,
-                  child: Column(
-                    children: List.generate(chats.length, (index) {
-                      final user = chats[index];
-                      return Padding(
-                        padding: const EdgeInsets.all(2.5),
-                        child: ListTile(
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChatScreen(
-                                  recipientUserId: user.username,
-                                  recipientImage: user.image!,
-                                ),
+                    height: 200,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: List.generate(chats.length, (index) {
+                          final user = chats[index];
+                          return Padding(
+                            padding: const EdgeInsets.all(2.5),
+                            child: ListTile(
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(
+                                      recipientUserId: user.username,
+                                      recipientImage: user.image!,
+                                    ),
+                                  ),
+                                ).then((_) {
+                                  _usernameController.text = "";
+                                });
+                              },
+                              leading:
+                                  user.image != null && user.image!.isNotEmpty
+                                      ? CircleAvatar(
+                                          maxRadius: 25,
+                                          backgroundImage: MemoryImage(
+                                              base64Decode(user.image!)),
+                                        )
+                                      : const CircleAvatar(
+                                          maxRadius: 25,
+                                          child: Icon(Icons.person),
+                                        ),
+                              title: Text(
+                                '${user.name} ${user.surname} (${user.username})',
                               ),
-                            ).then((_) {
-                              _usernameController.text = "";
-                            });
-                            ;
-                          },
-                          leading: user.image != null && user.image!.isNotEmpty
-                              ? CircleAvatar(
-                                  maxRadius: 25,
-                                  backgroundImage:
-                                      MemoryImage(base64Decode(user.image!)),
-                                )
-                              : const CircleAvatar(
-                                  maxRadius: 25,
-                                  child: Icon(Icons.person),
-                                ),
-                          title: Text(
-                            '${user.name} ${user.surname} (${user.username})',
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                )
+                            ),
+                          );
+                        }),
+                      ),
+                    ))
               ] else ...[
                 const SizedBox(height: 20),
                 const Text('No previous chats found.'),

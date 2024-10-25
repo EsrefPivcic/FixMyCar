@@ -13,11 +13,16 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
   ReservationProvider() : super('Reservation');
 
   Future<void> getByCarRepairShop(
-      {ReservationSearchObject? reservationSearch}) async {
+      {required int pageNumber,
+      required int pageSize,
+      ReservationSearchObject? reservationSearch}) async {
     isLoading = true;
     notifyListeners();
 
     Map<String, dynamic> queryParams = {};
+
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
 
     if (reservationSearch != null) {
       if (reservationSearch.discount != null) {
