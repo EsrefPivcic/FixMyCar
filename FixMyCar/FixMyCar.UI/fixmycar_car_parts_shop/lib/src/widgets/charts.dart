@@ -378,7 +378,7 @@ Future<Uint8List> _captureChartToImage(GlobalKey key) async {
   return byteData!.buffer.asUint8List();
 }
 
-Future<void> _exportChartToPDF(GlobalKey chartKey) async {
+Future<void> _exportChartToPDF(GlobalKey chartKey, BuildContext context) async {
   final imageBytes = await _captureChartToImage(chartKey);
 
   final pdf = pw.Document();
@@ -388,9 +388,19 @@ Future<void> _exportChartToPDF(GlobalKey chartKey) async {
     ),
   ));
 
-  await Printing.layoutPdf(
+  if (await Printing.layoutPdf(
     onLayout: (PdfPageFormat format) async => pdf.save(),
-  );
+  )) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('PDF saved successfully.')),
+    );
+    return;
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Save operation cancelled.')),
+    );
+    return;
+  }
 }
 
 Future<void> _saveMonthlyReportToFile(
@@ -410,7 +420,7 @@ Future<void> _saveMonthlyReportToFile(
 
     if (savePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Save operation canceled.')),
+        const SnackBar(content: Text('Save operation cancelled.')),
       );
       return;
     }
@@ -473,7 +483,7 @@ Future<Widget> buildChart(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () => _exportChartToPDF(_chartKey),
+                onPressed: () => _exportChartToPDF(_chartKey, context),
                 child: const Text("Export this chart to PDF"),
               ),
               const SizedBox(width: 5),
@@ -524,7 +534,7 @@ Future<Widget> buildChart(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () => _exportChartToPDF(_chartKey),
+                onPressed: () => _exportChartToPDF(_chartKey, context),
                 child: const Text("Export this chart to PDF"),
               ),
               const SizedBox(width: 5),
@@ -574,7 +584,7 @@ Future<Widget> buildChart(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () => _exportChartToPDF(_chartKey),
+                onPressed: () => _exportChartToPDF(_chartKey, context),
                 child: const Text("Export this chart to PDF"),
               ),
               const SizedBox(width: 5),
@@ -618,7 +628,7 @@ Future<Widget> buildChart(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: () => _exportChartToPDF(_chartKey),
+                onPressed: () => _exportChartToPDF(_chartKey, context),
                 child: const Text("Export this chart to PDF"),
               ),
               const SizedBox(width: 5),

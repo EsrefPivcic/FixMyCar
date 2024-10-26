@@ -4,6 +4,7 @@ import 'package:fixmycar_car_parts_shop/src/models/user/user_update_work_details
 import 'package:fixmycar_car_parts_shop/src/models/user/user_register.dart';
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/utilities/custom_exception.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -52,12 +53,14 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         return response.body;
       } else {
-        print('Failed to load report. Status: ${response.statusCode}');
-        return null;
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
       }
+    } on CustomException {
+      rethrow;
     } catch (e) {
-      print('Error fetching report: $e');
-      return null;
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     } finally {
       isLoadingReport = false;
     }
@@ -75,12 +78,14 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         return response.body;
       } else {
-        print('Failed to load report. Status: ${response.statusCode}');
-        return null;
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
       }
+    } on CustomException {
+      rethrow;
     } catch (e) {
-      print('Error fetching report: $e');
-      return null;
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     } finally {
       isLoadingReport = false;
     }
@@ -98,12 +103,14 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         return response.body;
       } else {
-        print('Failed to load report. Status: ${response.statusCode}');
-        return null;
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
       }
+    } on CustomException {
+      rethrow;
     } catch (e) {
-      print('Error fetching report: $e');
-      return null;
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     } finally {
       isLoadingReport = false;
     }
@@ -121,12 +128,14 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         return response.body;
       } else {
-        print('Failed to load report. Status: ${response.statusCode}');
-        return null;
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
       }
+    } on CustomException {
+      rethrow;
     } catch (e) {
-      print('Error fetching report: $e');
-      return null;
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     } finally {
       isLoadingReport = false;
     }
@@ -144,12 +153,14 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         return response.body;
       } else {
-        print('Failed to load report. Status: ${response.statusCode}');
-        return null;
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
       }
+    } on CustomException {
+      rethrow;
     } catch (e) {
-      print('Error fetching report: $e');
-      return null;
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     } finally {
       isLoadingReport = false;
     }
@@ -167,26 +178,13 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
         print('Request successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -201,26 +199,13 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
         print('Request successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -237,26 +222,13 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }

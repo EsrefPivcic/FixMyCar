@@ -12,7 +12,6 @@ class CityProvider extends BaseProvider<City, City> {
   Future<void> getCities() async {
     isLoading = true;
     notifyListeners();
-
     try {
       SearchResult<City> searchResult = await get(
         fromJson: (json) => City.fromJson(json),
@@ -27,7 +26,6 @@ class CityProvider extends BaseProvider<City, City> {
       cities = [];
       countOfItems = 0;
       isLoading = false;
-
       notifyListeners();
     }
   }

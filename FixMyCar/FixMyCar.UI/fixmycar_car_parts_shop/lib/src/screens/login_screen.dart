@@ -1,3 +1,4 @@
+import 'package:fixmycar_car_parts_shop/src/utilities/custom_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
@@ -37,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
-      } catch (e) {
+      } on CustomException catch (e) {
         setState(() {
           _errorMessage = e.toString();
         });
@@ -112,13 +113,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                       const SizedBox(height: 24.0),
-                      if (_errorMessage != null)
+                      if (_errorMessage != null) ...[
                         Text(
                           _errorMessage!,
                           style: TextStyle(
                               color: Theme.of(context).colorScheme.error),
                         ),
-                      const SizedBox(height: 8.0),
+                        const SizedBox(height: 8.0),
+                      ],
                       _isLoading
                           ? const CircularProgressIndicator()
                           : ElevatedButton(

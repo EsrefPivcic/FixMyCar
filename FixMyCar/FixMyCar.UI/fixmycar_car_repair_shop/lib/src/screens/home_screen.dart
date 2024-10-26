@@ -121,66 +121,94 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _dropdownValue;
   Widget _buildEditableField({
     required String label,
-    required String value,
+    required String currentValue,
     required String field,
   }) {
+    final _formKey = GlobalKey<FormState>();
     if (field == 'gender') {
-      _dropdownValue ??=
-          (value == 'Female' || value == 'Male') ? value : 'Custom';
+      _dropdownValue ??= (currentValue == 'Female' || currentValue == 'Male')
+          ? currentValue
+          : 'Custom';
 
       if (_editValue == null && _dropdownValue == 'Custom') {
-        _editValue = value;
+        _editValue = currentValue;
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 4.0),
-        if (_editingField == field)
-          Row(
-            children: [
-              if (field == 'gender') ...[
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _dropdownValue,
-                    items: ['Female', 'Male', 'Custom'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        _dropdownValue = newValue;
-                        if (_dropdownValue == 'Custom') {
-                          _editValue = value;
-                        } else {
-                          _editValue = _dropdownValue;
-                        }
-                      });
-                    },
-                    decoration: InputDecoration(
-                      labelText: AppConstants.genderLabel,
-                      border: OutlineInputBorder(
-                        borderRadius:
-                            BorderRadius.circular(AppRadius.textFieldRadius),
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4.0),
+          if (_editingField == field)
+            Row(
+              children: [
+                if (field == 'gender') ...[
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _dropdownValue,
+                      items: ['Female', 'Male', 'Custom'].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _dropdownValue = newValue;
+                          if (_dropdownValue == 'Custom') {
+                            _editValue = currentValue;
+                          } else {
+                            _editValue = _dropdownValue;
+                          }
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: AppConstants.genderLabel,
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.textFieldRadius),
+                        ),
                       ),
+                      validator: (_dropdownValue) {
+                        if (_dropdownValue == null ||
+                            _dropdownValue.isEmpty ||
+                            _dropdownValue == currentValue) {
+                          return AppConstants.newGenderError;
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (_dropdownValue) {
-                      if (_dropdownValue == null || _dropdownValue.isEmpty) {
-                        return AppConstants.genderError;
-                      }
-                      return null;
-                    },
                   ),
-                ),
-                if (_dropdownValue == 'Custom') ...[
-                  const SizedBox(width: 8.0),
+                  if (_dropdownValue == 'Custom') ...[
+                    const SizedBox(width: 8.0),
+                    Expanded(
+                      child: TextFormField(
+                          initialValue: currentValue,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          onChanged: (newValue) {
+                            _editValue = newValue;
+                          },
+                          validator: (value) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                value == currentValue) {
+                              return AppConstants.newGenderError;
+                            }
+                            return null;
+                          }),
+                    ),
+                  ]
+                ] else ...[
                   Expanded(
                     child: TextFormField(
-                      initialValue: '',
+                      initialValue: currentValue,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
@@ -189,78 +217,61 @@ class _HomeScreenState extends State<HomeScreen> {
                       onChanged: (newValue) {
                         _editValue = newValue;
                       },
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            value == currentValue) {
+                          return AppConstants.genericError;
+                        }
+                        return null;
+                      },
                     ),
                   ),
-                ]
-              ] else ...[
-                Expanded(
-                  child: TextFormField(
-                    initialValue: value,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                    ),
-                    onChanged: (newValue) {
-                      _editValue = newValue;
-                    },
-                  ),
-                ),
-              ],
-              const SizedBox(width: 8.0),
-              TextButton(
-                onPressed: () {
-                  _toggleEdit(field);
-                  setState(() {
-                    _editValue = null;
-                    _dropdownValue = null;
-                  });
-                },
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_editValue != null &&
-                      _editValue!.isNotEmpty &&
-                      (_editValue != value)) {
-                    _updateUser(field);
-                    await Provider.of<UserProvider>(context, listen: false)
-                        .updateByToken(user: _userUpdate!)
-                        .then((_) {
-                      Provider.of<CarRepairShopProvider>(context, listen: false)
-                          .getByToken();
-                      setState(() {
-                        _editValue = null;
-                        _dropdownValue = null;
-                      });
-                      _toggleEdit(field);
-                    });
-                  } else {
+                ],
+                const SizedBox(width: 8.0),
+                TextButton(
+                  onPressed: () {
+                    _toggleEdit(field);
                     setState(() {
                       _editValue = null;
                       _dropdownValue = null;
                     });
-                    _toggleEdit(field);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text(
-                          "This value can't be empty or the same as the old one!"),
-                    ));
-                  }
-                },
-                child: const Text('Apply'),
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      _updateUser(field);
+                      await Provider.of<UserProvider>(context, listen: false)
+                          .updateByToken(user: _userUpdate!)
+                          .then((_) {
+                        Provider.of<CarRepairShopProvider>(context,
+                                listen: false)
+                            .getByToken();
+                        setState(() {
+                          _editValue = null;
+                          _dropdownValue = null;
+                        });
+                        _toggleEdit(field);
+                      });
+                    }
+                  },
+                  child: const Text('Apply'),
+                ),
+              ],
+            )
+          else
+            ListTile(
+              title: Text(currentValue),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () => _toggleEdit(field),
               ),
-            ],
-          )
-        else
-          ListTile(
-            title: Text(value),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _toggleEdit(field),
             ),
-          ),
-        const Divider(),
-      ],
+          const Divider(),
+        ],
+      ),
     );
   }
 
@@ -291,31 +302,61 @@ class _HomeScreenState extends State<HomeScreen> {
   final _confirmNewPasswordController = TextEditingController();
 
   void _showChangePasswordForm() {
+    final _formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Change Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _oldPasswordController,
-                decoration: const InputDecoration(labelText: 'Old Password'),
-                obscureText: true,
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _oldPasswordController,
+                    decoration:
+                        const InputDecoration(labelText: 'Old Password'),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppConstants.passwordError;
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _newPasswordController,
+                    decoration: const InputDecoration(
+                        labelText: AppConstants.newPasswordLabel),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppConstants.newPasswordError;
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _confirmNewPasswordController,
+                    decoration: const InputDecoration(
+                        labelText: 'Confirm New Password'),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your new password again!';
+                      }
+                      if (value != _newPasswordController.text) {
+                        return 'Passwords do not match!';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
-              TextField(
-                controller: _newPasswordController,
-                decoration: const InputDecoration(labelText: 'New Password'),
-                obscureText: true,
-              ),
-              TextField(
-                controller: _confirmNewPasswordController,
-                decoration:
-                    const InputDecoration(labelText: 'Confirm New Password'),
-                obscureText: true,
-              ),
-            ],
+            ),
           ),
           actions: [
             TextButton(
@@ -329,25 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () async {
-                if (_oldPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Old password is required!'),
-                    ),
-                  );
-                } else if (_newPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('New password is required!'),
-                    ),
-                  );
-                } else if (_confirmNewPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter your new password again!'),
-                    ),
-                  );
-                } else {
+                if (_formKey.currentState?.validate() ?? false) {
                   UserUpdatePassword updatePassword = UserUpdatePassword(
                       _oldPasswordController.text,
                       _newPasswordController.text,
@@ -376,6 +399,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     });
                   } catch (e) {
+                    Navigator.of(context).pop();
+                    _oldPasswordController.clear();
+                    _newPasswordController.clear();
+                    _confirmNewPasswordController.clear();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(e.toString()),
@@ -428,24 +455,45 @@ class _HomeScreenState extends State<HomeScreen> {
   final _usernameController = TextEditingController();
 
   void _showChangeUsernameForm() {
+    final _formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Change Username'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'New Username'),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration:
+                        const InputDecoration(labelText: 'New Username'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppConstants.newUsernameError;
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(
+                        labelText: AppConstants.passwordLabel),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppConstants.passwordError;
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
-              TextField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Your Password'),
-                obscureText: true,
-              ),
-            ],
+            ),
           ),
           actions: [
             TextButton(
@@ -458,19 +506,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () async {
-                if (_usernameController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('New username is required!'),
-                    ),
-                  );
-                } else if (_passwordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password is required!'),
-                    ),
-                  );
-                } else {
+                if (_formKey.currentState?.validate() ?? false) {
+                  // Step 3: Validate the form
                   UserUpdateUsername updateUsername = UserUpdateUsername(
                       _usernameController.text, _passwordController.text);
                   try {
@@ -496,6 +533,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     });
                   } catch (e) {
+                    Navigator.of(context).pop();
+                    _usernameController.clear();
+                    _passwordController.clear();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(e.toString()),
@@ -594,22 +634,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _updateWorkDetails() async {
-    final updateWorkDetails = UserUpdateWorkDetails(
-        _selectedWorkDays,
-        'PT${_openingTime.hour}H${_openingTime.minute}M',
-        'PT${_closingTime.hour}H${_closingTime.minute}M',
-        _employees!);
-
-    await Provider.of<CarRepairShopProvider>(context, listen: false)
-        .updateWorkDetails(updateWorkDetails: updateWorkDetails)
-        .then((_) {
-      Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
-    });
-    ;
+    if (_selectedWorkDays.isNotEmpty) {
+      final updateWorkDetails = UserUpdateWorkDetails(
+          _selectedWorkDays,
+          'PT${_openingTime.hour}H${_openingTime.minute}M',
+          'PT${_closingTime.hour}H${_closingTime.minute}M',
+          _employees!);
+      await Provider.of<CarRepairShopProvider>(context, listen: false)
+          .updateWorkDetails(updateWorkDetails: updateWorkDetails)
+          .then((_) {
+        Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select at least one work day.")),
+      );
+    }
   }
 
   List<List<dynamic>>? _reportData;
   String? _csvReport;
+  String? _selectedReservationType;
   String? _username;
   DateTime? _startDate;
   DateTime? _endDate;
@@ -651,7 +696,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (savePath == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Save operation canceled.')),
+          const SnackBar(content: Text('Save operation cancelled.')),
         );
         return;
       }
@@ -680,8 +725,31 @@ class _HomeScreenState extends State<HomeScreen> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  const Text('Optional filters:'),
+                  const SizedBox(height: 5),
+                  DropdownButtonFormField<String>(
+                    value: _selectedReservationType,
+                    decoration: const InputDecoration(
+                        labelText: "Select Reservation Type"),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text("All")),
+                      DropdownMenuItem(
+                          value: "Repairs", child: Text("Repairs")),
+                      DropdownMenuItem(
+                          value: "Diagnostics", child: Text("Diagnostics")),
+                      DropdownMenuItem(
+                          value: "Repairs and Diagnostics",
+                          child: Text("Repairs and Diagnostics")),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedReservationType = value;
+                      });
+                    },
+                  ),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: "Username"),
+                    decoration:
+                        const InputDecoration(labelText: "Customer username"),
                     onChanged: (value) {
                       setState(() {
                         _username = value;
@@ -774,6 +842,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _generateReport() async {
     final filter = ReportFilter(
+      _selectedReservationType,
       _username,
       _startDate,
       _endDate,
@@ -927,17 +996,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 8.0),
                                     _buildEditableField(
                                       label: 'Name',
-                                      value: user.name,
+                                      currentValue: user.name,
                                       field: 'name',
                                     ),
                                     _buildEditableField(
                                       label: 'Surname',
-                                      value: user.surname,
+                                      currentValue: user.surname,
                                       field: 'surname',
                                     ),
                                     _buildEditableField(
                                       label: 'Gender',
-                                      value: user.gender,
+                                      currentValue: user.gender,
                                       field: 'gender',
                                     ),
                                     const SizedBox(height: 16.0),
@@ -947,27 +1016,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 8.0),
                                     _buildEditableField(
                                       label: 'Email',
-                                      value: user.email,
+                                      currentValue: user.email,
                                       field: 'email',
                                     ),
                                     _buildEditableField(
                                       label: 'Phone',
-                                      value: user.phone,
+                                      currentValue: user.phone,
                                       field: 'phone',
                                     ),
                                     _buildEditableField(
                                       label: 'Address',
-                                      value: user.address,
+                                      currentValue: user.address,
                                       field: 'address',
                                     ),
                                     _buildEditableField(
                                       label: 'Postal Code',
-                                      value: user.postalCode,
+                                      currentValue: user.postalCode,
                                       field: 'postalCode',
                                     ),
                                     _buildEditableField(
                                       label: 'City',
-                                      value: user.city,
+                                      currentValue: user.city,
                                       field: 'city',
                                     ),
                                     const SizedBox(height: 16.0),

@@ -3,6 +3,7 @@ import 'package:fixmycar_car_parts_shop/src/models/order/order_search_object.dar
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/models/order/order_accept.dart';
+import 'package:fixmycar_car_parts_shop/src/utilities/custom_exception.dart';
 import 'package:http/http.dart' as http;
 
 class OrderProvider extends BaseProvider<Order, OrderAccept> {
@@ -96,15 +97,17 @@ class OrderProvider extends BaseProvider<Order, OrderAccept> {
         print('Reject successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to reject the order. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error rejectig the order: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
+  @override
   Future<void> delete(int id) async {
     try {
       final response = await http.put(
@@ -114,12 +117,13 @@ class OrderProvider extends BaseProvider<Order, OrderAccept> {
         print('Delete successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to delete the order. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error deleting the order: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }

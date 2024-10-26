@@ -4,6 +4,7 @@ import 'package:fixmycar_car_parts_shop/src/models/user/user_minimal.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/chat_history_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/user_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/chat_screen.dart';
+import 'package:fixmycar_car_parts_shop/src/utilities/custom_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/discounts_screen.dart';
@@ -158,12 +159,13 @@ class MasterScreen extends StatelessWidget {
                       ).then((_) {
                         _usernameController.text = "";
                       });
-                    } catch (e) {
+                    } on CustomException catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("This user doesn't exist!"),
+                        SnackBar(
+                          content: Text(e.toString()),
                         ),
                       );
+                      _usernameController.text = "";
                       Navigator.of(context).pop();
                     }
                   } else {

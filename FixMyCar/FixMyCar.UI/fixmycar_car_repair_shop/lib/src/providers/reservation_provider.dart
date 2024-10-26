@@ -2,8 +2,8 @@ import 'package:fixmycar_car_repair_shop/src/models/reservation/reservation.dart
 import 'package:fixmycar_car_repair_shop/src/models/reservation/reservation_search_object.dart';
 import 'package:fixmycar_car_repair_shop/src/models/search_result.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/base_provider.dart';
+import 'package:fixmycar_car_repair_shop/src/utilities/custom_exception.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class ReservationProvider extends BaseProvider<Reservation, Reservation> {
   List<Reservation> reservations = [];
@@ -114,26 +114,13 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
         print('Accepting reservation successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -146,26 +133,13 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
         print('Adding order successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -178,26 +152,13 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
         print('Completing reservation successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -210,26 +171,13 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
         print('Reservation started successfully.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -242,29 +190,17 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
         print('Rejecting reservation successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
+  @override
   Future<void> delete(int id) async {
     try {
       final response = await http.put(
@@ -274,26 +210,13 @@ class ReservationProvider extends BaseProvider<Reservation, Reservation> {
         print('Deleting reservation successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }

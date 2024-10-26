@@ -32,7 +32,6 @@ class OrderDetailProvider extends BaseProvider<OrderDetail, OrderDetail> {
       orderDetails = [];
       countOfItems = 0;
       isLoading = false;
-
       notifyListeners();
     }
   }

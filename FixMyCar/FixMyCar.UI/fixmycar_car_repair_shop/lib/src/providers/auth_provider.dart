@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fixmycar_car_repair_shop/src/utilities/custom_exception.dart';
 import 'package:http/http.dart' as http;
 import 'package:fixmycar_car_repair_shop/src/providers/base_provider.dart';
 
@@ -33,42 +34,35 @@ class AuthProvider extends BaseProvider<AuthProvider, AuthProvider> {
         await storage.write(key: 'jwt_token', value: token);
         isLoggedIn = true;
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
   Future<void> logout() async {
-    final response = await http.post(
-      Uri.parse('${BaseProvider.baseUrl}/logout'),
-      headers: await createHeaders(),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('${BaseProvider.baseUrl}/logout'),
+        headers: await createHeaders(),
+      );
 
-    if (response.statusCode == 200) {
-      await storage.write(key: 'jwt_token', value: '');
-      isLoggedIn = false;
-      print("Logout successful!");
-    } else {
-      final responseBody = json.decode(response.body);
-      throw Exception(responseBody['message']);
+      if (response.statusCode == 200) {
+        await storage.write(key: 'jwt_token', value: '');
+        isLoggedIn = false;
+        print("Logout successful!");
+      } else {
+        handleHttpError(response);
+      }
+    } on CustomException {
+      rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }

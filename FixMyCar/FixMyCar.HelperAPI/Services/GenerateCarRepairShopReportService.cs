@@ -48,6 +48,11 @@ namespace FixMyCar.HelperAPI.Services
                 query = query.Where(r => r.Client.Username == request.Username);
             }
 
+            if (!request.ReservationType.IsNullOrEmpty())
+            {
+                query = query.Where(r => r.Type == request.ReservationType);
+            }
+
             var reservations = await query.ToListAsync();
 
             if (!reservations.IsNullOrEmpty()) {
@@ -88,17 +93,30 @@ namespace FixMyCar.HelperAPI.Services
                 var fileName = $"report_{request.ShopName}.csv";
                 var filePath = Path.Combine("Reports", fileName);
 
-                await File.WriteAllTextAsync(filePath, csvReport.ToString());
-
-                Console.WriteLine($"Report generated and saved at {filePath}");
-
-                ReportNotificationDTO notification = new ReportNotificationDTO
+                try
                 {
-                    Username = request.ShopName,
-                    NotificationType = "customreport",
-                    Message = "New custom report generated!"
-                };
-                _rabbitMQService.SendReportNotification(notification);
+                    await File.WriteAllTextAsync(filePath, csvReport.ToString());
+
+                    Console.WriteLine($"Report generated and saved at {filePath}");
+
+                    ReportNotificationDTO notification = new ReportNotificationDTO
+                    {
+                        Username = request.ShopName,
+                        NotificationType = "customreport",
+                        Message = "New custom report generated!"
+                    };
+                    _rabbitMQService.SendReportNotification(notification);
+                }
+                catch (Exception)
+                {
+                    ReportNotificationDTO notification = new ReportNotificationDTO
+                    {
+                        Username = request.ShopName,
+                        NotificationType = "customreport",
+                        Message = "Warning! Your previous request is still processing. Please wait."
+                    };
+                    _rabbitMQService.SendReportNotification(notification);
+                }
             }
             else
             {
@@ -129,17 +147,30 @@ namespace FixMyCar.HelperAPI.Services
 
             if (!reservations.IsNullOrEmpty())
             {
-                await MonthlyRevenuePerReservationType(shopName, reservations);
-                await MonthlyRevenuePerDay(shopName, reservations, oneMonthOlder);
-                await Top10CustomersMonthly(shopName, reservations);
-                await Top10ReservationsMonthly(shopName, reservations);
-                ReportNotificationDTO notification = new ReportNotificationDTO
+                try
                 {
-                    Username = shopName,
-                    NotificationType = "monthlystatistics",
-                    Message = "Monthly statistics updated!"
-                };
-                _rabbitMQService.SendReportNotification(notification);
+                    await MonthlyRevenuePerReservationType(shopName, reservations);
+                    await MonthlyRevenuePerDay(shopName, reservations, oneMonthOlder);
+                    await Top10CustomersMonthly(shopName, reservations);
+                    await Top10ReservationsMonthly(shopName, reservations);
+                    ReportNotificationDTO notification = new ReportNotificationDTO
+                    {
+                        Username = shopName,
+                        NotificationType = "monthlystatistics",
+                        Message = "Monthly statistics updated!"
+                    };
+                    _rabbitMQService.SendReportNotification(notification);
+                }
+                catch (Exception)
+                {
+                    ReportNotificationDTO notification = new ReportNotificationDTO
+                    {
+                        Username = shopName,
+                        NotificationType = "monthlystatistics",
+                        Message = "Warning! Your previous request is still processing. Please wait."
+                    };
+                    _rabbitMQService.SendReportNotification(notification);
+                }
             }
             else
             {

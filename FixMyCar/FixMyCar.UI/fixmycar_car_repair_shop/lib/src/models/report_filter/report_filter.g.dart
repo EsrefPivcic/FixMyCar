@@ -7,6 +7,7 @@ part of 'report_filter.dart';
 // **************************************************************************
 
 ReportFilter _$ReportFilterFromJson(Map<String, dynamic> json) => ReportFilter(
+      json['reservationType'] as String?,
       json['username'] as String?,
       json['startDate'] == null
           ? null
@@ -18,6 +19,7 @@ ReportFilter _$ReportFilterFromJson(Map<String, dynamic> json) => ReportFilter(
 
 Map<String, dynamic> _$ReportFilterToJson(ReportFilter instance) =>
     <String, dynamic>{
+      'reservationType': instance.reservationType,
       'username': instance.username,
       'startDate': instance.startDate?.toIso8601String(),
       'endDate': instance.endDate?.toIso8601String(),

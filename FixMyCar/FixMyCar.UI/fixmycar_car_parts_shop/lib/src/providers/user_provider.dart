@@ -6,6 +6,7 @@ import 'package:fixmycar_car_parts_shop/src/models/user/user_update_image.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_password.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_username.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/utilities/custom_exception.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -30,33 +31,16 @@ class UserProvider extends BaseProvider<User, UserRegister> {
         UserMinimal user = UserMinimal.fromJson(responseBody);
         return user;
       } else {
-        _handleErrors(response);
-        throw Exception('Error occurred while checking if user exists.');
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
       }
-    } catch (e) {
-      print('Error checking if user exists: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     } finally {
       notifyListeners();
-    }
-  }
-
-  void _handleErrors(http.Response response) {
-    final responseBody = jsonDecode(response.body);
-    final errors = responseBody['errors'] as Map<String, dynamic>?;
-    if (errors != null) {
-      final userErrors = errors['UserError'] as List<dynamic>?;
-      if (userErrors != null) {
-        for (var error in userErrors) {
-          throw Exception(
-              'User error: $error. Status code: ${response.statusCode}');
-        }
-      } else {
-        throw Exception(
-            'Server side error. Status code: ${response.statusCode}');
-      }
-    } else {
-      throw Exception('Unknown error. Status code: ${response.statusCode}');
     }
   }
 
@@ -72,26 +56,13 @@ class UserProvider extends BaseProvider<User, UserRegister> {
         print('Update successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -107,26 +78,13 @@ class UserProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -142,26 +100,13 @@ class UserProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -176,26 +121,13 @@ class UserProvider extends BaseProvider<User, UserRegister> {
       if (response.statusCode == 200) {
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }

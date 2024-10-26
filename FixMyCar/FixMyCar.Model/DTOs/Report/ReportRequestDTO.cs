@@ -10,6 +10,7 @@ namespace FixMyCar.Model.DTOs.Report
     {
         public string? ShopName { get; set; }
         public string? ShopType { get; set; }
+        public string? ReservationType { get; set; }
         public string? Username { get; set; }
         public string? Role { get; set; }
         public DateTime? StartDate { get; set; }

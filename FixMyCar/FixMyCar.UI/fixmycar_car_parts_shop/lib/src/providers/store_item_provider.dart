@@ -2,6 +2,7 @@ import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item.dart';
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 import 'package:fixmycar_car_parts_shop/src/models/store_item/store_item_insert_update.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/base_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/utilities/custom_exception.dart';
 import 'package:http/http.dart' as http;
 
 class StoreItemProvider extends BaseProvider<StoreItem, StoreItemInsertUpdate> {
@@ -94,12 +95,13 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItemInsertUpdate> {
         print('Activation successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to activate the item. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error activating the item: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -113,12 +115,13 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItemInsertUpdate> {
         print('Hiding successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to hide the item. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error hiding the item: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }

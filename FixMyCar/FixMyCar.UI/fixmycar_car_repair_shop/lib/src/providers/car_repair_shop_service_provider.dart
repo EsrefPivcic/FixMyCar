@@ -3,6 +3,7 @@ import 'package:fixmycar_car_repair_shop/src/models/car_repair_shop_service/car_
 import 'package:fixmycar_car_repair_shop/src/models/car_repair_shop_service/car_repair_shop_service_search_object.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/base_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/models/search_result.dart';
+import 'package:fixmycar_car_repair_shop/src/utilities/custom_exception.dart';
 import 'package:http/http.dart' as http;
 
 class CarRepairShopServiceProvider extends BaseProvider<CarRepairShopService,
@@ -85,8 +86,6 @@ class CarRepairShopServiceProvider extends BaseProvider<CarRepairShopService,
 
   Future<void> updateService(
       int id, CarRepairShopServiceInsertUpdate service) async {
-    print(id);
-    print(service.name);
     await update(
       id: id,
       item: service,
@@ -104,12 +103,13 @@ class CarRepairShopServiceProvider extends BaseProvider<CarRepairShopService,
         print('Activation successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to activate the service. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error activating the service: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -123,12 +123,13 @@ class CarRepairShopServiceProvider extends BaseProvider<CarRepairShopService,
         print('Hiding successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to hide the service. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error hiding the service: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }
