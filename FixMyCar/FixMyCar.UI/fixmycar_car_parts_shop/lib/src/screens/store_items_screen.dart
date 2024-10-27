@@ -152,7 +152,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                     children: [
                                       if (item.discount != 0) ...[
                                         TextSpan(
-                                          text: '${item.price}€ ',
+                                          text:
+                                              '${item.price.toStringAsFixed(2)}€ ',
                                           style: const TextStyle(
                                             decoration:
                                                 TextDecoration.lineThrough,
@@ -160,14 +161,16 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: ' ${item.discountedPrice}€',
+                                          text:
+                                              ' ${item.discountedPrice.toStringAsFixed(2)}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
                                         ),
                                       ] else ...[
                                         TextSpan(
-                                          text: '${item.price}€',
+                                          text:
+                                              '${item.price.toStringAsFixed(2)}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
@@ -182,7 +185,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
-                                    'Discount: ${(item.discount * 100).toInt()}%',
+                                    'Discount: ${(item.discount * 100).toStringAsFixed(2)}%',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall
@@ -545,11 +548,25 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               },
             );
             if (confirmDelete) {
-              await Provider.of<StoreItemProvider>(context, listen: false)
-                  .deleteStoreItem(item.id)
-                  .then((_) {
-                _applyFilters();
-              });
+              try {
+                await Provider.of<StoreItemProvider>(context, listen: false)
+                    .deleteStoreItem(item.id)
+                    .then((_) {
+                  _applyFilters();
+                }).then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Deleting successful!"),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
             }
           },
           style: ElevatedButton.styleFrom(
@@ -584,11 +601,25 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               },
             );
             if (confirmActivate) {
-              await Provider.of<StoreItemProvider>(context, listen: false)
-                  .activate(item.id)
-                  .then((_) {
-                _applyFilters();
-              });
+              try {
+                await Provider.of<StoreItemProvider>(context, listen: false)
+                    .activate(item.id)
+                    .then((_) {
+                  _applyFilters();
+                }).then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Activation successful!"),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
             }
           },
           style: ElevatedButton.styleFrom(
@@ -626,11 +657,25 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               },
             );
             if (confirmHide) {
-              await Provider.of<StoreItemProvider>(context, listen: false)
-                  .hide(item.id)
-                  .then((_) {
-                _applyFilters();
-              });
+              try {
+                await Provider.of<StoreItemProvider>(context, listen: false)
+                    .hide(item.id)
+                    .then((_) {
+                  _applyFilters();
+                }).then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Hiding successful!"),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
             }
           },
           style: ElevatedButton.styleFrom(
@@ -645,7 +690,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   void _showEditForm(BuildContext context, StoreItem? item, bool edit) {
     TextEditingController nameController = TextEditingController(text: "");
     TextEditingController discountController = TextEditingController(text: "0");
-    TextEditingController priceController = TextEditingController(text: "0");
+    TextEditingController priceController = TextEditingController(text: "0.00");
     TextEditingController detailsController = TextEditingController(text: "");
     String? base64Image = "";
     String? imagePath;
@@ -658,13 +703,16 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     if (edit) {
       nameController = TextEditingController(text: item!.name);
       discountController =
-          TextEditingController(text: (item.discount * 100).toString());
-      priceController = TextEditingController(text: item.price.toString());
+          TextEditingController(text: (item.discount * 100).toStringAsFixed(2));
+      priceController =
+          TextEditingController(text: item.price.toStringAsFixed(2));
       detailsController = TextEditingController(text: item.details);
       base64Image = item.imageData;
       categoryId = item.storeItemCategoryId;
       selectedCarModels = List.from(item.carModels ?? []);
     }
+
+    final _formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -678,256 +726,297 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Container(
-                width: 400,
-                padding: const EdgeInsets.all(16.0),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Name',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: priceController,
-                        decoration: const InputDecoration(
-                          labelText: 'Price (€)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: discountController,
-                        decoration: const InputDecoration(
-                          labelText: 'Discount (%)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 20),
-                      DropdownButton<int>(
-                        value: categoryId,
-                        onChanged: (int? newValue) {
-                          setState(() {
-                            categoryId = newValue;
-                            newStoreItem.storeItemCategoryId = newValue!;
-                          });
-                        },
-                        items: _categories.map<DropdownMenuItem<int>>(
-                            (StoreItemCategory category) {
-                          return DropdownMenuItem<int>(
-                            value: category.id,
-                            child: Text(category.name),
-                          );
-                        }).toList(),
-                        isExpanded: true,
-                        hint: const Text('Select a category'),
-                      ),
-                      const SizedBox(height: 20),
-                      DropdownButton<CarManufacturer>(
-                        value: selectedManufacturer,
-                        onChanged: (CarManufacturer? newValue) {
-                          setState(() {
-                            selectedManufacturer = newValue;
-                            selectedModel = null;
-                          });
-                        },
-                        items: _carModelsByManufacturer
-                            .map<DropdownMenuItem<CarManufacturer>>(
-                                (CarModelsByManufacturer cm) {
-                          return DropdownMenuItem<CarManufacturer>(
-                            value: cm.manufacturer,
-                            child: Text(cm.manufacturer.name),
-                          );
-                        }).toList(),
-                        isExpanded: true,
-                        hint: const Text('Select a manufacturer'),
-                      ),
-                      if (selectedManufacturer != null)
-                        const SizedBox(height: 20),
-                      if (selectedManufacturer != null)
-                        DropdownButton<CarModel>(
-                          value: selectedModel,
-                          onChanged: (CarModel? newValue) {
-                            setState(() {
-                              if (newValue != null) {
-                                bool alreadyExists = selectedCarModels
-                                    .any((model) => model.id == newValue.id);
-                                if (!alreadyExists) {
-                                  selectedModel = newValue;
-                                  selectedCarModels.add(newValue);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Model already selected'),
-                                    ),
-                                  );
-                                }
+              child: Form(
+                key: _formKey,
+                child: Container(
+                  width: 400,
+                  padding: const EdgeInsets.all(16.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Name',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Please enter item name";
                               }
+                              return null;
+                            }),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: priceController,
+                          decoration: const InputDecoration(
+                            labelText: 'Price (€)',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Please enter item price";
+                            }
+                            final price = double.tryParse(value.trim());
+                            if (price == null) {
+                              return "Please enter a valid number";
+                            }
+                            if (price <= 0) {
+                              return "Price must be greater than zero";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: discountController,
+                          decoration: const InputDecoration(
+                            labelText: 'Discount (%)',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Please enter a valid value (0-99)";
+                            }
+                            final discount = double.tryParse(value.trim());
+                            if (discount == null) {
+                              return "Please enter a valid value (0-99)";
+                            }
+                            if (discount < 0) {
+                              return "Discount can't be lower than 0%";
+                            }
+                            if (discount > 99) {
+                              return "Discount can't be higher than 99%";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        DropdownButton<int>(
+                          value: categoryId,
+                          onChanged: (int? newValue) {
+                            setState(() {
+                              categoryId = newValue;
+                              newStoreItem.storeItemCategoryId = newValue!;
                             });
                           },
-                          items: _carModelsByManufacturer
-                              .firstWhere((cm) =>
-                                  cm.manufacturer == selectedManufacturer!)
-                              .models
-                              .map<DropdownMenuItem<CarModel>>(
-                                  (CarModel model) {
-                            return DropdownMenuItem<CarModel>(
-                              value: model,
-                              child: Text('${model.name} (${model.modelYear})'),
+                          items: _categories.map<DropdownMenuItem<int>>(
+                              (StoreItemCategory category) {
+                            return DropdownMenuItem<int>(
+                              value: category.id,
+                              child: Text(category.name),
                             );
                           }).toList(),
                           isExpanded: true,
-                          hint: const Text('Select a model'),
+                          hint: const Text('Select a category'),
                         ),
-                      const SizedBox(height: 20),
-                      Wrap(
-                        spacing: 8.0,
-                        runSpacing: 4.0,
-                        children: selectedCarModels.map((CarModel model) {
-                          return FilterChip(
-                            label: Text('${model.name} (${model.modelYear})'),
-                            onSelected: (bool selected) {
+                        const SizedBox(height: 20),
+                        DropdownButton<CarManufacturer>(
+                          value: selectedManufacturer,
+                          onChanged: (CarManufacturer? newValue) {
+                            setState(() {
+                              selectedManufacturer = newValue;
+                              selectedModel = null;
+                            });
+                          },
+                          items: _carModelsByManufacturer
+                              .map<DropdownMenuItem<CarManufacturer>>(
+                                  (CarModelsByManufacturer cm) {
+                            return DropdownMenuItem<CarManufacturer>(
+                              value: cm.manufacturer,
+                              child: Text(cm.manufacturer.name),
+                            );
+                          }).toList(),
+                          isExpanded: true,
+                          hint: const Text('Select a manufacturer'),
+                        ),
+                        if (selectedManufacturer != null)
+                          const SizedBox(height: 20),
+                        if (selectedManufacturer != null)
+                          DropdownButton<CarModel>(
+                            value: selectedModel,
+                            onChanged: (CarModel? newValue) {
                               setState(() {
-                                if (!selected) {
-                                  selectedCarModels.remove(model);
+                                if (newValue != null) {
+                                  bool alreadyExists = selectedCarModels
+                                      .any((model) => model.id == newValue.id);
+                                  if (!alreadyExists) {
+                                    selectedModel = newValue;
+                                    selectedCarModels.add(newValue);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Model already selected'),
+                                      ),
+                                    );
+                                  }
                                 }
                               });
                             },
-                            selected: true,
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: detailsController,
-                        maxLines: 5,
-                        decoration: const InputDecoration(
-                          labelText: 'Details',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      if (base64Image != "")
-                        Image.memory(
-                          base64Decode(base64Image!),
-                          height: 200,
-                          width: 200,
-                          fit: BoxFit.contain,
-                        )
-                      else
-                        const Icon(Icons.image, size: 150),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () async {
-                          FilePickerResult? result =
-                              await FilePicker.platform.pickFiles(
-                            type: FileType.image,
-                          );
-                          if (result != null) {
-                            setState(() {
-                              imagePath = result.files.single.path;
-                              base64Image = base64Encode(
-                                  File(imagePath!).readAsBytesSync());
-                            });
-                          }
-                        },
-                        child: const Text('Select Image'),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('Cancel'),
+                            items: _carModelsByManufacturer
+                                .firstWhere((cm) =>
+                                    cm.manufacturer == selectedManufacturer!)
+                                .models
+                                .map<DropdownMenuItem<CarModel>>(
+                                    (CarModel model) {
+                              return DropdownMenuItem<CarModel>(
+                                value: model,
+                                child:
+                                    Text('${model.name} (${model.modelYear})'),
+                              );
+                            }).toList(),
+                            isExpanded: true,
+                            hint: const Text('Select a model'),
                           ),
-                          ElevatedButton(
-                            onPressed: () async {
-                              if (edit) {
-                                newStoreItem.name = nameController.text != ""
-                                    ? nameController.text
-                                    : item!.name;
-                                newStoreItem.price = priceController.text != ""
-                                    ? double.tryParse(priceController.text) ??
-                                        item!.price
-                                    : item!.price;
-                                newStoreItem.discount =
-                                    discountController.text != ""
-                                        ? double.tryParse(
-                                                discountController.text)! /
-                                            100
-                                        : item!.discount;
-                                newStoreItem.imageData = base64Image;
-                                newStoreItem.details =
-                                    detailsController.text != ""
-                                        ? detailsController.text
-                                        : item!.details;
-                                newStoreItem.storeItemCategoryId =
-                                    newStoreItem.storeItemCategoryId ??
-                                        item!.storeItemCategoryId;
-                                newStoreItem.carModelIds = selectedCarModels
-                                    .map((model) => model.id)
-                                    .toList();
-                                await Provider.of<StoreItemProvider>(context,
-                                        listen: false)
-                                    .updateStoreItem(item!.id, newStoreItem)
-                                    .then((_) {
-                                  _applyFilters();
+                        const SizedBox(height: 20),
+                        Wrap(
+                          spacing: 8.0,
+                          runSpacing: 4.0,
+                          children: selectedCarModels.map((CarModel model) {
+                            return FilterChip(
+                              label: Text('${model.name} (${model.modelYear})'),
+                              onSelected: (bool selected) {
+                                setState(() {
+                                  if (!selected) {
+                                    selectedCarModels.remove(model);
+                                  }
                                 });
+                              },
+                              selected: true,
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: detailsController,
+                          maxLines: 5,
+                          decoration: const InputDecoration(
+                            labelText: 'Details',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        if (base64Image != "")
+                          Image.memory(
+                            base64Decode(base64Image!),
+                            height: 200,
+                            width: 200,
+                            fit: BoxFit.contain,
+                          )
+                        else
+                          const Icon(Icons.image, size: 150),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () async {
+                            FilePickerResult? result =
+                                await FilePicker.platform.pickFiles(
+                              type: FileType.image,
+                            );
+                            if (result != null) {
+                              setState(() {
+                                imagePath = result.files.single.path;
+                                base64Image = base64Encode(
+                                    File(imagePath!).readAsBytesSync());
+                              });
+                            }
+                          },
+                          child: const Text('Select Image'),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
                                 Navigator.of(context).pop();
-                              } else {
-                                if (nameController.text == "" ||
-                                    priceController.text == "") {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Item name and price are required!'),
-                                    ),
-                                  );
-                                } else {
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (_formKey.currentState?.validate() ??
+                                    false) {
                                   newStoreItem.name = nameController.text;
                                   newStoreItem.price =
-                                      double.tryParse(priceController.text) ??
-                                          0;
-                                  newStoreItem.discount =
-                                      discountController.text != ""
-                                          ? double.tryParse(
-                                                  discountController.text)! /
-                                              100
-                                          : 0;
+                                      double.tryParse(priceController.text);
+                                  newStoreItem.discount = double.tryParse(
+                                          discountController.text)! /
+                                      100;
                                   newStoreItem.imageData = base64Image;
-                                  newStoreItem.details = detailsController.text;
+                                  newStoreItem.details =
+                                      detailsController.text.trim();
+                                  newStoreItem.storeItemCategoryId =
+                                      newStoreItem.storeItemCategoryId;
                                   newStoreItem.carModelIds = selectedCarModels
                                       .map((model) => model.id)
                                       .toList();
-                                  await Provider.of<StoreItemProvider>(context,
-                                          listen: false)
-                                      .insertStoreItem(newStoreItem)
-                                      .then((_) {
-                                    Provider.of<StoreItemProvider>(context,
-                                            listen: false)
-                                        .getStoreItems(
-                                            pageNumber: _pageNumber,
-                                            pageSize: _pageSize);
-                                  });
-                                  Navigator.of(context).pop();
+                                  if (edit) {
+                                    try {
+                                      await Provider.of<StoreItemProvider>(
+                                              context,
+                                              listen: false)
+                                          .updateStoreItem(
+                                              item!.id, newStoreItem)
+                                          .then((_) {
+                                        _applyFilters();
+                                      }).then((_) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text("Update successful!"),
+                                          ),
+                                        );
+                                      });
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(e.toString()),
+                                        ),
+                                      );
+                                    }
+                                    Navigator.of(context).pop();
+                                  } else {
+                                    try {
+                                      await Provider.of<StoreItemProvider>(
+                                              context,
+                                              listen: false)
+                                          .insertStoreItem(newStoreItem)
+                                          .then((_) {
+                                        Provider.of<StoreItemProvider>(context,
+                                                listen: false)
+                                            .getStoreItems(
+                                                pageNumber: _pageNumber,
+                                                pageSize: _pageSize);
+                                      }).then((_) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text("Insert successful!"),
+                                          ),
+                                        );
+                                      });
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(e.toString()),
+                                        ),
+                                      );
+                                    }
+                                    Navigator.of(context).pop();
+                                  }
                                 }
-                              }
-                            },
-                            child: const Text('Save'),
-                          ),
-                        ],
-                      ),
-                    ],
+                              },
+                              child: const Text('Save'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

@@ -64,7 +64,7 @@ namespace FixMyCar.Services.Services
 
                 await _context.SaveChangesAsync();
 
-                return $"Successfully deleted: {Environment.NewLine} {entity}";
+                return $"Successfully deleted.";
             }
             return "Entity doesn't exist.";
         }

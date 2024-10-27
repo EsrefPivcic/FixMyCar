@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,11 +55,19 @@ namespace FixMyCar.Services.StateMachineServices.StoreItemStateMachine
 
         public async override Task<StoreItemGetDTO> Activate(StoreItem entity)
         {
-            entity.State = "active";
+            bool validate = !string.IsNullOrWhiteSpace(entity.Details) && !entity.CarModels.IsNullOrEmpty() && entity.StoreItemCategoryId != null;
+            if (validate)
+            {
+                entity.State = "active";
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            return _mapper.Map<StoreItemGetDTO>(entity);
+                return _mapper.Map<StoreItemGetDTO>(entity);
+            }
+            else
+            {
+                throw new UserException("Please insert all item details before activating the item!");
+            }
         }
 
         public async override Task<string> Delete(StoreItem entity)

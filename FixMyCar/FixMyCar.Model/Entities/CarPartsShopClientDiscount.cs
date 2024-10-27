@@ -22,5 +22,6 @@ namespace FixMyCar.Model.Entities
         public CarRepairShop? CarRepairShop { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Revoked { get; set; }
+        public bool? SoftDelete { get; set; }
     }
 }

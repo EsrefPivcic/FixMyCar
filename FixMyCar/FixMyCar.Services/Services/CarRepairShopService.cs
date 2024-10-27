@@ -58,24 +58,32 @@ namespace FixMyCar.Services.Services
             return base.AddFilter(query, search);
         }
 
-        public void GenerateReport(ReportRequestDTO request)
+        public async void GenerateReport(string username, ReportRequestDTO request)
         {
+            var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            request.ShopId = shop!.Id;
+            request.ShopName = username;
             request.ShopType = "carrepairshop";
             _rabbitMQService.SendReportGenerationRequest(request);
         }
 
-        public void GenerateMonthlyReports(MonthlyReportRequestDTO request)
+        public async void GenerateMonthlyReports(string username)
         {
+            MonthlyReportRequestDTO request = new MonthlyReportRequestDTO();
+            var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            request.ShopId = shop!.Id;
+            request.ShopName = shop!.Username;
             request.ShopType = "carrepairshop";
             _rabbitMQService.SendMonthlyReportGenerationRequest(request);
         }
 
         public async Task<byte[]> GetReport(string username)
         {
+            var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
             var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
-            var reportFilePath = Path.Combine(reportsFolderPath, $"report_{username}.csv");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"report_{shop.Id}.csv");
 
             if (File.Exists(reportFilePath))
             {
@@ -87,10 +95,11 @@ namespace FixMyCar.Services.Services
 
         public async Task<byte[]> GetMonthlyRevenuePerReservationTypeReport(string username)
         {
+            var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
             var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
-            var reportFilePath = Path.Combine(reportsFolderPath, $"monthly_revenue_per_reservation_type_{username}.csv");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"monthly_revenue_per_reservation_type_{shop.Id}.csv");
 
             if (File.Exists(reportFilePath))
             {
@@ -102,10 +111,11 @@ namespace FixMyCar.Services.Services
 
         public async Task<byte[]> GetMonthlyRevenuePerDayReport(string username)
         {
+            var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
             var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
-            var reportFilePath = Path.Combine(reportsFolderPath, $"monthly_revenue_per_day_{username}.csv");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"monthly_revenue_per_day_{shop.Id}.csv");
 
             if (File.Exists(reportFilePath))
             {
@@ -117,10 +127,11 @@ namespace FixMyCar.Services.Services
 
         public async Task<byte[]> GetTop10CustomersMonthlyReport(string username)
         {
+            var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
             var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
-            var reportFilePath = Path.Combine(reportsFolderPath, $"top_10_customers_monthly_{username}.csv");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"top_10_customers_monthly_{shop.Id}.csv");
 
             if (File.Exists(reportFilePath))
             {
@@ -132,10 +143,11 @@ namespace FixMyCar.Services.Services
 
         public async Task<byte[]> GetTop10ReservationsMonthlyReport(string username)
         {
+            var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var solutionDirectory = Path.Combine(baseDirectory, "..", "..", "..", "..");
             var reportsFolderPath = Path.Combine(solutionDirectory, "FixMyCar.HelperAPI", "Reports");
-            var reportFilePath = Path.Combine(reportsFolderPath, $"top_10_reservations_monthly_{username}.csv");
+            var reportFilePath = Path.Combine(reportsFolderPath, $"top_10_reservations_monthly_{shop.Id}.csv");
 
             if (File.Exists(reportFilePath))
             {

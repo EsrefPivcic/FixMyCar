@@ -39,8 +39,7 @@ namespace FixMyCar.API.Controllers
         public IActionResult GenerateReport(ReportRequestDTO request)
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            request.ShopName = username;
-            (_service as ICarRepairShopService).GenerateReport(request);
+            (_service as ICarRepairShopService).GenerateReport(username, request);
             return Ok();
         }
 
@@ -48,9 +47,7 @@ namespace FixMyCar.API.Controllers
         public IActionResult GenerateMonthlyReport()
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            MonthlyReportRequestDTO request = new MonthlyReportRequestDTO();
-            request.ShopName = username;
-            (_service as ICarRepairShopService).GenerateMonthlyReports(request);
+            (_service as ICarRepairShopService).GenerateMonthlyReports(username);
             return Ok();
         }
 

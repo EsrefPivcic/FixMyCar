@@ -1,7 +1,9 @@
 import 'package:fixmycar_car_parts_shop/src/providers/car_parts_shop_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/city_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/login_screen.dart';
+import 'package:fixmycar_car_parts_shop/src/utilities/phone_number_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_parts_shop/constants.dart';
 import 'package:file_picker/file_picker.dart';
@@ -44,6 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   String? _errorMessage;
+  String? _workDaysError;
   String? _selectedImagePath;
   String _gender = 'Female';
 
@@ -96,7 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _nameController.text,
           _surnameController.text,
           _emailController.text,
-          _phoneController.text,
+          "+387 ${_phoneController.text}",
           _usernameController.text,
           _gender == 'Custom' ? _customGenderController.text : _gender,
           _addressController.text,
@@ -249,13 +252,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               'Custom Gender', 'Please enter your gender'),
                           const SizedBox(height: 16.0),
                         ],
-                        _buildTextField(
+                        _buildPasswordField(
                             _passwordController,
                             AppConstants.passwordLabel,
                             AppConstants.passwordError,
                             obscureText: true),
                         const SizedBox(height: 16.0),
-                        _buildTextField(
+                        _buildConfirmPasswordField(
                             _passwordConfirmController,
                             AppConstants.passwordConfirmLabel,
                             AppConstants.passwordConfirmError,
@@ -268,20 +271,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             AppConstants.usernameLabel,
                             AppConstants.usernameError),
                         const SizedBox(height: 16.0),
-                        _buildTextField(_emailController,
-                            AppConstants.emailLabel, AppConstants.emailError,
-                            keyboardType: TextInputType.emailAddress),
+                        _buildEmailField(_emailController,
+                            AppConstants.emailLabel, AppConstants.emailError),
                         const SizedBox(height: 16.0),
-                        _buildTextField(_phoneController,
-                            AppConstants.phoneLabel, AppConstants.phoneError,
-                            keyboardType: TextInputType.phone),
+                        _buildPhoneNumberField(
+                          _phoneController,
+                          AppConstants.phoneLabel,
+                          AppConstants.phoneError,
+                        ),
                         const SizedBox(height: 16.0),
                         _buildTextField(
                             _addressController,
                             AppConstants.addressLabel,
                             AppConstants.addressError),
                         const SizedBox(height: 16.0),
-                        _buildTextField(
+                        _buildPostalCodeField(
                             _postalCodeController,
                             AppConstants.postalCodeLabel,
                             AppConstants.postalCodeError),
@@ -325,6 +329,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _buildSectionTitle(context, 'Work Details'),
                         const SizedBox(height: 16.0),
                         _buildWorkDaysSelector(),
+                        const SizedBox(height: 8.0),
+                        if (_workDaysError != null)
+                          Text(
+                            _workDaysError!,
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error),
+                          ),
                         const SizedBox(height: 16.0),
                         _buildTimePicker(
                             'Opening Time', _openingTime, _selectOpeningTime),
@@ -342,7 +353,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _isLoading
                             ? const CircularProgressIndicator()
                             : ElevatedButton(
-                                onPressed: _register,
+                                onPressed: () {
+                                  if (_selectedWorkDays.isNotEmpty) {
+                                    setState(() {
+                                      _workDaysError = null;
+                                    });
+                                    _register();
+                                  } else {
+                                    setState(() {
+                                      _workDaysError =
+                                          "Please select at least one work day.";
+                                    });
+                                  }
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Theme.of(context)
                                       .colorScheme
@@ -423,6 +446,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  Widget _buildPhoneNumberField(
+      TextEditingController controller, String labelText, String errorText) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        prefixText: '+387 ',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: TextInputType.phone,
+      inputFormatters: [
+        PhoneNumberFormatter(),
+        LengthLimitingTextInputFormatter(12),
+      ],
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return errorText;
+        }
+        if (!RegExp(r'^\d{8,9}$').hasMatch(value.replaceAll(' ', ''))) {
+          return "Phone number must be 8 or 9 digits";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPostalCodeField(
+      TextEditingController controller, String labelText, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: keyboardType,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(25),
+      ],
+      obscureText: obscureText,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value.length > 25) {
+          return "This value can't be longer than 25 characters";
+        }
+        return null;
+      },
+    );
+  }
+
   Widget _buildTextField(
       TextEditingController controller, String labelText, String errorText,
       {TextInputType keyboardType = TextInputType.text,
@@ -436,10 +516,112 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
       keyboardType: keyboardType,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(25),
+      ],
       obscureText: obscureText,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return errorText;
+        }
+        if (num.tryParse(value) is num) {
+          return "This value can't be numeric";
+        }
+        if (value.length > 25) {
+          return "This value can't be longer than 25 characters";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildEmailField(
+      TextEditingController controller, String labelText, String errorText) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: TextInputType.emailAddress,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(40),
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+          return "Please enter a valid email address";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildConfirmPasswordField(
+      TextEditingController controller, String labelText, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(30),
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Please confirm password";
+        }
+        if (value != _passwordController.text) {
+          return errorText;
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField(
+      TextEditingController controller, String labelText, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(30),
+      ],
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return errorText;
+        }
+        if (value.trim().length != value.length) {
+          return "Passwords can't have leading or trailing whitespaces";
+        }
+        if (value.length > 30) {
+          return "Password can't be longer than 30 characters";
+        }
+        if (value.length < 6) {
+          return "Password should be at least 6 characters long";
+        }
+        if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(value)) {
+          return "Password must contain at least one letter and one number";
         }
         return null;
       },

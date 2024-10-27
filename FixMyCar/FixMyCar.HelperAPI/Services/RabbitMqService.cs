@@ -8,18 +8,11 @@ namespace FixMyCar.HelperAPI.Services
     public class RabbitMQService : IDisposable
     {
         private readonly IConnection _connection;
-        private readonly IModel _channel;
 
         public RabbitMQService()
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
             _connection = factory.CreateConnection();
-            _channel = _connection.CreateModel();
-            _channel.QueueDeclare(queue: "report_ready",
-                                 durable: false,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
         }
 
         public void SendReportNotification(ReportNotificationDTO notification)
@@ -28,7 +21,14 @@ namespace FixMyCar.HelperAPI.Services
 
             var body = Encoding.UTF8.GetBytes(message);
 
-            _channel.BasicPublish(exchange: "",
+            using var channel = _connection.CreateModel();
+            channel.QueueDeclare(queue: "report_ready",
+                                 durable: false,
+                                 exclusive: false,
+                                 autoDelete: false,
+                                 arguments: null);
+
+            channel.BasicPublish(exchange: "",
                                   routingKey: "report_ready",
                                   basicProperties: null,
                                   body: body);
@@ -36,7 +36,6 @@ namespace FixMyCar.HelperAPI.Services
 
         public void Dispose()
         {
-            _channel.Close();
             _connection.Close();
         }
     }

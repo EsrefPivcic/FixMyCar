@@ -50,27 +50,31 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
     });
   }
 
-  Future<void> _applyChanges(double value) async {
+  Future<void> _applyChanges() async {
     CarPartsShopClientDiscountInsertUpdate updatedDiscount =
         CarPartsShopClientDiscountInsertUpdate.n();
     final discountValueText = _editDiscountController.text;
     final discountValue = double.tryParse(discountValueText);
-    if (discountValue == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid numeric discount value!'),
-        ),
-      );
-    } else {
-      updatedDiscount.value = discountValue / 100;
+    updatedDiscount.value = discountValue! / 100;
+    try {
       await Provider.of<CarPartsShopClientDiscountProvider>(context,
               listen: false)
           .updateDiscount(_editingDiscountId!, updatedDiscount)
           .then((_) {
-        Provider.of<CarPartsShopClientDiscountProvider>(context, listen: false)
-            .getByCarPartsShop(pageNumber: _pageNumber, pageSize: _pageSize);
+        _applyFilters();
       });
       _cancelEditing();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Update successful!"),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+        ),
+      );
     }
   }
 
@@ -86,15 +90,68 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
             onPressed: () async {
               CarPartsShopClientDiscountInsertUpdate updatedDiscount =
                   CarPartsShopClientDiscountInsertUpdate(null, value, true);
-              await Provider.of<CarPartsShopClientDiscountProvider>(context,
-                      listen: false)
-                  .updateDiscount(discountId, updatedDiscount)
-                  .then((_) {
-                Provider.of<CarPartsShopClientDiscountProvider>(context,
+              try {
+                await Provider.of<CarPartsShopClientDiscountProvider>(context,
                         listen: false)
-                    .getByCarPartsShop(
-                        pageNumber: _pageNumber, pageSize: _pageSize);
-              });
+                    .updateDiscount(discountId, updatedDiscount)
+                    .then((_) {
+                  _applyFilters();
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Deactivation successful!"),
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(int discountId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Delete'),
+        content: const Text('Are you sure you want to delete this discount?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<CarPartsShopClientDiscountProvider>(context,
+                        listen: false)
+                    .delete(discountId)
+                    .then((_) {
+                  _applyFilters();
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Deleting successful!"),
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
               Navigator.of(context).pop();
             },
             child: const Text('Yes'),
@@ -133,83 +190,105 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
   }
 
   void _showAddForm() {
+    final _formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add New Discount'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username'),
+        return Form(
+            key: _formKey,
+            child: AlertDialog(
+              title: const Text('Add New Discount'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                      controller: _usernameController,
+                      decoration: const InputDecoration(labelText: 'Username'),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Please enter a username";
+                        }
+                        return null;
+                      }),
+                  TextFormField(
+                      controller: _discountValueController,
+                      decoration: const InputDecoration(
+                          labelText: 'Discount Value (%)'),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Please enter a valid value (0-99)";
+                        }
+                        final discount = double.tryParse(value.trim());
+                        if (discount == null) {
+                          return "Please enter a valid value (0-99)";
+                        }
+                        if (discount < 0) {
+                          return "Discount can't be lower than 0%";
+                        }
+                        if (discount > 99) {
+                          return "Discount can't be higher than 99%";
+                        }
+                        return null;
+                      }),
+                ],
               ),
-              TextField(
-                controller: _discountValueController,
-                decoration:
-                    const InputDecoration(labelText: 'Discount Value (%)'),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _usernameController.clear();
-                _discountValueController.clear();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                final discountValueText = _discountValueController.text;
-                final discountValue = double.tryParse(discountValueText);
-
-                if (_usernameController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Username is required!'),
-                    ),
-                  );
-                } else if (discountValue == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text('Please enter a valid numeric discount value!'),
-                    ),
-                  );
-                } else {
-                  CarPartsShopClientDiscountInsertUpdate newDiscount =
-                      CarPartsShopClientDiscountInsertUpdate(
-                          _usernameController.text, discountValue / 100, null);
-                  try {
-                    await Provider.of<CarPartsShopClientDiscountProvider>(
-                            context,
-                            listen: false)
-                        .insertDiscount(newDiscount);
-                    await Provider.of<CarPartsShopClientDiscountProvider>(
-                            context,
-                            listen: false)
-                        .getByCarPartsShop(
-                            pageNumber: _pageNumber, pageSize: _pageSize);
+              actions: [
+                TextButton(
+                  onPressed: () {
                     _usernameController.clear();
                     _discountValueController.clear();
                     Navigator.of(context).pop();
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      final discountValueText = _discountValueController.text;
+                      final discountValue = double.tryParse(discountValueText);
+
+                      CarPartsShopClientDiscountInsertUpdate newDiscount =
+                          CarPartsShopClientDiscountInsertUpdate(
+                              _usernameController.text,
+                              discountValue! / 100,
+                              null);
+                      try {
+                        await Provider.of<CarPartsShopClientDiscountProvider>(
+                                context,
+                                listen: false)
+                            .insertDiscount(newDiscount)
+                            .then((_) async {
+                          await Provider.of<CarPartsShopClientDiscountProvider>(
+                                  context,
+                                  listen: false)
+                              .getByCarPartsShop(
+                                  pageNumber: _pageNumber, pageSize: _pageSize);
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Insert succesful!"),
+                          ),
+                        );
+                        _usernameController.clear();
+                        _discountValueController.clear();
+                        Navigator.of(context).pop();
+                      } catch (e) {
+                        Navigator.of(context).pop();
+                        _usernameController.clear();
+                        _discountValueController.clear();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString()),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            ));
       },
     );
   }
@@ -221,6 +300,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final List<GlobalKey<FormState>> _formKeys = [];
     final discounts =
         Provider.of<CarPartsShopClientDiscountProvider>(context).discounts;
     bool isLoading =
@@ -231,6 +311,9 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
               _pageSize)
           .ceil();
     }
+    _formKeys
+        .addAll(List.generate(discounts.length, (_) => GlobalKey<FormState>()));
+
     return MasterScreen(
       showBackButton: false,
       child: Scaffold(
@@ -328,7 +411,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                '${(discount.value * 100).toStringAsFixed(1)}%',
+                                                '${(discount.value * 100).toStringAsFixed(2)}%',
                                                 style: Theme.of(context)
                                                     .textTheme
                                                     .bodyMedium,
@@ -350,41 +433,77 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
                                               if (_isEditing &&
                                                   _editingDiscountId ==
                                                       discount.id)
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          top: 8.0),
-                                                  child: TextField(
-                                                    controller:
-                                                        _editDiscountController,
-                                                    decoration: InputDecoration(
-                                                      labelText:
-                                                          'Edit Discount',
-                                                      suffixIcon: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          IconButton(
-                                                            icon: const Icon(
-                                                                Icons.cancel),
-                                                            onPressed:
-                                                                _cancelEditing,
-                                                          ),
-                                                          IconButton(
-                                                            icon: const Icon(
-                                                                Icons.check),
-                                                            onPressed: () async =>
-                                                                await _applyChanges(
-                                                                    discount
-                                                                        .value),
-                                                          ),
-                                                        ],
+                                                Form(
+                                                  key: _formKeys[index],
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            top: 8.0),
+                                                    child: TextFormField(
+                                                      validator: (value) {
+                                                        if (value == null ||
+                                                            value
+                                                                .trim()
+                                                                .isEmpty) {
+                                                          return "Please enter a valid value (0-99)";
+                                                        }
+                                                        final newDiscount =
+                                                            double.tryParse(
+                                                                value.trim());
+                                                        if (newDiscount ==
+                                                            null) {
+                                                          return "Please enter a valid value (0-99)";
+                                                        }
+                                                        if (newDiscount < 0) {
+                                                          return "Discount can't be lower than 0%";
+                                                        }
+                                                        if (newDiscount > 99) {
+                                                          return "Discount can't be higher than 99%";
+                                                        }
+                                                        if (newDiscount / 100 ==
+                                                            discount.value) {
+                                                          return "New value can't be the same as the old one";
+                                                        }
+                                                        return null;
+                                                      },
+                                                      controller:
+                                                          _editDiscountController,
+                                                      decoration:
+                                                          InputDecoration(
+                                                        labelText:
+                                                            'Edit Discount',
+                                                        suffixIcon: Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            IconButton(
+                                                              icon: const Icon(
+                                                                  Icons.cancel),
+                                                              onPressed:
+                                                                  _cancelEditing,
+                                                            ),
+                                                            IconButton(
+                                                              icon: const Icon(
+                                                                  Icons.check),
+                                                              onPressed:
+                                                                  () async {
+                                                                if (_formKeys[
+                                                                            index]
+                                                                        .currentState
+                                                                        ?.validate() ??
+                                                                    false) {
+                                                                  await _applyChanges();
+                                                                }
+                                                              },
+                                                            ),
+                                                          ],
+                                                        ),
                                                       ),
+                                                      keyboardType:
+                                                          TextInputType.number,
                                                     ),
-                                                    keyboardType:
-                                                        TextInputType.number,
                                                   ),
-                                                ),
+                                                )
                                             ],
                                           ),
                                           trailing: Row(
@@ -392,23 +511,32 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
                                             children: [
                                               if (discount.revoked == null) ...[
                                                 IconButton(
+                                                  tooltip: "Edit",
                                                   icon: const Icon(Icons.edit),
                                                   onPressed: () =>
                                                       _startEditing(
                                                     discount.id,
                                                     (discount.value * 100)
-                                                        .toStringAsFixed(1),
+                                                        .toStringAsFixed(2),
                                                   ),
                                                 ),
                                                 IconButton(
-                                                  icon:
-                                                      const Icon(Icons.delete),
+                                                  tooltip: "Deactivate",
+                                                  icon: const Icon(Icons
+                                                      .do_not_disturb_rounded),
                                                   onPressed: () =>
                                                       _confirmDeactivate(
                                                           discount.id,
                                                           discount.value),
                                                 ),
                                               ],
+                                              IconButton(
+                                                tooltip: "Delete from history",
+                                                icon: const Icon(Icons
+                                                    .delete_forever_rounded),
+                                                onPressed: () =>
+                                                    _confirmDelete(discount.id),
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -460,7 +588,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
             _showAddForm();
           },
           backgroundColor: Theme.of(context).hoverColor,
-          child: Icon(Icons.add, color: Colors.white),
+          child: const Icon(Icons.add, color: Colors.white),
         ),
       ),
     );

@@ -32,6 +32,12 @@ namespace FixMyCar.API.Controllers
             return await (_service as ICarPartsShopClientDiscountService).Get(search);
         }
 
+        [HttpPut("SoftDelete/{id}")]
+        public async Task SoftDelete(int id)
+        {
+            await (_service as ICarPartsShopClientDiscountService).SoftDelete(id);
+        }
+
         [HttpGet("GetByClient")]
         public async Task<PagedResult<CarPartsShopClientDiscountGetDTO>> GetByClient([FromQuery] CarPartsShopClientDiscountSearchObject? search = null)
         {

@@ -29,7 +29,7 @@ namespace FixMyCar.HelperAPI.Services
                 .Include(o => o.Client)
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.StoreItem)
-                .Where(o => o.CarPartsShop.Username == request.ShopName);
+                .Where(o => o.CarPartsShopId == request.ShopId);
 
             if (request.StartDate != null)
             {
@@ -107,7 +107,7 @@ namespace FixMyCar.HelperAPI.Services
                     }
                 }
 
-                var fileName = $"report_{request.ShopName}.csv";
+                var fileName = $"report_{request.ShopId}.csv";
                 var filePath = Path.Combine("Reports", fileName);
 
                 try
@@ -147,7 +147,7 @@ namespace FixMyCar.HelperAPI.Services
             }
         }
 
-        public async Task GenerateMonthlyReports(string shopName)
+        public async Task GenerateMonthlyReports(MonthlyReportRequestDTO request)
         {
             var query = _context.Set<Order>().AsQueryable();
 
@@ -157,7 +157,7 @@ namespace FixMyCar.HelperAPI.Services
                 .Include(o => o.Client)
                 .Include(o => o.OrderDetails)
                 .Include(o => o.ClientDiscount)
-                .Where(o => o.CarPartsShop.Username == shopName)
+                .Where(o => o.CarPartsShopId == request.ShopId)
                 .Where(o => o.OrderDate.Date >= oneMonthOlder.Date &&
                 o.OrderDate.Date <= DateTime.Now.Date);
 
@@ -167,13 +167,13 @@ namespace FixMyCar.HelperAPI.Services
             {
                 try
                 {
-                    await MonthlyRevenuePerCustomerType(shopName, orders);
-                    await MonthlyRevenuePerDay(shopName, orders, oneMonthOlder);
-                    await Top10CustomersMonthly(shopName, orders);
-                    await Top10OrdersMonthly(shopName, orders);
+                    await MonthlyRevenuePerCustomerType(request.ShopId, orders);
+                    await MonthlyRevenuePerDay(request.ShopId, orders, oneMonthOlder);
+                    await Top10CustomersMonthly(request.ShopId, orders);
+                    await Top10OrdersMonthly(request.ShopId, orders);
                     ReportNotificationDTO notification = new ReportNotificationDTO
                     {
-                        Username = shopName,
+                        Username = request.ShopName,
                         NotificationType = "monthlystatistics",
                         Message = "Monthly statistics updated!"
                     };
@@ -183,7 +183,7 @@ namespace FixMyCar.HelperAPI.Services
                 {
                     ReportNotificationDTO notification = new ReportNotificationDTO
                     {
-                        Username = shopName,
+                        Username = request.ShopName,
                         NotificationType = "monthlystatistics",
                         Message = "Warning! Your previous request is still processing. Please wait."
                     };
@@ -194,7 +194,7 @@ namespace FixMyCar.HelperAPI.Services
             {
                 ReportNotificationDTO notification = new ReportNotificationDTO
                 {
-                    Username = shopName,
+                    Username = request.ShopName,
                     NotificationType = "monthlystatistics",
                     Message = "Can't generate report, there are no orders in the past month!"
                 };
@@ -202,7 +202,7 @@ namespace FixMyCar.HelperAPI.Services
             }
         }
 
-        public async Task MonthlyRevenuePerCustomerType(string shopName, List<Order> orders)
+        public async Task MonthlyRevenuePerCustomerType(int shopId, List<Order> orders)
         {
             double clientsRevenue = 0;
             double repairShopsRevenue = 0;
@@ -224,7 +224,7 @@ namespace FixMyCar.HelperAPI.Services
             csvReport.AppendLine($"Client,{clientsRevenue:F2}");
             csvReport.AppendLine($"CarRepairShop,{repairShopsRevenue:F2}");
 
-            var fileName = $"monthly_revenue_per_customer_type_{shopName}.csv";
+            var fileName = $"monthly_revenue_per_customer_type_{shopId}.csv";
             var filePath = Path.Combine("Reports", fileName);
 
             await File.WriteAllTextAsync(filePath, csvReport.ToString());
@@ -232,7 +232,7 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task MonthlyRevenuePerDay(string shopName, List<Order> orders, DateTime oneMonthOlder)
+        public async Task MonthlyRevenuePerDay(int shopId, List<Order> orders, DateTime oneMonthOlder)
         {
             var csvReport = new StringBuilder();
             csvReport.AppendLine("Day,Revenue");
@@ -248,7 +248,7 @@ namespace FixMyCar.HelperAPI.Services
                 csvReport.AppendLine($"{date:yyyy-MM-dd},{dailyRevenue:F2}");
             }
 
-            var fileName = $"monthly_revenue_per_day_{shopName}.csv";
+            var fileName = $"monthly_revenue_per_day_{shopId}.csv";
             var filePath = Path.Combine("Reports", fileName);
 
             await File.WriteAllTextAsync(filePath, csvReport.ToString());
@@ -256,7 +256,7 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task Top10CustomersMonthly(string shopName, List<Order> orders)
+        public async Task Top10CustomersMonthly(int shopId, List<Order> orders)
         {
             var ordersData = orders.Select(order => new
             {
@@ -285,7 +285,7 @@ namespace FixMyCar.HelperAPI.Services
                 csvReport.AppendLine($"{customerInfo},{customer.TotalRevenue:F2}");
             }
 
-            var fileName = $"top_10_customers_monthly_{shopName}.csv";
+            var fileName = $"top_10_customers_monthly_{shopId}.csv";
             var filePath = Path.Combine("Reports", fileName);
 
             await File.WriteAllTextAsync(filePath, csvReport.ToString());
@@ -293,7 +293,7 @@ namespace FixMyCar.HelperAPI.Services
             Console.WriteLine($"Report generated and saved at {filePath}");
         }
 
-        public async Task Top10OrdersMonthly(string shopName, List<Order> orders)
+        public async Task Top10OrdersMonthly(int shopId, List<Order> orders)
         {
             var csvReport = new StringBuilder();
             csvReport.AppendLine("OrderDate,Customer,CustomerType,TotalAmount,Discount");
@@ -309,7 +309,7 @@ namespace FixMyCar.HelperAPI.Services
                 csvReport.AppendLine($"{order.OrderDate:yyyy-MM-dd},{customerInfo},{customerType},{order.TotalAmount:F2},{discount}");
             }
 
-            var fileName = $"top_10_orders_monthly_{shopName}.csv";
+            var fileName = $"top_10_orders_monthly_{shopId}.csv";
             var filePath = Path.Combine("Reports", fileName);
 
             await File.WriteAllTextAsync(filePath, csvReport.ToString());

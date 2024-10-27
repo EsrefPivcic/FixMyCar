@@ -8,6 +8,7 @@ namespace FixMyCar.Model.DTOs.Report
 {
     public class MonthlyReportRequestDTO
     {
+        public int ShopId { get; set; }
         public string ShopName { get; set; }
         public string ShopType { get; set; }
     }

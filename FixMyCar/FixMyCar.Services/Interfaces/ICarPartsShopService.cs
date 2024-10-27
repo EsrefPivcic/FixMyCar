@@ -13,8 +13,8 @@ namespace FixMyCar.Services.Interfaces
     public interface ICarPartsShopService : IBaseService<CarPartsShop, CarPartsShopGetDTO, CarPartsShopInsertDTO, CarPartsShopUpdateDTO, CarPartsShopSearchObject>
     {
         Task UpdateWorkDetails(CarPartsShopWorkDetailsUpdateDTO request);
-        void GenerateReport(ReportRequestDTO request);
-        void GenerateMonthlyReports(MonthlyReportRequestDTO request);
+        void GenerateReport(string username, ReportRequestDTO request);
+        void GenerateMonthlyReports(string username);
         Task<byte[]> GetReport(string username);
         Task<byte[]> GetMonthlyRevenuePerCustomerTypeReport(string username);
         Task<byte[]> GetMonthlyRevenuePerDayReport(string username);

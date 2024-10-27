@@ -90,7 +90,7 @@ namespace FixMyCar.Services.Services
 
         public override async Task<StoreItemGetDTO> Update(int id, StoreItemUpdateDTO request)
         {
-            var entity = await _context.StoreItems.FindAsync(id);
+            var entity = await _context.StoreItems.Include(i => i.StoreItemCarModels).FirstOrDefaultAsync(i => i.Id == id);
             if (entity != null)
             {
                 var state = _baseStoreItemState.CreateState(entity.State);
@@ -116,7 +116,7 @@ namespace FixMyCar.Services.Services
 
         public async Task<StoreItemGetDTO> Activate (int id)
         {
-            var entity = await _context.StoreItems.Include("CarPartsShop").FirstOrDefaultAsync(si => si.Id == id);
+            var entity = await _context.StoreItems.Include("CarModels").FirstOrDefaultAsync(si => si.Id == id);
 
             if (entity != null)
             {

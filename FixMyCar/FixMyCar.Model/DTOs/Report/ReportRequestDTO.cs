@@ -8,10 +8,11 @@ namespace FixMyCar.Model.DTOs.Report
 {
     public class ReportRequestDTO
     {
-        public string? ShopName { get; set; }
         public string? ShopType { get; set; }
-        public string? ReservationType { get; set; }
+        public string? ShopName { get; set; }
         public string? Username { get; set; }
+        public string? ReservationType { get; set; }
+        public int? ShopId { get; set; }
         public string? Role { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }

@@ -5,6 +5,6 @@ namespace FixMyCar.HelperAPI.Interfaces
     public interface IGenerateCarRepairShopReportService
     {
         Task GenerateReport(ReportRequestDTO request);
-        Task GenerateMonthlyReports(string shopName);
+        Task GenerateMonthlyReports(MonthlyReportRequestDTO request);
     }
 }

@@ -66,12 +66,12 @@ namespace FixMyCar.HelperAPI.Services
                         if (reportRequest!.ShopType == "carpartsshop")
                         {
                             var generateReportService = scope.ServiceProvider.GetRequiredService<IGenerateCarPartsShopReportService>();
-                            await generateReportService.GenerateMonthlyReports(reportRequest.ShopName);
+                            await generateReportService.GenerateMonthlyReports(reportRequest);
                         }
                         else if (reportRequest.ShopType == "carrepairshop")
                         {
                             var generateReportService = scope.ServiceProvider.GetRequiredService<IGenerateCarRepairShopReportService>();
-                            await generateReportService.GenerateMonthlyReports(reportRequest.ShopName);
+                            await generateReportService.GenerateMonthlyReports(reportRequest);
                         }
                     }
                 }

@@ -16,7 +16,7 @@ class OrdersScreen extends StatefulWidget {
 }
 
 OrderSearchObject filterCriteria =
-    OrderSearchObject.n(minTotalAmount: 0, maxTotalAmount: 10000);
+    OrderSearchObject.n(minTotalAmount: 0, maxTotalAmount: 25000);
 int _pageNumber = 1;
 const int _pageSize = 10;
 int _totalPages = 1;
@@ -98,7 +98,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 });
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Order rejected sucessfully."),
+                  ),
+                );
               } catch (e) {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -148,6 +154,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                 );
               } catch (e) {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -411,6 +418,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                               pageSize: _pageSize);
                                     });
                                     Navigator.of(context).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                            Text("Order accepted sucessfully."),
+                                      ),
+                                    );
                                   } catch (e) {
                                     Navigator.of(context).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -445,7 +458,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   final double _minValue = 0.0;
-  final double _maxValue = 10000.0;
+  final double _maxValue = 25000.0;
 
   Widget _buildFilterMenu() {
     return SizedBox(
@@ -777,10 +790,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
               divisions: 100,
               labels: RangeLabels(
                 filterCriteria.minTotalAmount != null
-                    ? filterCriteria.minTotalAmount!.toStringAsFixed(0)
+                    ? "${filterCriteria.minTotalAmount!.toStringAsFixed(0)}€"
                     : _minValue.toStringAsFixed(0),
                 filterCriteria.maxTotalAmount != null
-                    ? filterCriteria.maxTotalAmount!.toStringAsFixed(0)
+                    ? "${filterCriteria.maxTotalAmount!.toStringAsFixed(0)}€"
                     : _maxValue.toStringAsFixed(0),
               ),
               onChanged: (RangeValues values) {
@@ -790,6 +803,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 });
               },
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text("${filterCriteria.minTotalAmount!.toStringAsFixed(0)}€"),
+                const SizedBox(width: 10),
+                Text("${filterCriteria.maxTotalAmount!.toStringAsFixed(0)}€"),
+              ],
+            ),
+            const SizedBox(height: 10),
           ]),
           ListTile(
             title: ElevatedButton(
