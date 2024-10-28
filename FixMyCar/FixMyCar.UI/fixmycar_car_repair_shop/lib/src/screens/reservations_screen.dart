@@ -17,7 +17,7 @@ class ReservationsScreen extends StatefulWidget {
 }
 
 ReservationSearchObject filterCriteria =
-    ReservationSearchObject.n(minTotalAmount: 0, maxTotalAmount: 10000);
+    ReservationSearchObject.n(minTotalAmount: 0, maxTotalAmount: 5000);
 int _pageNumber = 1;
 final int _pageSize = 10;
 int _totalPages = 1;
@@ -104,6 +104,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
         return "Missing Payment";
       case "paymentfailed":
         return "Payment Failed";
+      case "overbooked":
+        return "Overbooked (Waiting for new date from customer)";
       default:
         return state;
     }
@@ -132,6 +134,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
       case 'paymentfailed':
         return Colors.red.shade700;
       case 'missingpayment':
+        return Colors.red.shade400;
+      case 'overbooked':
         return Colors.red.shade400;
       default:
         return Colors.white;
@@ -166,6 +170,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               } catch (e) {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -207,9 +212,15 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                           pageNumber: _pageNumber,
                           pageSize: _pageSize);
                 });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Reservation rejected successfully."),
+                  ),
+                );
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               } catch (e) {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -250,9 +261,15 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                           pageNumber: _pageNumber,
                           pageSize: _pageSize);
                 });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Reservation started successfully."),
+                  ),
+                );
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               } catch (e) {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -294,9 +311,15 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                           pageNumber: _pageNumber,
                           pageSize: _pageSize);
                 });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Reservation completed successfully."),
+                  ),
+                );
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               } catch (e) {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -319,19 +342,32 @@ class _ReservationsScreen extends State<ReservationsScreen> {
   }
 
   Future _addOrder(int reservationId) async {
+    final _formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Add Order'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _orderController,
-                decoration: const InputDecoration(labelText: 'Order number'),
-              ),
-            ],
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                    controller: _orderController,
+                    decoration:
+                        const InputDecoration(labelText: 'Order number'),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return "Please type in the order number";
+                      }
+                      if (int.tryParse(value) is! num) {
+                        return "Order number must be numeric";
+                      }
+                      return null;
+                    }),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -343,16 +379,9 @@ class _ReservationsScreen extends State<ReservationsScreen> {
             ),
             TextButton(
               onPressed: () async {
-                final orderIdText = _orderController.text;
-                final orderId = int.tryParse(orderIdText);
-
-                if (orderId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a valid order number!'),
-                    ),
-                  );
-                } else {
+                if (_formKey.currentState?.validate() ?? false) {
+                  final orderIdText = _orderController.text;
+                  final orderId = int.parse(orderIdText);
                   try {
                     await Provider.of<ReservationProvider>(context,
                             listen: false)
@@ -364,6 +393,11 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                             pageNumber: _pageNumber,
                             pageSize: _pageSize);
                     _orderController.clear();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Order added successfully."),
+                      ),
+                    );
                     Navigator.of(context).pop();
                     Navigator.of(context).pop();
                   } catch (e) {
@@ -405,9 +439,15 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                           pageNumber: _pageNumber,
                           pageSize: _pageSize);
                 });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Reservation accepted successfully."),
+                  ),
+                );
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
               } catch (e) {
+                Navigator.of(context).pop();
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -592,6 +632,17 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                           ],
                         ),
                       ),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            const TextSpan(
+                              text: 'Car model: ',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            TextSpan(text: reservation.carModel),
+                          ],
+                        ),
+                      ),
                       if (reservation.type != "Diagnostics") ...[
                         Text.rich(
                           TextSpan(
@@ -653,7 +704,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                         TextSpan(
                           children: [
                             const TextSpan(
-                              text: 'Services Duration: ',
+                              text: 'Estimated Services Duration: ',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             TextSpan(text: reservation.totalDuration),
@@ -831,7 +882,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
   }
 
   final double _minValue = 0.0;
-  final double _maxValue = 10000.0;
+  final double _maxValue = 5000.0;
 
   Widget _buildFilterMenu() {
     return SizedBox(
@@ -1452,6 +1503,15 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                 });
               },
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text("${filterCriteria.minTotalAmount!.toStringAsFixed(0)}€"),
+                const SizedBox(width: 10),
+                Text("${filterCriteria.maxTotalAmount!.toStringAsFixed(0)}€"),
+              ],
+            ),
+            const SizedBox(height: 10),
           ]),
           ListTile(
             title: ElevatedButton(
@@ -1569,7 +1629,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                             children: [
                                               const TextSpan(
                                                 text:
-                                                    'Total Service Duration: ',
+                                                    'Estimated services duration: ',
                                                 style: TextStyle(
                                                     fontWeight:
                                                         FontWeight.bold),
@@ -1634,13 +1694,7 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         IconButton(
-                                          icon: reservation.state ==
-                                                  "awaitingorder"
-                                              ? const Icon(Icons.settings)
-                                              : reservation.state == "ready"
-                                                  ? const Icon(Icons.settings)
-                                                  : const Icon(
-                                                      Icons.info_outline),
+                                          icon: const Icon(Icons.info_outline),
                                           onPressed: () {
                                             _showReservationDetails(
                                                 context, reservation);

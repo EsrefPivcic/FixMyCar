@@ -76,6 +76,7 @@ builder.Services.AddTransient<OngoingReservationState>();
 builder.Services.AddTransient<CompletedReservationState>();
 builder.Services.AddTransient<MissingPaymentReservationState>();
 builder.Services.AddTransient<PaymentFailedReservationState>();
+builder.Services.AddTransient<OverbookedReservationState>();
 
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ReportNotificationService>();

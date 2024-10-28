@@ -10,8 +10,10 @@ import 'package:fixmycar_car_repair_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/login_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/services/report_notification_service.dart';
+import 'package:fixmycar_car_repair_shop/src/utilities/phone_number_formatter.dart';
 import 'package:fixmycar_car_repair_shop/src/widgets/charts.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/user_provider.dart';
@@ -118,11 +120,168 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Widget _buildTextField(String currentValue, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      initialValue: currentValue,
+      onChanged: (newValue) {
+        _editValue = newValue;
+      },
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: keyboardType,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(25),
+      ],
+      obscureText: obscureText,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value == currentValue) {
+          return "New value can't be the same";
+        }
+        if (num.tryParse(value) is num) {
+          return "This value can't be numeric";
+        }
+        if (value.length > 25) {
+          return "This value can't be longer than 25 characters";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPostalCodeTextField(String currentValue, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      initialValue: currentValue,
+      onChanged: (newValue) {
+        _editValue = newValue;
+      },
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: keyboardType,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(25),
+      ],
+      obscureText: obscureText,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value == currentValue) {
+          return "New postal code can't be the same";
+        }
+        if (value.length > 25) {
+          return "This value can't be longer than 25 characters";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildEmailField(String currentValue, String errorText) {
+    return TextFormField(
+      initialValue: currentValue,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      onChanged: (newValue) {
+        _editValue = newValue;
+      },
+      keyboardType: TextInputType.emailAddress,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(40),
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value == currentValue) {
+          return "New email can't be the same";
+        }
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+          return "Please enter a valid email address";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPhoneNumberField(String currentValue, String errorText) {
+    String noPrefix = currentValue.trim().replaceFirst('+387 ', '');
+    return TextFormField(
+      initialValue: noPrefix,
+      decoration: InputDecoration(
+        prefixText: '+387 ',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      onChanged: (newValue) {
+        _editValue = "+387 $newValue";
+      },
+      keyboardType: TextInputType.phone,
+      inputFormatters: [
+        PhoneNumberFormatter(),
+        LengthLimitingTextInputFormatter(12),
+      ],
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return errorText;
+        }
+        if (value == noPrefix) {
+          return "New phone number can't be the same";
+        }
+        if (!RegExp(r'^\d{8,9}$').hasMatch(value.replaceAll(' ', ''))) {
+          return "Phone number must be 8 or 9 digits";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _customTextFormField(
+      {required String field,
+      required String currentValue,
+      required String error}) {
+    switch (field) {
+      case 'name':
+        return _buildTextField(currentValue, error);
+      case 'surname':
+        return _buildTextField(currentValue, error);
+      case 'email':
+        return _buildEmailField(currentValue, error);
+      case 'phone':
+        return _buildPhoneNumberField(currentValue, error);
+      case 'address':
+        return _buildTextField(currentValue, error);
+      case 'postalCode':
+        return _buildPostalCodeTextField(currentValue, error);
+      case 'city':
+        return _buildTextField(currentValue, error);
+      default:
+        return _buildTextField(currentValue, error);
+    }
+  }
+
   String? _dropdownValue;
   Widget _buildEditableField({
     required String label,
     required String currentValue,
     required String field,
+    required String error,
   }) {
     final _formKey = GlobalKey<FormState>();
     if (field == 'gender') {
@@ -207,25 +366,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ]
                 ] else ...[
                   Expanded(
-                    child: TextFormField(
-                      initialValue: currentValue,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                      ),
-                      onChanged: (newValue) {
-                        _editValue = newValue;
-                      },
-                      validator: (value) {
-                        if (value == null ||
-                            value.isEmpty ||
-                            value == currentValue) {
-                          return AppConstants.genericError;
-                        }
-                        return null;
-                      },
-                    ),
+                    child: _customTextFormField(
+                        field: field, currentValue: currentValue, error: error),
                   ),
                 ],
                 const SizedBox(width: 8.0),
@@ -301,6 +443,67 @@ class _HomeScreenState extends State<HomeScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmNewPasswordController = TextEditingController();
 
+  Widget _buildPasswordField(
+      TextEditingController controller, String labelText, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+      ),
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(30),
+      ],
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return errorText;
+        }
+        if (value.trim().length != value.length) {
+          return "Passwords can't have leading or trailing whitespaces";
+        }
+        if (value.length > 30) {
+          return "Password can't be longer than 30 characters";
+        }
+        if (value.length < 6) {
+          return "Password should be at least 6 characters long";
+        }
+        if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(value)) {
+          return "Password must contain at least one letter and one number";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildConfirmPasswordField(
+      TextEditingController controller, String labelText, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+      ),
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(30),
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Please confirm password";
+        }
+        if (value != _newPasswordController.text) {
+          return errorText;
+        }
+        return null;
+      },
+    );
+  }
+
   void _showChangePasswordForm() {
     final _formKey = GlobalKey<FormState>();
 
@@ -321,39 +524,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         const InputDecoration(labelText: 'Old Password'),
                     obscureText: true,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return AppConstants.passwordError;
                       }
                       return null;
                     },
                   ),
-                  TextFormField(
-                    controller: _newPasswordController,
-                    decoration: const InputDecoration(
-                        labelText: AppConstants.newPasswordLabel),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return AppConstants.newPasswordError;
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: _confirmNewPasswordController,
-                    decoration: const InputDecoration(
-                        labelText: 'Confirm New Password'),
-                    obscureText: true,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your new password again!';
-                      }
-                      if (value != _newPasswordController.text) {
-                        return 'Passwords do not match!';
-                      }
-                      return null;
-                    },
-                  ),
+                  _buildPasswordField(_newPasswordController,
+                      AppConstants.passwordLabel, AppConstants.passwordError,
+                      obscureText: true),
+                  _buildConfirmPasswordField(
+                      _confirmNewPasswordController,
+                      AppConstants.passwordConfirmLabel,
+                      AppConstants.passwordConfirmError,
+                      obscureText: true)
                 ],
               ),
             ),
@@ -454,7 +638,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _passwordController = TextEditingController();
   final _usernameController = TextEditingController();
 
-  void _showChangeUsernameForm() {
+  void _showChangeUsernameForm(String currentValue) {
     final _formKey = GlobalKey<FormState>();
 
     showDialog(
@@ -474,7 +658,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         const InputDecoration(labelText: 'New Username'),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return AppConstants.newUsernameError;
+                        return AppConstants.usernameError;
+                      }
+                      if (value == currentValue) {
+                        return "New username can't be the same as the old one";
+                      }
+                      if (num.tryParse(value) is num) {
+                        return "Usernames can't be numeric";
+                      }
+                      if (value.length > 25) {
+                        return "Username can't be longer than 25 characters";
                       }
                       return null;
                     },
@@ -485,7 +678,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         labelText: AppConstants.passwordLabel),
                     obscureText: true,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return AppConstants.passwordError;
                       }
                       return null;
@@ -574,18 +767,19 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       initialTime: _openingTime,
     );
-    if (newTime != null &&
-        (newTime.hour < _closingTime.hour ||
-            (newTime.hour == _closingTime.hour &&
-                newTime.minute < _closingTime.minute))) {
-      setState(() {
-        _openingTime = newTime;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(
-            "Please pick a valid opening time! - It must be before the closing time!"),
-      ));
+    if (newTime != null) {
+      if ((newTime.hour < _closingTime.hour ||
+          (newTime.hour == _closingTime.hour &&
+              newTime.minute < _closingTime.minute))) {
+        setState(() {
+          _openingTime = newTime;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              "Please pick a valid opening time! - It must be before the closing time!"),
+        ));
+      }
     }
   }
 
@@ -594,18 +788,19 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       initialTime: _closingTime,
     );
-    if (newTime != null &&
-        (newTime.hour > _openingTime.hour ||
-            (newTime.hour == _openingTime.hour &&
-                newTime.minute > _openingTime.minute))) {
-      setState(() {
-        _closingTime = newTime;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(
-            "Please pick a valid closing time! - It must be after the opening time!"),
-      ));
+    if (newTime != null) {
+      if ((newTime.hour > _openingTime.hour ||
+          (newTime.hour == _openingTime.hour &&
+              newTime.minute > _openingTime.minute))) {
+        setState(() {
+          _closingTime = newTime;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              "Please pick a valid closing time! - It must be after the opening time!"),
+        ));
+      }
     }
   }
 
@@ -634,22 +829,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _updateWorkDetails() async {
-    if (_selectedWorkDays.isNotEmpty) {
-      final updateWorkDetails = UserUpdateWorkDetails(
-          _selectedWorkDays,
-          'PT${_openingTime.hour}H${_openingTime.minute}M',
-          'PT${_closingTime.hour}H${_closingTime.minute}M',
-          _employees!);
-      await Provider.of<CarRepairShopProvider>(context, listen: false)
-          .updateWorkDetails(updateWorkDetails: updateWorkDetails)
-          .then((_) {
-        Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select at least one work day.")),
-      );
-    }
+    final updateWorkDetails = UserUpdateWorkDetails(
+        _selectedWorkDays,
+        'PT${_openingTime.hour}H${_openingTime.minute}M',
+        'PT${_closingTime.hour}H${_closingTime.minute}M',
+        _employees!);
+    await Provider.of<CarRepairShopProvider>(context, listen: false)
+        .updateWorkDetails(updateWorkDetails: updateWorkDetails)
+        .then((_) {
+      Provider.of<CarRepairShopProvider>(context, listen: false).getByToken();
+    });
   }
 
   List<List<dynamic>>? _reportData;
@@ -995,50 +1184,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                         style: TextStyle(fontSize: 18))),
                                     const SizedBox(height: 8.0),
                                     _buildEditableField(
-                                      label: 'Name',
-                                      currentValue: user.name,
-                                      field: 'name',
-                                    ),
+                                        label: 'Name',
+                                        currentValue: user.name,
+                                        field: 'name',
+                                        error: AppConstants.nameError),
                                     _buildEditableField(
-                                      label: 'Surname',
-                                      currentValue: user.surname,
-                                      field: 'surname',
-                                    ),
+                                        label: 'Surname',
+                                        currentValue: user.surname,
+                                        field: 'surname',
+                                        error: AppConstants.surnameError),
                                     _buildEditableField(
-                                      label: 'Gender',
-                                      currentValue: user.gender,
-                                      field: 'gender',
-                                    ),
+                                        label: 'Gender',
+                                        currentValue: user.gender,
+                                        field: 'gender',
+                                        error: AppConstants.newGenderError),
                                     const SizedBox(height: 16.0),
                                     const Text.rich(TextSpan(
                                         text: 'Company Details',
                                         style: TextStyle(fontSize: 18))),
                                     const SizedBox(height: 8.0),
                                     _buildEditableField(
-                                      label: 'Email',
-                                      currentValue: user.email,
-                                      field: 'email',
-                                    ),
+                                        label: 'Email',
+                                        currentValue: user.email,
+                                        field: 'email',
+                                        error: AppConstants.emailError),
                                     _buildEditableField(
-                                      label: 'Phone',
-                                      currentValue: user.phone,
-                                      field: 'phone',
-                                    ),
+                                        label: 'Phone',
+                                        currentValue: user.phone,
+                                        field: 'phone',
+                                        error: AppConstants.phoneError),
                                     _buildEditableField(
-                                      label: 'Address',
-                                      currentValue: user.address,
-                                      field: 'address',
-                                    ),
+                                        label: 'Address',
+                                        currentValue: user.address,
+                                        field: 'address',
+                                        error: AppConstants.addressError),
                                     _buildEditableField(
-                                      label: 'Postal Code',
-                                      currentValue: user.postalCode,
-                                      field: 'postalCode',
-                                    ),
+                                        label: 'Postal Code',
+                                        currentValue: user.postalCode,
+                                        field: 'postalCode',
+                                        error: AppConstants.postalCodeError),
                                     _buildEditableField(
-                                      label: 'City',
-                                      currentValue: user.city,
-                                      field: 'city',
-                                    ),
+                                        label: 'City',
+                                        currentValue: user.city,
+                                        field: 'city',
+                                        error: AppConstants.cityError),
                                     const SizedBox(height: 16.0),
                                     const Text.rich(TextSpan(
                                         text: 'Work Details',
@@ -1102,7 +1291,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         _closingTime, _selectClosingTime),
                                     const SizedBox(height: 5.0),
                                     ElevatedButton.icon(
-                                      onPressed: _updateWorkDetails,
+                                      onPressed: _selectedWorkDays.isNotEmpty
+                                          ? () {
+                                              _updateWorkDetails();
+                                            }
+                                          : null,
                                       icon: const Icon(
                                           Icons.work_history_outlined),
                                       label: const Text(
@@ -1115,7 +1308,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 8.0),
                                     ElevatedButton.icon(
                                       onPressed: () {
-                                        _showChangeUsernameForm();
+                                        _showChangeUsernameForm(user.username);
                                       },
                                       icon: const Icon(Icons.person),
                                       label: const Text('Change Username'),

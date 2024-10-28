@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:fixmycar_admin/src/utilities/custom_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-abstract class RecommenderProvider with ChangeNotifier {
+class RecommenderProvider with ChangeNotifier {
   static const String baseUrl = 'https://localhost:7055';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
 
@@ -26,29 +27,15 @@ abstract class RecommenderProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        print('Request successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -60,29 +47,37 @@ abstract class RecommenderProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        print('Request successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
+        handleHttpError(response);
+      }
+    } on CustomException {
+      rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
+    }
+  }
 
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
+  void handleHttpError(http.Response response) {
+    if (response.statusCode != 200) {
+      final responseBody = jsonDecode(response.body);
+      final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+      if (errors != null) {
+        final userErrors = errors['UserError'] as List<dynamic>?;
+        if (userErrors != null) {
+          for (var error in userErrors) {
+            throw CustomException('$error');
           }
         } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
+          throw CustomException(
+              'Server side error. Status code: ${response.statusCode}');
         }
+      } else {
+        throw CustomException(
+            'Unknown error. Status code: ${response.statusCode}');
       }
-    } catch (e) {
-      rethrow;
     }
   }
 }

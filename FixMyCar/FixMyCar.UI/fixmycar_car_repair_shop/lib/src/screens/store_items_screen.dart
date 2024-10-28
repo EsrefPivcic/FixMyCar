@@ -116,12 +116,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         }
         if (discountValue != 0) {
           double discountedTotal = totalAmount - (totalAmount * discountValue);
-          return "$discountedTotal€";
+          return "${discountedTotal.toStringAsFixed(2)}€";
         } else {
-          return "$totalAmount€";
+          return "${totalAmount.toStringAsFixed(2)}€";
         }
       } else {
-        return "$totalAmount€";
+        return "${totalAmount.toStringAsFixed(2)}€";
       }
     } else {
       return "Unknown";
@@ -129,6 +129,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   }
 
   void _openShoppingCartForm(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -137,176 +138,216 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
             return AlertDialog(
               contentPadding: const EdgeInsets.all(16.0),
               content: SizedBox(
-                width: 500,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Your Cart', style: TextStyle(fontSize: 24)),
-                    const SizedBox(height: 16.0),
-                    if (orderedItems.isEmpty) ...[
-                      const Text('No items in your cart.')
-                    ] else ...[
-                      SizedBox(
-                        height: 300,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: orderedItems.length,
-                          itemBuilder: (context, index) {
-                            final order = orderedItems[index];
-                            final storeItemName =
-                                'Item ${loadedItems.firstWhere((item) => item.id == order.storeItemId).name}';
-                            return ListTile(
-                              leading: loadedItems
-                                          .firstWhere((item) =>
-                                              item.id == order.storeItemId)
-                                          .imageData !=
-                                      ""
-                                  ? Image.memory(
-                                      base64Decode(loadedItems
-                                          .firstWhere((item) =>
-                                              item.id == order.storeItemId)
-                                          .imageData!),
-                                      fit: BoxFit.contain,
-                                      width: 200,
-                                      height: 200,
-                                    )
-                                  : const SizedBox(
-                                      width: 200,
-                                      height: 200,
-                                      child: Icon(Icons.image, size: 150),
-                                    ),
-                              title: Text(storeItemName),
-                              subtitle: Text('Quantity: ${order.quantity}'),
-                            );
-                          },
-                        ),
-                      ),
-                      Text("Total amount: ${_loadTotalAmount()}"),
-                    ],
-                    const SizedBox(height: 16.0),
-                    Row(
-                      children: [
-                        const Text('Use profile address'),
-                        Switch(
-                          value: useProfileAddress,
-                          onChanged: (bool value) {
-                            setState(() {
-                              useProfileAddress = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    if (!useProfileAddress) ...[
-                      if (_cities != null && _cities!.isNotEmpty) ...[
-                        const SizedBox(height: 10.0),
-                        DropdownButtonFormField<String>(
-                          value: _selectedCity,
-                          items: _cities!.map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (newValue) {
-                            setState(() {
-                              _selectedCity = newValue!;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            labelText: AppConstants.cityLabel,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppRadius.textFieldRadius),
-                            ),
+                  width: 500,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Text('Your Cart', style: TextStyle(fontSize: 24)),
+                      const SizedBox(height: 16.0),
+                      if (orderedItems.isEmpty) ...[
+                        const Text('No items in your cart.')
+                      ] else ...[
+                        SizedBox(
+                          height: 300,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: orderedItems.length,
+                            itemBuilder: (context, index) {
+                              final order = orderedItems[index];
+                              final storeItemName =
+                                  'Item ${loadedItems.firstWhere((item) => item.id == order.storeItemId).name}';
+                              return ListTile(
+                                leading: loadedItems
+                                            .firstWhere((item) =>
+                                                item.id == order.storeItemId)
+                                            .imageData !=
+                                        ""
+                                    ? Image.memory(
+                                        base64Decode(loadedItems
+                                            .firstWhere((item) =>
+                                                item.id == order.storeItemId)
+                                            .imageData!),
+                                        fit: BoxFit.contain,
+                                        width: 200,
+                                        height: 200,
+                                      )
+                                    : const SizedBox(
+                                        width: 200,
+                                        height: 200,
+                                        child: Icon(Icons.image, size: 150),
+                                      ),
+                                title: Text(storeItemName),
+                                subtitle: Text('Quantity: ${order.quantity}'),
+                              );
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return AppConstants.cityError;
-                            }
-                            return null;
-                          },
                         ),
+                        Text("Total amount: ${_loadTotalAmount()}"),
                       ],
-                      if (_selectedCity == 'Custom' ||
-                          (_cities == null || _cities!.isEmpty)) ...[
-                        TextField(
-                          controller: cityController,
-                          decoration:
-                              const InputDecoration(labelText: 'Custom City'),
-                        ),
-                      ],
-                      TextField(
-                        controller: addressController,
-                        decoration: const InputDecoration(labelText: 'Address'),
+                      const SizedBox(height: 16.0),
+                      Row(
+                        children: [
+                          const Text('Use profile address'),
+                          Switch(
+                            value: useProfileAddress,
+                            onChanged: (bool value) {
+                              setState(() {
+                                useProfileAddress = value;
+                              });
+                            },
+                          ),
+                        ],
                       ),
-                      TextField(
-                        controller: postalCodeController,
-                        decoration:
-                            const InputDecoration(labelText: 'Postal Code'),
-                      ),
-                    ],
-                    const SizedBox(height: 16.0),
-                    const Text('Choose a Card'),
-                    Column(
-                      children: [
-                        RadioListTile<String>(
-                          title: const Text('Visa Card 1'),
-                          value: 'pm_card_visa',
-                          groupValue: selectedCard,
-                          onChanged: (String? value) {
-                            setState(() {
-                              selectedCard = value!;
-                            });
-                          },
-                        ),
-                        RadioListTile<String>(
-                          title: const Text('Visa Card 2 (Declined)'),
-                          value: 'pm_card_visa_chargeDeclined',
-                          groupValue: selectedCard,
-                          onChanged: (String? value) {
-                            setState(() {
-                              selectedCard = value!;
-                            });
-                          },
-                        ),
+                      if (!useProfileAddress) ...[
+                        if (_cities != null && _cities!.isNotEmpty) ...[
+                          const SizedBox(height: 10.0),
+                          DropdownButtonFormField<String>(
+                            value: _selectedCity,
+                            items: _cities!.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) {
+                              setState(() {
+                                _selectedCity = newValue!;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              labelText: AppConstants.cityLabel,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppRadius.textFieldRadius),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return AppConstants.cityError;
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                        if ((_cities == null || _cities!.isEmpty) ||
+                            _selectedCity == 'Custom') ...[
+                          TextFormField(
+                              controller: cityController,
+                              decoration: const InputDecoration(
+                                  labelText: 'Custom City'),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Please enter a city name";
+                                }
+                                if (num.tryParse(value) is num) {
+                                  return "City names can't be numeric";
+                                }
+                                if (value.length > 25) {
+                                  return "City names can't be longer than 25 characters";
+                                }
+                                return null;
+                              }),
+                        ],
+                        TextFormField(
+                            controller: addressController,
+                            decoration: const InputDecoration(
+                                labelText: 'Shipping Address'),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Please enter a shipping address";
+                              }
+                              if (num.tryParse(value) is num) {
+                                return "Shipping address can't be numeric";
+                              }
+                              if (value.length > 30) {
+                                return "Shipping address can't be longer than 30 characters";
+                              }
+                              return null;
+                            }),
+                        TextFormField(
+                            controller: postalCodeController,
+                            decoration: const InputDecoration(
+                                labelText: 'Shipping Postal Code'),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return "Please enter a postal code";
+                              }
+                              if (value.length > 15) {
+                                return "Shipping address can't be longer than 15 characters";
+                              }
+                              return null;
+                            }),
                       ],
-                    ),
-                    const SizedBox(height: 16.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(18, 255, 255, 255)),
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(18, 255, 255, 255)),
-                          onPressed: () => _confirmDiscard(context),
-                          child: const Text('Discard Order'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(18, 255, 255, 255)),
-                          onPressed:
-                              orderedItems.isNotEmpty && selectedCard.isNotEmpty
-                                  ? () {
+                      const SizedBox(height: 16.0),
+                      const Text('Choose a Card'),
+                      Column(
+                        children: [
+                          RadioListTile<String>(
+                            title: const Text('Visa Card 1'),
+                            value: 'pm_card_visa',
+                            groupValue: selectedCard,
+                            onChanged: (String? value) {
+                              setState(() {
+                                selectedCard = value!;
+                              });
+                            },
+                          ),
+                          RadioListTile<String>(
+                            title: const Text('Visa Card 2 (Declined)'),
+                            value: 'pm_card_visa_chargeDeclined',
+                            groupValue: selectedCard,
+                            onChanged: (String? value) {
+                              setState(() {
+                                selectedCard = value!;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16.0),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255)),
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255)),
+                            onPressed: () => _confirmDiscard(context),
+                            child: const Text('Discard Order'),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255)),
+                            onPressed: orderedItems.isNotEmpty &&
+                                    selectedCard.isNotEmpty
+                                ? () {
+                                    if (useProfileAddress) {
                                       _confirmPlaceOrder(context, selectedCard);
+                                    } else {
+                                      if ((_formKey.currentState?.validate() ??
+                                          false)) {
+                                        _confirmPlaceOrder(
+                                            context, selectedCard);
+                                      }
                                     }
-                                  : null,
-                          child: const Text('Place Order'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+                                  }
+                                : null,
+                            child: const Text('Place Order'),
+                          ),
+                        ],
+                      ),
+                    ]),
+                  )),
             );
           },
         );
@@ -364,61 +405,44 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   newOrder = OrderInsertUpdate(
                       carPartsShopId,
                       useProfileAddress,
-                      useProfileAddress
-                          ? ""
-                          : _selectedCity == 'Custom'
-                              ? cityController.text
-                              : _selectedCity!,
+                      _selectedCity == 'Custom'
+                          ? cityController.text
+                          : _selectedCity!,
                       addressController.text,
                       postalCodeController.text,
                       orderedItems);
                 }
-                bool validateCityInput =
-                    (cityController.text.trim().isNotEmpty &&
-                            _selectedCity == "Custom") ||
-                        (_selectedCity != null &&
-                            _selectedCity!.isNotEmpty &&
-                            _selectedCity != "Custom");
-                bool validateInputs = validateCityInput &&
-                    addressController.text.trim().isNotEmpty &&
-                    postalCodeController.text.trim().isNotEmpty;
-                if (useProfileAddress ||
-                    (!useProfileAddress && validateInputs)) {
-                  try {
-                    await Provider.of<OrderProvider>(context, listen: false)
-                        .insertOrder(newOrder, card)
-                        .then((_) {
-                      setState(() {
-                        orderedItems.clear();
-                        cityController.clear();
-                        addressController.clear();
-                        postalCodeController.clear();
-                        _selectedCity = _cities![0];
-                      });
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const OrderHistoryScreen(),
-                        ),
-                      );
+                try {
+                  await Provider.of<OrderProvider>(context, listen: false)
+                      .insertOrder(newOrder, card)
+                      .then((_) {
+                    setState(() {
+                      orderedItems.clear();
+                      cityController.clear();
+                      addressController.clear();
+                      postalCodeController.clear();
+                      _selectedCity = _cities![0];
                     });
-                  } catch (e) {
                     Navigator.pop(context);
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
+                      const SnackBar(
+                        content: Text("Order successful!"),
                       ),
                     );
-                  }
-                } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OrderHistoryScreen(),
+                      ),
+                    );
+                  });
+                } catch (e) {
                   Navigator.pop(context);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Please provide shipping details!"),
+                    SnackBar(
+                      content: Text(e.toString()),
                     ),
                   );
                 }
@@ -515,8 +539,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   _buildDetailRow('Price', '${item.price.toStringAsFixed(2)}€',
                       dialogContext),
                   if (item.discount != 0)
-                    _buildDetailRow('Discount',
-                        '${(item.discount * 100).toInt()}%', dialogContext),
+                    _buildDetailRow(
+                        'Discount',
+                        '${(item.discount * 100).toStringAsFixed(2)}%',
+                        dialogContext),
                   if (item.discount != 0)
                     _buildDetailRow(
                       'Discounted Price',
@@ -723,7 +749,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                     children: [
                                       if (item.discount != 0) ...[
                                         TextSpan(
-                                          text: '${item.price}€ ',
+                                          text:
+                                              '${item.price.toStringAsFixed(2)}€ ',
                                           style: const TextStyle(
                                             decoration:
                                                 TextDecoration.lineThrough,
@@ -731,14 +758,16 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: ' ${item.discountedPrice}€',
+                                          text:
+                                              ' ${item.discountedPrice.toStringAsFixed(2)}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
                                         ),
                                       ] else ...[
                                         TextSpan(
-                                          text: '${item.price}€',
+                                          text:
+                                              '${item.price.toStringAsFixed(2)}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
@@ -753,7 +782,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 Padding(
                                   padding: const EdgeInsets.all(5.0),
                                   child: Text(
-                                    'Discount: ${(item.discount * 100).toInt()}%',
+                                    'Discount: ${(item.discount * 100).toStringAsFixed(2)}%',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall

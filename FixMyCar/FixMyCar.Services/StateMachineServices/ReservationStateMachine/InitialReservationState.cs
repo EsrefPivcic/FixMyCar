@@ -86,9 +86,13 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
             if (reservations != null)
             {
-                TimeSpan employeeWorkingHours = repairShop!.WorkingHours * repairShop.Employees;
+                TimeSpan totalWorkingTime = repairShop.WorkingHours;
+                TimeSpan bufferTimePerEmployee = TimeSpan.FromHours(1) + TimeSpan.FromMinutes(30);
+                TimeSpan totalBufferTime = bufferTimePerEmployee * repairShop.Employees;
 
-                bool isWithinWorkHours = Validation.IsWithinWorkHours(totalDuration, employeeWorkingHours, reservations);
+                TimeSpan totalEffectiveWorkTime = (totalWorkingTime * repairShop.Employees) - totalBufferTime;
+
+                bool isWithinWorkHours = Validation.IsWithinWorkHours(totalDuration, totalEffectiveWorkTime, reservations);
 
                 if (!isWithinWorkHours) 
                 {
@@ -160,6 +164,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             entity.ReservationCreatedDate = DateTime.Now;
             entity.DeletedByCustomer = false;
             entity.DeletedByShop = false;
+            entity.CarModelId = request.CarModelId;
 
             var set = _context.Set<Reservation>();
 

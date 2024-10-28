@@ -51,7 +51,22 @@ namespace FixMyCar.Services.Services
                     }
                 }
             }
+            query = query.Where(x => x.SoftDelete != true);
             return base.AddFilter(query, search);
+        }
+
+        public async Task SoftDelete(int id)
+        {
+            var discount = await _context.CarRepairShopDiscounts.FindAsync(id);
+            if (discount != null)
+            {
+                discount.SoftDelete = true;
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new UserException("Entity doesn't exist!");
+            }
         }
 
         public async override Task<CarRepairShopDiscountGetDTO> Insert(CarRepairShopDiscountInsertDTO request)
@@ -67,7 +82,8 @@ namespace FixMyCar.Services.Services
             if (await _context.CarRepairShopDiscounts
                 .Where(x => (x.ClientId == user.Id) &&
                 x.CarRepairShopId == carrepairshop.Id &&
-                x.Revoked == null)
+                x.Revoked == null &&
+                (x.SoftDelete == null || x.SoftDelete == false))
                 .CountAsync() > 0)
             {
                 throw new UserException("There is already an active discount for this user.");

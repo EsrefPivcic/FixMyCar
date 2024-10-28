@@ -15,6 +15,7 @@ namespace FixMyCar.Model.DTOs.Reservation
         public string ClientUsername { get; set; }
         public int? OrderId { get; set; }
         public bool? ClientOrder { get; set; }
+        public string CarModel { get; set; }
         public DateTime ReservationCreatedDate { get; set; }
         public DateTime ReservationDate { get; set; }
         public DateTime? EstimatedCompletionDate { get; set; }

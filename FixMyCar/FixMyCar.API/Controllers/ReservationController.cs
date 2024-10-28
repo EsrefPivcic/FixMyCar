@@ -107,6 +107,12 @@ namespace FixMyCar.API.Controllers
             return await (_service as IReservationService)!.Get(search);
         }
 
+        [HttpGet("GetShopAvailability")]
+        public async Task<List<ReservationAvailabilityDTO>> GetShopAvailability(int carRepairShopId)
+        {
+            return await (_service as IReservationService)!.GetShopAvailability(carRepairShopId);
+        }
+
         [HttpGet("GetByClientToken")]
         public async Task<PagedResult<ReservationGetDTO>> GetByClient([FromQuery] ReservationSearchObject? search = null)
         {

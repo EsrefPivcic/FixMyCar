@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.Execution;
 using FixMyCar.Model.DTOs.Reservation;
 using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
@@ -23,6 +24,7 @@ namespace FixMyCar.Services.Services
             query = query.Include("CarRepairShop");
             query = query.Include("Client");
             query = query.Include("CarRepairShopDiscount");
+            query = query.Include(r => r.CarModel).ThenInclude(cm => cm.CarManufacturer);
             return base.AddInclude(query, search);
         }
 
@@ -154,6 +156,56 @@ namespace FixMyCar.Services.Services
             }
             return base.AddFilter(query, search);
         }
+
+        public async Task<List<ReservationAvailabilityDTO>> GetShopAvailability(int carRepairShopId)
+        {
+            var repairShopSet = _context.Set<CarRepairShop>();
+            var shop = await repairShopSet.FindAsync(carRepairShopId);
+
+            if (shop != null)
+            {
+                var reservations = await _context.Reservations
+                    .Where(r => r.CarRepairShopId == carRepairShopId && r.ReservationDate.Date > DateTime.Now.Date && r.State == "accepted")
+                    .ToListAsync();
+
+                TimeSpan totalWorkingTime = shop.WorkingHours;
+                TimeSpan bufferTimePerEmployee = TimeSpan.FromHours(1) + TimeSpan.FromMinutes(30);
+                TimeSpan totalBufferTime = bufferTimePerEmployee * shop.Employees;
+
+                TimeSpan totalEffectiveWorkTime = (totalWorkingTime * shop.Employees) - totalBufferTime;
+
+                var reservationsGroupedByDate = reservations
+                    .GroupBy(r => r.ReservationDate.Date)
+                    .ToList();
+
+                var availabilityList = new List<ReservationAvailabilityDTO>();
+
+                foreach (var dayReservations in reservationsGroupedByDate)
+                {
+                    DateTime currentDate = dayReservations.Key;
+
+                    TimeSpan totalReservedTime = dayReservations
+                        .Aggregate(TimeSpan.Zero, (sum, r) => sum + r.TotalDuration);
+
+                    TimeSpan remainingFreeTime = totalEffectiveWorkTime - totalReservedTime;
+
+                    remainingFreeTime = remainingFreeTime < TimeSpan.Zero ? TimeSpan.Zero : remainingFreeTime;
+
+                    availabilityList.Add(new ReservationAvailabilityDTO
+                    {
+                        Date = currentDate,
+                        FreeHours = remainingFreeTime
+                    });
+                }
+
+                return availabilityList;
+            }
+            else
+            {
+                throw new UserException("Shop doesn't exist!");
+            }
+        }
+
 
         public override async Task<ReservationGetDTO> Insert(ReservationInsertDTO request)
         {

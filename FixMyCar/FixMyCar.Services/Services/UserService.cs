@@ -10,6 +10,7 @@ using FixMyCar.Services.Utilities;
 using FixMyCar.Model.Utilities;
 using System.Formats.Asn1;
 using Microsoft.AspNetCore.Connections.Features;
+using Stripe;
 
 namespace FixMyCar.Services.Services
 {
@@ -93,10 +94,18 @@ namespace FixMyCar.Services.Services
             {
                 entity.Active = !entity.Active;
                 await _context.SaveChangesAsync();
+
+                var tokens = await _context.AuthTokens.Where(t => t.UserId == entity.Id).ToListAsync();
+
+                foreach (var token in tokens)
+                {
+                    token.Revoked = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                }
             }
             else
             {
-                throw new UserException("Wrong entity id!");
+                throw new UserException("Wrong user id!");
             }
         }
 

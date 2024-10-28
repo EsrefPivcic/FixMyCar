@@ -5,6 +5,7 @@ part 'reservation_insert_update.g.dart';
 @JsonSerializable()
 class ReservationInsertUpdate {
   int? carRepairShopId;
+  int? carModelId;
   int? orderId;
   bool? clientOrder;
   DateTime? reservationDate;
@@ -12,8 +13,8 @@ class ReservationInsertUpdate {
 
   ReservationInsertUpdate.n();
 
-  ReservationInsertUpdate(this.carRepairShopId, this.orderId, this.clientOrder,
-      this.reservationDate, this.services);
+  ReservationInsertUpdate(this.carRepairShopId, this.carModelId, this.orderId,
+      this.clientOrder, this.reservationDate, this.services);
 
   factory ReservationInsertUpdate.fromJson(Map<String, dynamic> json) =>
       _$ReservationInsertUpdateFromJson(json);

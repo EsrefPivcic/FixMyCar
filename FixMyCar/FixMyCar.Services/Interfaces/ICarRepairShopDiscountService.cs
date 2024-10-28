@@ -11,5 +11,6 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface ICarRepairShopDiscountService : IBaseService<CarRepairShopDiscount, CarRepairShopDiscountGetDTO, CarRepairShopDiscountInsertDTO, CarRepairShopDiscountUpdateDTO, CarRepairShopDiscountSearchObject>
     {
+        Task SoftDelete(int id);
     }
 }

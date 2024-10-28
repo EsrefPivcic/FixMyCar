@@ -54,7 +54,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ItemsRecommenderProvider()),
         ChangeNotifierProvider(create: (_) => ServicesRecommenderProvider()),
         ChangeNotifierProvider(create: (_) => ChatHistoryProvider()),
-        ChangeNotifierProvider(create: (_) => CityProvider())
+        ChangeNotifierProvider(create: (_) => CityProvider()),
+        ChangeNotifierProvider(create: (_) => CarModelsByManufacturerProvider())
       ],
       child: const MyApp(),
     ),

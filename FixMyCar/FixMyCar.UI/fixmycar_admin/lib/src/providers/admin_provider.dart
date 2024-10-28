@@ -11,13 +11,11 @@ class AdminProvider extends BaseProvider<User, User> {
   Future<void> getByToken() async {
     isLoading = true;
     notifyListeners();
-
     try {
       SearchResult<User> searchResult = await get(
         customEndpoint: 'GetByToken',
         fromJson: (json) => User.fromJson(json),
       );
-
       user = searchResult.result[0];
     } catch (e) {
       user = null;

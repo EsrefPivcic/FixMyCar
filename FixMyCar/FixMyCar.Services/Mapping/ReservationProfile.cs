@@ -20,6 +20,9 @@ namespace FixMyCar.Services.Mapping
             CreateMap<Reservation, ReservationGetDTO>()
                 .ForMember(dest => dest.ClientUsername, opt => opt.MapFrom(src => src.Client != null ? src.Client.Username : "Unknown"))
                 .ForMember(dest => dest.CarRepairShopName, opt => opt.MapFrom(src => src.CarRepairShop != null ? src.CarRepairShop.Username : "Unknown"))
+                .ForMember(dest => dest.CarModel, opt => opt.MapFrom(src => src.CarModel != null ? 
+                    src.CarModel.CarManufacturer.Name + " " + src.CarModel.Name + " " + $"({src.CarModel.ModelYear})" 
+                    : "Unknown"))
                 .ForMember(dest => dest.CarRepairShopDiscountValue, opt => opt.MapFrom(src => src.CarRepairShopDiscount != null ? src.CarRepairShopDiscount.Value : 0));
         }
     }

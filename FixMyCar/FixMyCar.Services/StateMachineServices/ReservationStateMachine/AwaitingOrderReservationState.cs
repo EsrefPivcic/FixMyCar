@@ -108,9 +108,13 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
                 if (reservations != null)
                 {
-                    TimeSpan employeeWorkingHours = repairShop!.WorkingHours * repairShop.Employees;
+                    TimeSpan totalWorkingTime = repairShop.WorkingHours;
+                    TimeSpan bufferTimePerEmployee = TimeSpan.FromHours(1) + TimeSpan.FromMinutes(30);
+                    TimeSpan totalBufferTime = bufferTimePerEmployee * repairShop.Employees;
 
-                    bool isWithinWorkHours = Validation.IsWithinWorkHours(entity.TotalDuration, employeeWorkingHours, reservations);
+                    TimeSpan totalEffectiveWorkTime = (totalWorkingTime * repairShop.Employees) - totalBufferTime;
+
+                    bool isWithinWorkHours = Validation.IsWithinWorkHours(entity.TotalDuration, totalEffectiveWorkTime, reservations);
 
                     if (!isWithinWorkHours)
                     {

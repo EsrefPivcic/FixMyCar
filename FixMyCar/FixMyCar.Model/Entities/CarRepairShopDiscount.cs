@@ -19,5 +19,6 @@ namespace FixMyCar.Model.Entities
         public Client Client { get; set; }
         public DateTime Created { get; set; }
         public DateTime? Revoked { get; set; }
+        public bool? SoftDelete { get; set; }
     }
 }

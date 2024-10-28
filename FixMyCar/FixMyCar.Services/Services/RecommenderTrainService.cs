@@ -1,4 +1,5 @@
-﻿using FixMyCar.Services.Database;
+﻿using FixMyCar.Model.Utilities;
+using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -68,7 +69,14 @@ namespace FixMyCar.Services.Services
 
                 model = trainer.Fit(trainData);
 
-                mlContext.Model.Save(model, trainData.Schema, "ordersmodel.zip");
+                try
+                {
+                    mlContext.Model.Save(model, trainData.Schema, "ordersmodel.zip");
+                }
+                catch (Exception)
+                {
+                    throw new UserException("Server busy. Try again later.");
+                }
             }
         }
 
@@ -121,7 +129,14 @@ namespace FixMyCar.Services.Services
 
                 model = trainer.Fit(trainData);
 
-                mlContext.Model.Save(model, trainData.Schema, "reservationsmodel.zip");
+                try
+                {
+                    mlContext.Model.Save(model, trainData.Schema, "reservationsmodel.zip");
+                }
+                catch (Exception)
+                {
+                    throw new UserException("Server busy. Try again later.");
+                }
             }
         }
     }

@@ -300,7 +300,6 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<GlobalKey<FormState>> _formKeys = [];
     final discounts =
         Provider.of<CarPartsShopClientDiscountProvider>(context).discounts;
     bool isLoading =
@@ -311,6 +310,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
               _pageSize)
           .ceil();
     }
+    final List<GlobalKey<FormState>> _formKeys = [];
     _formKeys
         .addAll(List.generate(discounts.length, (_) => GlobalKey<FormState>()));
 

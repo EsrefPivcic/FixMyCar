@@ -16,7 +16,7 @@ class OrderHistoryScreen extends StatefulWidget {
 }
 
 OrderSearchObject filterCriteria =
-    OrderSearchObject.n(minTotalAmount: 0, maxTotalAmount: 10000);
+    OrderSearchObject.n(minTotalAmount: 0, maxTotalAmount: 25000);
 int _pageNumber = 1;
 final int _pageSize = 10;
 int _totalPages = 1;
@@ -155,7 +155,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     _cityController.text = order.shippingCity;
     _addressController.text = order.shippingAddress;
     _postalCodeController.text = order.shippingPostalCode;
-
+    final _formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -163,27 +163,60 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           title: const Text('Update Order'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _cityController,
-                    decoration:
-                        const InputDecoration(labelText: 'Shipping City'),
-                  ),
-                  TextField(
-                    controller: _addressController,
-                    decoration:
-                        const InputDecoration(labelText: 'Shipping Address'),
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextField(
-                    controller: _postalCodeController,
-                    decoration: const InputDecoration(
-                        labelText: 'Shipping Postal Code'),
-                    keyboardType: TextInputType.number,
-                  ),
-                ],
+              return Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                        controller: _cityController,
+                        decoration:
+                            const InputDecoration(labelText: 'Shipping City'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter a city name";
+                          }
+                          if (num.tryParse(value) is num) {
+                            return "City names can't be numeric";
+                          }
+                          if (value.length > 25) {
+                            return "City names can't be longer than 25 characters";
+                          }
+                          return null;
+                        }),
+                    TextFormField(
+                        controller: _addressController,
+                        decoration: const InputDecoration(
+                            labelText: 'Shipping Address'),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter a shipping address";
+                          }
+                          if (num.tryParse(value) is num) {
+                            return "Shipping address can't be numeric";
+                          }
+                          if (value.length > 30) {
+                            return "Shipping address can't be longer than 30 characters";
+                          }
+                          return null;
+                        }),
+                    TextFormField(
+                        controller: _postalCodeController,
+                        decoration: const InputDecoration(
+                            labelText: 'Shipping Postal Code'),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter a postal code";
+                          }
+                          if (value.length > 15) {
+                            return "Shipping address can't be longer than 15 characters";
+                          }
+                          return null;
+                        }),
+                  ],
+                ),
               );
             },
           ),
@@ -199,17 +232,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             ),
             TextButton(
               onPressed: () async {
-                bool validateInputs = _cityController.text.trim().isNotEmpty &&
-                    _addressController.text.trim().isNotEmpty &&
-                    _postalCodeController.text.trim().isNotEmpty;
-
-                if (!validateInputs) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Address values are required!'),
-                    ),
-                  );
-                } else {
+                if (_formKey.currentState?.validate() ?? false) {
                   OrderInsertUpdate updateOrder = OrderInsertUpdate.n();
                   updateOrder.shippingCity = _cityController.text;
                   updateOrder.shippingAddress = _addressController.text;
@@ -227,6 +250,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     _cityController.clear();
                     _addressController.clear();
                     _postalCodeController.clear();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Update successful!"),
+                      ),
+                    );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -234,9 +262,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       ),
                     );
                   }
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                 }
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
               },
               child: const Text('Save'),
             ),
@@ -512,7 +540,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   }
 
   final double _minValue = 0.0;
-  final double _maxValue = 10000.0;
+  final double _maxValue = 25000.0;
 
   Widget _buildFilterMenu() {
     return SizedBox(
@@ -820,6 +848,15 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 });
               },
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text("${filterCriteria.minTotalAmount!.toStringAsFixed(0)}€"),
+                const SizedBox(width: 10),
+                Text("${filterCriteria.maxTotalAmount!.toStringAsFixed(0)}€"),
+              ],
+            ),
+            const SizedBox(height: 10),
           ]),
           ListTile(
             title: ElevatedButton(
@@ -954,7 +991,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                               ),
                                               TextSpan(
                                                   text:
-                                                      '${order.clientDiscountValue * 100}%')
+                                                      '${(order.clientDiscountValue * 100).toStringAsFixed(2)}%')
                                             ],
                                           ),
                                         ),

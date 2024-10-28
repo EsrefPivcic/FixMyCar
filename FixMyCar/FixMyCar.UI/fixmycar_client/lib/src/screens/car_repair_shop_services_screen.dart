@@ -1,8 +1,12 @@
+import 'package:fixmycar_client/src/models/car_manufacturer/car_manufacturer.dart';
+import 'package:fixmycar_client/src/models/car_model/car_model.dart';
+import 'package:fixmycar_client/src/models/car_model/car_models_by_manufacturer.dart';
 import 'package:fixmycar_client/src/models/car_repair_shop_discount/car_repair_shop_discount.dart';
 import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_shop_service.dart';
 import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_shop_service_search_object.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation_insert_update.dart';
 import 'package:fixmycar_client/src/models/user/user.dart';
+import 'package:fixmycar_client/src/providers/car_models_by_manufacturer_provider.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_discount_provider.dart';
 import 'package:fixmycar_client/src/providers/services_recommender_provider.dart';
 import 'package:fixmycar_client/src/screens/reservation_history_screen.dart';
@@ -52,6 +56,7 @@ class _CarRepairShopServicesScreenState
               pageSize: _pageSize);
 
       await _fetchDiscounts();
+      await _fetchCarModels();
     });
   }
 
@@ -65,10 +70,23 @@ class _CarRepairShopServicesScreenState
   bool isOrderWithRepairs = false;
   DateTime? reservationDate;
   List<CarRepairShopDiscount> _discounts = [];
+  List<CarModelsByManufacturer> _carModelsByManufacturer = [];
   late List<CarRepairShopService> recommendedServices;
+  CarManufacturer? _selectedManufacturer;
+  CarModel? _selectedModel;
 
   TextEditingController _nameFilterController = TextEditingController();
   TextEditingController _orderIdContoller = TextEditingController();
+
+  Future<void> _fetchCarModels() async {
+    final carModelsByManufacturerProvider =
+        Provider.of<CarModelsByManufacturerProvider>(context, listen: false);
+    await carModelsByManufacturerProvider.getCarModelsByManufacturer();
+    setState(() {
+      _carModelsByManufacturer =
+          carModelsByManufacturerProvider.modelsByManufacturer;
+    });
+  }
 
   void _checkForTypes() {
     setState(() {
@@ -198,6 +216,63 @@ class _CarRepairShopServicesScreenState
                         ),
                         const Text('You can add order number later')
                       ],
+                    ],
+                    const SizedBox(height: 5.0),
+                    DropdownButtonFormField<CarManufacturer>(
+                      value: _selectedManufacturer,
+                      validator: (value) {
+                        if (value == null) {
+                          return "Select car manufacturer";
+                        }
+                        return null;
+                      },
+                      onChanged: (CarManufacturer? newValue) {
+                        setState(() {
+                          _selectedManufacturer = newValue;
+                          _selectedModel = null;
+                        });
+                      },
+                      items: _carModelsByManufacturer
+                          .map<DropdownMenuItem<CarManufacturer>>(
+                              (CarModelsByManufacturer cm) {
+                        return DropdownMenuItem<CarManufacturer>(
+                          value: cm.manufacturer,
+                          child: Text(cm.manufacturer.name),
+                        );
+                      }).toList(),
+                      isExpanded: true,
+                      hint: const Text('Select a manufacturer'),
+                    ),
+                    if (_selectedManufacturer != null) ...[
+                      const SizedBox(height: 5.0),
+                      DropdownButtonFormField<CarModel>(
+                        value: _selectedModel,
+                        validator: (value) {
+                          if (value == null) {
+                            return "Select car model";
+                          }
+                          return null;
+                        },
+                        onChanged: (CarModel? newValue) {
+                          setState(() {
+                            if (newValue != null) {
+                              _selectedModel = newValue;
+                            }
+                          });
+                        },
+                        items: _carModelsByManufacturer
+                            .firstWhere((cm) =>
+                                cm.manufacturer == _selectedManufacturer!)
+                            .models
+                            .map<DropdownMenuItem<CarModel>>((CarModel model) {
+                          return DropdownMenuItem<CarModel>(
+                            value: model,
+                            child: Text('${model.name} (${model.modelYear})'),
+                          );
+                        }).toList(),
+                        isExpanded: true,
+                        hint: const Text('Select a model'),
+                      ),
                     ],
                     const SizedBox(height: 5.0),
                     ElevatedButton.icon(
@@ -355,14 +430,20 @@ class _CarRepairShopServicesScreenState
                   }
                   newReservation = ReservationInsertUpdate(
                       carRepairShopId,
+                      _selectedModel!.id,
                       orderId,
                       clientOrder,
                       reservationDate,
                       selectedServiceIds);
                 } else {
                   validateOrder = true;
-                  newReservation = ReservationInsertUpdate(carRepairShopId,
-                      null, clientOrder, reservationDate, selectedServiceIds);
+                  newReservation = ReservationInsertUpdate(
+                      carRepairShopId,
+                      _selectedModel!.id,
+                      null,
+                      clientOrder,
+                      reservationDate,
+                      selectedServiceIds);
                 }
                 if (validateDate && validateOrder) {
                   try {
@@ -374,6 +455,8 @@ class _CarRepairShopServicesScreenState
                         selectedServiceIds.clear();
                         _orderIdContoller.clear();
                         reservationDate = null;
+                        _selectedManufacturer = null;
+                        _selectedModel = null;
                         Navigator.pop(context);
                         Navigator.pop(context);
                         Navigator.push(
@@ -595,7 +678,7 @@ class _CarRepairShopServicesScreenState
                     child: Center(
                       child: Text(_isFilterApplied
                           ? 'No results found for your search.'
-                          : 'No items available.'),
+                          : 'No services available.'),
                     ),
                   )
                 else

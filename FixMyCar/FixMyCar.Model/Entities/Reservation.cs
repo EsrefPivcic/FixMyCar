@@ -25,6 +25,9 @@ namespace FixMyCar.Model.Entities
         public DateTime? EstimatedCompletionDate { get; set; }
         public DateTime? CompletionDate { get; set; }
         public double TotalAmount { get; set; }
+        [ForeignKey(nameof(CarModel))]
+        public int  CarModelId { get; set; }
+        public CarModel CarModel { get; set; }
         public TimeSpan TotalDuration { get; set; }
         [ForeignKey(nameof(CarRepairShopDiscount))]
         public int? CarRepairShopDiscountId { get; set; }

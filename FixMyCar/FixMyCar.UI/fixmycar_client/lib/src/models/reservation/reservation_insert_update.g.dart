@@ -10,6 +10,7 @@ ReservationInsertUpdate _$ReservationInsertUpdateFromJson(
         Map<String, dynamic> json) =>
     ReservationInsertUpdate(
       (json['carRepairShopId'] as num?)?.toInt(),
+      (json['carModelId'] as num?)?.toInt(),
       (json['orderId'] as num?)?.toInt(),
       json['clientOrder'] as bool?,
       json['reservationDate'] == null
@@ -24,6 +25,7 @@ Map<String, dynamic> _$ReservationInsertUpdateToJson(
         ReservationInsertUpdate instance) =>
     <String, dynamic>{
       'carRepairShopId': instance.carRepairShopId,
+      'carModelId': instance.carModelId,
       'orderId': instance.orderId,
       'clientOrder': instance.clientOrder,
       'reservationDate': instance.reservationDate?.toIso8601String(),

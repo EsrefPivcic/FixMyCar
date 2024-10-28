@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:fixmycar_admin/constants.dart';
 import 'package:fixmycar_admin/src/models/user/user.dart';
 import 'package:fixmycar_admin/src/models/user/user_search_object.dart';
 import 'package:fixmycar_admin/src/models/user/user_update.dart';
@@ -9,7 +10,9 @@ import 'package:fixmycar_admin/src/providers/admin_provider.dart';
 import 'package:fixmycar_admin/src/providers/recommender_provider.dart';
 import 'package:fixmycar_admin/src/providers/user_provider.dart';
 import 'package:fixmycar_admin/src/screens/chat_screen.dart';
+import 'package:fixmycar_admin/src/utilities/phone_number_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
 import 'package:intl/intl.dart';
@@ -79,10 +82,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     .changeActiveStatus(userId)
                     .then((_) async {
                   await _fetchUsers();
+                }).then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text("Activity status changed successfully!")));
                 });
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${e.toString()}')));
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(e.toString())));
               }
               Navigator.of(context).pop();
             },
@@ -159,83 +165,186 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Widget _buildTextField(String currentValue, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      initialValue: currentValue,
+      onChanged: (newValue) {
+        _editValue = newValue;
+      },
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: keyboardType,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(25),
+      ],
+      obscureText: obscureText,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value == currentValue) {
+          return "New value can't be the same";
+        }
+        if (num.tryParse(value) is num) {
+          return "This value can't be numeric";
+        }
+        if (value.length > 25) {
+          return "This value can't be longer than 25 characters";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildEmailField(String currentValue, String errorText) {
+    return TextFormField(
+      initialValue: currentValue,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      onChanged: (newValue) {
+        _editValue = newValue;
+      },
+      keyboardType: TextInputType.emailAddress,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(40),
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value == currentValue) {
+          return "New email can't be the same";
+        }
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+          return "Please enter a valid email address";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPhoneNumberField(String currentValue, String errorText) {
+    String noPrefix = currentValue.trim().replaceFirst('+387 ', '');
+    return TextFormField(
+      initialValue: noPrefix,
+      decoration: InputDecoration(
+        prefixText: '+387 ',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      onChanged: (newValue) {
+        _editValue = "+387 $newValue";
+      },
+      keyboardType: TextInputType.phone,
+      inputFormatters: [
+        PhoneNumberFormatter(),
+        LengthLimitingTextInputFormatter(12),
+      ],
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return errorText;
+        }
+        if (value == noPrefix) {
+          return "New phone number can't be the same";
+        }
+        if (!RegExp(r'^\d{8,9}$').hasMatch(value.replaceAll(' ', ''))) {
+          return "Phone number must be 8 or 9 digits";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _customTextFormField(
+      {required String field,
+      required String currentValue,
+      required String error}) {
+    switch (field) {
+      case 'name':
+        return _buildTextField(currentValue, error);
+      case 'surname':
+        return _buildTextField(currentValue, error);
+      case 'email':
+        return _buildEmailField(currentValue, error);
+      case 'phone':
+        return _buildPhoneNumberField(currentValue, error);
+      default:
+        return _buildTextField(currentValue, error);
+    }
+  }
+
   Widget _buildEditableField({
     required String label,
-    required String value,
+    required String currentValue,
     required String field,
+    required String error,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 4.0),
-        if (_editingField == field)
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  initialValue: value,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  onChanged: (newValue) {
-                    _editValue = newValue;
-                  },
+    final _formKey = GlobalKey<FormState>();
+
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4.0),
+          if (_editingField == field)
+            Row(
+              children: [
+                Expanded(
+                  child: _customTextFormField(
+                      field: field, currentValue: currentValue, error: error),
                 ),
-              ),
-              const SizedBox(width: 8.0),
-              TextButton(
-                onPressed: () {
-                  _toggleEdit(field);
-                  setState(() {
-                    _editValue = null;
-                  });
-                },
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_editValue != null &&
-                      _editValue!.isNotEmpty &&
-                      (_editValue != value)) {
-                    _updateUser(field);
-                    await Provider.of<UserProvider>(context, listen: false)
-                        .updateByToken(user: _userUpdate!)
-                        .then((_) {
-                      Provider.of<AdminProvider>(context, listen: false)
-                          .getByToken();
-                      setState(() {
-                        _editValue = null;
-                      });
-                      _toggleEdit(field);
-                    });
-                  } else {
+                const SizedBox(width: 8.0),
+                TextButton(
+                  onPressed: () {
+                    _toggleEdit(field);
                     setState(() {
                       _editValue = null;
                     });
-                    _toggleEdit(field);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text(
-                          "This value can't be empty or the same as the old one!"),
-                    ));
-                  }
-                },
-                child: const Text('Apply'),
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      _updateUser(field);
+                      await Provider.of<UserProvider>(context, listen: false)
+                          .updateByToken(user: _userUpdate!)
+                          .then((_) {
+                        Provider.of<AdminProvider>(context, listen: false)
+                            .getByToken();
+                        setState(() {
+                          _editValue = null;
+                        });
+                        _toggleEdit(field);
+                      });
+                    }
+                  },
+                  child: const Text('Apply'),
+                ),
+              ],
+            )
+          else
+            ListTile(
+              title: Text(currentValue),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () => _toggleEdit(field),
               ),
-            ],
-          )
-        else
-          ListTile(
-            title: Text(value),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _toggleEdit(field),
             ),
-          ),
-        const Divider(),
-      ],
+          const Divider(),
+        ],
+      ),
     );
   }
 
@@ -262,13 +371,87 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _trainOrdersRecommender() async {
-    await Provider.of<RecommenderProvider>(context, listen: false)
-        .trainOrdersModel();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Action'),
+        content: const Text(
+            'Are you sure that you want to start training orders recommender system?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<RecommenderProvider>(context, listen: false)
+                    .trainOrdersModel()
+                    .then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Training initiated successfully!"),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _trainReservationsRecommender() async {
-    await Provider.of<RecommenderProvider>(context, listen: false)
-        .trainReservationsModel();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Action'),
+        content: const Text(
+            'Are you sure that you want to start training reservations recommender system?'),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<RecommenderProvider>(context, listen: false)
+                    .trainReservationsModel()
+                    .then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Training initiated successfully!"),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Yes'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -400,25 +583,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                         style: TextStyle(fontSize: 18))),
                                     const SizedBox(height: 8.0),
                                     _buildEditableField(
-                                      label: 'Name',
-                                      value: user.name,
-                                      field: 'name',
-                                    ),
+                                        label: 'Name',
+                                        currentValue: user.name,
+                                        field: 'name',
+                                        error: AppConstants.nameError),
                                     _buildEditableField(
-                                      label: 'Surname',
-                                      value: user.surname,
-                                      field: 'surname',
-                                    ),
+                                        label: 'Surname',
+                                        currentValue: user.surname,
+                                        field: 'surname',
+                                        error: AppConstants.surnameError),
                                     _buildEditableField(
-                                      label: 'Email',
-                                      value: user.email,
-                                      field: 'email',
-                                    ),
+                                        label: 'Email',
+                                        currentValue: user.email,
+                                        field: 'email',
+                                        error: AppConstants.emailError),
                                     _buildEditableField(
-                                      label: 'Phone',
-                                      value: user.phone,
-                                      field: 'phone',
-                                    ),
+                                        label: 'Phone',
+                                        currentValue: user.phone,
+                                        field: 'phone',
+                                        error: AppConstants.phoneError),
                                     const SizedBox(height: 8.0),
                                     const Text.rich(TextSpan(
                                         text: 'System',
@@ -568,7 +751,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 DataCell(Text(_formatDate(user.created))),
                 DataCell(Text(user.role == "carrepairshop"
                     ? "Car Repair Shop"
-                    : "Car Parts Shop")),
+                    : user.role == "carpartsshop"
+                        ? "Car Parts Shop"
+                        : "Client")),
                 DataCell(Text(user.active ? 'Yes' : 'No')),
                 DataCell(
                   ElevatedButton(

@@ -9,6 +9,7 @@ class Reservation {
   String clientUsername;
   int? orderId;
   bool? clientOrder;
+  String carModel;
   String reservationCreatedDate;
   String reservationDate;
   String? estimatedCompletionDate;
@@ -25,6 +26,7 @@ class Reservation {
       this.clientUsername,
       this.orderId,
       this.clientOrder,
+      this.carModel,
       this.reservationCreatedDate,
       this.reservationDate,
       this.estimatedCompletionDate,

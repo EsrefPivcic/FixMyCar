@@ -771,18 +771,19 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       initialTime: _openingTime,
     );
-    if (newTime != null &&
-        (newTime.hour < _closingTime.hour ||
-            (newTime.hour == _closingTime.hour &&
-                newTime.minute < _closingTime.minute))) {
-      setState(() {
-        _openingTime = newTime;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(
-            "Please pick a valid opening time! - It must be before the closing time!"),
-      ));
+    if (newTime != null) {
+      if ((newTime.hour < _closingTime.hour ||
+          (newTime.hour == _closingTime.hour &&
+              newTime.minute < _closingTime.minute))) {
+        setState(() {
+          _openingTime = newTime;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              "Please pick a valid opening time! - It must be before the closing time!"),
+        ));
+      }
     }
   }
 
@@ -791,18 +792,19 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       initialTime: _closingTime,
     );
-    if (newTime != null &&
-        (newTime.hour > _openingTime.hour ||
-            (newTime.hour == _openingTime.hour &&
-                newTime.minute > _openingTime.minute))) {
-      setState(() {
-        _closingTime = newTime;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(
-            "Please pick a valid closing time! - It must be after the opening time!"),
-      ));
+    if (newTime != null) {
+      if ((newTime.hour > _openingTime.hour ||
+          (newTime.hour == _openingTime.hour &&
+              newTime.minute > _openingTime.minute))) {
+        setState(() {
+          _closingTime = newTime;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              "Please pick a valid closing time! - It must be after the opening time!"),
+        ));
+      }
     }
   }
 
@@ -831,22 +833,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _updateWorkDetails() async {
-    if (_selectedWorkDays.isNotEmpty) {
-      final updateWorkDetails = UserUpdateWorkDetails(
-        _selectedWorkDays,
-        'PT${_openingTime.hour}H${_openingTime.minute}M',
-        'PT${_closingTime.hour}H${_closingTime.minute}M',
-      );
-      await Provider.of<CarPartsShopProvider>(context, listen: false)
-          .updateWorkDetails(updateWorkDetails: updateWorkDetails)
-          .then((_) {
-        Provider.of<CarPartsShopProvider>(context, listen: false).getByToken();
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select at least one work day.")),
-      );
-    }
+    final updateWorkDetails = UserUpdateWorkDetails(
+      _selectedWorkDays,
+      'PT${_openingTime.hour}H${_openingTime.minute}M',
+      'PT${_closingTime.hour}H${_closingTime.minute}M',
+    );
+    await Provider.of<CarPartsShopProvider>(context, listen: false)
+        .updateWorkDetails(updateWorkDetails: updateWorkDetails)
+        .then((_) {
+      Provider.of<CarPartsShopProvider>(context, listen: false).getByToken();
+    });
   }
 
   String? _selectedRole;
@@ -1258,7 +1254,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         _closingTime, _selectClosingTime),
                                     const SizedBox(height: 5.0),
                                     ElevatedButton.icon(
-                                      onPressed: _updateWorkDetails,
+                                      onPressed: _selectedWorkDays.isNotEmpty
+                                          ? () {
+                                              _updateWorkDetails();
+                                            }
+                                          : null,
                                       icon: const Icon(
                                           Icons.work_history_outlined),
                                       label: const Text(
@@ -1307,14 +1307,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                'Custom Report:',
-                                style:
-                                    Theme.of(context).textTheme.headlineSmall,
-                              ),
                               const SizedBox(width: 10),
                               if (_reportData != null) ...[
-                                const Text("Custom report is ready."),
+                                Text(
+                                  'Custom Report Ready:',
+                                  style:
+                                      Theme.of(context).textTheme.headlineSmall,
+                                ),
                                 const SizedBox(width: 5),
                                 ElevatedButton(
                                   onPressed: _saveReportToFile,
@@ -1322,8 +1321,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       'Save custom report data to CSV'),
                                 ),
                               ] else ...[
-                                const SizedBox(width: 10),
-                                const Text("No custom report available."),
+                                Text(
+                                  'Custom Report Not Available:',
+                                  style:
+                                      Theme.of(context).textTheme.headlineSmall,
+                                ),
                               ],
                               const SizedBox(width: 10),
                               ElevatedButton(

@@ -135,18 +135,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
       initialTime: _openingTime,
     );
 
-    if (newTime != null &&
-        (newTime.hour < _closingTime.hour ||
-            (newTime.hour == _closingTime.hour &&
-                newTime.minute < _closingTime.minute))) {
-      setState(() {
-        _openingTime = newTime;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(
-            "Please pick a valid opening time! - It must be before the closing time!"),
-      ));
+    if (newTime != null) {
+      if ((newTime.hour < _closingTime.hour ||
+          (newTime.hour == _closingTime.hour &&
+              newTime.minute < _closingTime.minute))) {
+        setState(() {
+          _openingTime = newTime;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              "Please pick a valid opening time! - It must be before the closing time!"),
+        ));
+      }
     }
   }
 
@@ -156,18 +157,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
       initialTime: _closingTime,
     );
 
-    if (newTime != null &&
-        (newTime.hour > _openingTime.hour ||
-            (newTime.hour == _openingTime.hour &&
-                newTime.minute > _openingTime.minute))) {
-      setState(() {
-        _closingTime = newTime;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text(
-            "Please pick a valid closing time! - It must be after the opening time!"),
-      ));
+    if (newTime != null) {
+      if ((newTime.hour > _openingTime.hour ||
+          (newTime.hour == _openingTime.hour &&
+              newTime.minute > _openingTime.minute))) {
+        setState(() {
+          _closingTime = newTime;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              "Please pick a valid closing time! - It must be after the opening time!"),
+        ));
+      }
     }
   }
 
@@ -353,19 +355,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _isLoading
                             ? const CircularProgressIndicator()
                             : ElevatedButton(
-                                onPressed: () {
-                                  if (_selectedWorkDays.isNotEmpty) {
-                                    setState(() {
-                                      _workDaysError = null;
-                                    });
-                                    _register();
-                                  } else {
-                                    setState(() {
-                                      _workDaysError =
-                                          "Please select at least one work day.";
-                                    });
-                                  }
-                                },
+                                onPressed: _selectedWorkDays.isNotEmpty
+                                    ? () {
+                                        _register();
+                                      }
+                                    : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Theme.of(context)
                                       .colorScheme

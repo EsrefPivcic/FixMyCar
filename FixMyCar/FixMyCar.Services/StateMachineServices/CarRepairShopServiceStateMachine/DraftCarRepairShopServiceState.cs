@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using FixMyCar.Model.DTOs.CarRepairShopService;
+using FixMyCar.Model.DTOs.StoreItem;
 using FixMyCar.Model.Entities;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Services;
 using FixMyCar.Services.Utilities;
@@ -37,11 +39,19 @@ namespace FixMyCar.Services.StateMachineServices.CarRepairShopServiceStateMachin
 
         public async override Task<CarRepairShopServiceGetDTO> Activate(Model.Entities.CarRepairShopService entity)
         {
-            entity.State = "active";
+            bool validate = !string.IsNullOrWhiteSpace(entity.Details);
+            if (validate)
+            {
+                entity.State = "active";
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
-            return _mapper.Map<CarRepairShopServiceGetDTO>(entity);
+                return _mapper.Map<CarRepairShopServiceGetDTO>(entity);
+            }
+            else
+            {
+                throw new UserException("Please insert all service details before activating it!");
+            }
         }
 
         public async override Task<string> Delete(Model.Entities.CarRepairShopService entity)

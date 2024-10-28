@@ -1,23 +1,23 @@
 ﻿using AutoMapper;
 using FixMyCar.Model.DTOs.Reservation;
 using FixMyCar.Model.Entities;
-using FixMyCar.Services.Utilities;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
+using FixMyCar.Services.Interfaces;
+using FixMyCar.Services.Utilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FixMyCar.Model.Utilities;
-using Microsoft.EntityFrameworkCore;
-using FixMyCar.Services.Interfaces;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 {
-    public class ReadyReservationState : BaseReservationState
+    public class OverbookedReservationState : BaseReservationState
     {
-        public ReadyReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
+        public OverbookedReservationState(FixMyCarContext context, IMapper mapper, IServiceProvider serviceProvider) : base(context, mapper, serviceProvider)
         {
         }
 
@@ -57,58 +57,20 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                     }
                 }
 
-                if (entity.Type != "Diagnostics")
-                {
-                    var order = await _context.Orders.FindAsync(entity.OrderId);
+                var order = await _context.Orders.FindAsync(entity.OrderId);
 
-                    if (request.ReservationDate < order!.ShippingDate)
-                    {
-                        throw new UserException("New reservation date must be the same as order shipping date or later.");
-                    }
+                if (request.ReservationDate < order!.ShippingDate)
+                {
+                    throw new UserException("New reservation date must be the same as order shipping date or later.");
+                }
+                else
+                {
+                    entity.EstimatedCompletionDate = null;
+                    entity.State = "ready";
                 }
             }
 
             _mapper.Map(request, entity);
-
-            await _context.SaveChangesAsync();
-
-            return _mapper.Map<ReservationGetDTO>(entity);
-        }
-
-        public override async Task<ReservationGetDTO> Accept(Reservation entity, DateTime estimatedCompletionDate)
-        {
-            var repairShop = await _context.Users.OfType<CarRepairShop>().FirstOrDefaultAsync(c => c.Id == entity.CarRepairShopId);
-
-            var reservations = await _context.Reservations
-                    .Where(r => r.ReservationDate.Date == entity.ReservationDate.Date && r.CarRepairShopId == entity.CarRepairShopId)
-                    .Where(r => r.Id != entity.Id)
-                    .ToListAsync();
-
-            if (reservations != null)
-            {
-                TimeSpan totalWorkingTime = repairShop.WorkingHours;
-                TimeSpan bufferTimePerEmployee = TimeSpan.FromHours(1) + TimeSpan.FromMinutes(30);
-                TimeSpan totalBufferTime = bufferTimePerEmployee * repairShop.Employees;
-
-                TimeSpan totalEffectiveWorkTime = (totalWorkingTime * repairShop.Employees) - totalBufferTime;
-
-                bool isWithinWorkHours = Validation.IsWithinWorkHours(entity.TotalDuration, totalEffectiveWorkTime, reservations);
-
-                if (!isWithinWorkHours)
-                {
-                    entity.State = "overbooked";
-                }
-                else
-                {
-                    entity.State = "accepted";
-                }
-            }
-            else
-            {
-                entity.State = "accepted";
-            }
-
-            entity.EstimatedCompletionDate = estimatedCompletionDate;  
 
             await _context.SaveChangesAsync();
 
@@ -141,7 +103,6 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
         {
             var list = await base.AllowedActions();
 
-            list.Add("Accept");
             list.Add("Update");
             list.Add("Reject");
             list.Add("Cancel");

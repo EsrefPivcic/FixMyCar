@@ -229,24 +229,24 @@ class _ServicesScreenState extends State<ServicesScreen> {
     TextEditingController detailsController = TextEditingController(text: "");
     String? base64Image = "";
     String? imagePath;
-    int? serviceTypeId;
-    ServiceType? selectedServiceType;
-    Duration selectedDuration = Duration();
+    ServiceType selectedServiceType = _serviceTypes[0];
+    Duration selectedDuration = Duration(hours: 1);
     CarRepairShopServiceInsertUpdate newService =
         CarRepairShopServiceInsertUpdate.n();
 
     if (edit) {
       nameController = TextEditingController(text: service!.name);
-      discountController =
-          TextEditingController(text: (service.discount * 100).toString());
-      priceController = TextEditingController(text: service.price.toString());
+      discountController = TextEditingController(
+          text: (service.discount * 100).toStringAsFixed(2));
+      priceController =
+          TextEditingController(text: service.price.toStringAsFixed(2));
       detailsController = TextEditingController(text: service.details);
       base64Image = service.imageData;
-      serviceTypeId = service.serviceTypeId;
       selectedServiceType =
           _serviceTypes.firstWhere((type) => type.id == service.serviceTypeId);
       selectedDuration = _parseDuration(service.duration);
     }
+    final _formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
@@ -260,226 +260,267 @@ class _ServicesScreenState extends State<ServicesScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Container(
-                width: 400,
-                padding: const EdgeInsets.all(16.0),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      DropdownButton<ServiceType>(
-                        value: selectedServiceType,
-                        onChanged: (ServiceType? newValue) {
-                          setState(() {
-                            selectedServiceType = newValue;
-                            serviceTypeId = newValue?.id;
-                            newService.serviceTypeId = serviceTypeId;
-                          });
-                        },
-                        items: _serviceTypes.map<DropdownMenuItem<ServiceType>>(
-                            (ServiceType type) {
-                          return DropdownMenuItem<ServiceType>(
-                            value: type,
-                            child: Text(type.name),
-                          );
-                        }).toList(),
-                        isExpanded: true,
-                        hint: const Text('Select a service type'),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Service Name',
-                          border: OutlineInputBorder(),
+              child: Form(
+                key: _formKey,
+                child: Container(
+                  width: 400,
+                  padding: const EdgeInsets.all(16.0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        DropdownButton<ServiceType>(
+                          value: selectedServiceType,
+                          onChanged: (ServiceType? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                selectedServiceType = newValue;
+                              });
+                            }
+                          },
+                          items: _serviceTypes
+                              .map<DropdownMenuItem<ServiceType>>(
+                                  (ServiceType type) {
+                            return DropdownMenuItem<ServiceType>(
+                              value: type,
+                              child: Text(type.name),
+                            );
+                          }).toList(),
+                          isExpanded: true,
+                          hint: const Text('Select a service type'),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: priceController,
-                        decoration: const InputDecoration(
-                          labelText: 'Price (€)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: discountController,
-                        decoration: const InputDecoration(
-                          labelText: 'Discount (%)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 20),
-                      GestureDetector(
-                        onTap: () async {
-                          final TimeOfDay? pickedTime = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.fromDateTime(
-                                DateTime(0).add(selectedDuration)),
-                          );
-                          if (pickedTime != null) {
-                            setState(() {
-                              selectedDuration = Duration(
-                                  hours: pickedTime.hour,
-                                  minutes: pickedTime.minute);
-                            });
-                          }
-                        },
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 16.0, horizontal: 12.0),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                  color: Theme.of(context).colorScheme.outline),
-                              borderRadius: BorderRadius.circular(5.0),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Service Name',
+                              border: OutlineInputBorder(),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Duration'),
-                                Text(
-                                    '${selectedDuration.inHours.toString().padLeft(2, '0')}:${(selectedDuration.inMinutes % 60).toString().padLeft(2, '0')}:00'),
-                              ],
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Please enter service name";
+                              }
+                              return null;
+                            }),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: priceController,
+                          decoration: const InputDecoration(
+                            labelText: 'Price (€)',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Please enter item price";
+                            }
+                            final price = double.tryParse(value.trim());
+                            if (price == null) {
+                              return "Please enter a valid number";
+                            }
+                            if (price <= 0) {
+                              return "Price must be greater than zero";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: discountController,
+                          decoration: const InputDecoration(
+                            labelText: 'Discount (%)',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return "Please enter a valid value (0-99)";
+                            }
+                            final discount = double.tryParse(value.trim());
+                            if (discount == null) {
+                              return "Please enter a valid value (0-99)";
+                            }
+                            if (discount < 0) {
+                              return "Discount can't be lower than 0%";
+                            }
+                            if (discount > 99) {
+                              return "Discount can't be higher than 99%";
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        GestureDetector(
+                          onTap: () async {
+                            final TimeOfDay? pickedTime = await showTimePicker(
+                              initialEntryMode: TimePickerEntryMode.inputOnly,
+                              context: context,
+                              initialTime: TimeOfDay.fromDateTime(
+                                  DateTime(0).add(selectedDuration)),
+                            );
+                            if (pickedTime != null &&
+                                (pickedTime.hour != 0 ||
+                                    pickedTime.minute != 0)) {
+                              setState(() {
+                                selectedDuration = Duration(
+                                    hours: pickedTime.hour,
+                                    minutes: pickedTime.minute);
+                              });
+                            }
+                          },
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0, horizontal: 12.0),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                    color:
+                                        Theme.of(context).colorScheme.outline),
+                                borderRadius: BorderRadius.circular(5.0),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text('Duration'),
+                                  Text(
+                                      '${selectedDuration.inHours.toString().padLeft(2, '0')}:${(selectedDuration.inMinutes % 60).toString().padLeft(2, '0')}:00'),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: detailsController,
-                        maxLines: 5,
-                        decoration: const InputDecoration(
-                          labelText: 'Details',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      if (base64Image != "")
-                        Image.memory(
-                          base64Decode(base64Image!),
-                          height: 200,
-                          width: 200,
-                          fit: BoxFit.contain,
-                        )
-                      else
-                        const Icon(Icons.image, size: 150),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () async {
-                          FilePickerResult? result =
-                              await FilePicker.platform.pickFiles(
-                            type: FileType.image,
-                          );
-                          if (result != null) {
-                            setState(() {
-                              imagePath = result.files.single.path;
-                              base64Image = base64Encode(
-                                  File(imagePath!).readAsBytesSync());
-                            });
-                          }
-                        },
-                        child: const Text('Select Image'),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('Cancel'),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: detailsController,
+                          maxLines: 5,
+                          decoration: const InputDecoration(
+                            labelText: 'Details',
+                            border: OutlineInputBorder(),
                           ),
-                          ElevatedButton(
-                            onPressed: () async {
-                              if (edit) {
-                                newService.name = nameController.text.isNotEmpty
-                                    ? nameController.text
-                                    : service!.name;
-                                newService.price = priceController
-                                        .text.isNotEmpty
-                                    ? double.tryParse(priceController.text) ??
-                                        service!.price
-                                    : service!.price;
-                                newService.discount =
-                                    discountController.text.isNotEmpty
-                                        ? double.tryParse(
-                                                discountController.text)! /
-                                            100
-                                        : service!.discount;
-                                newService.imageData = base64Image;
-                                newService.details =
-                                    detailsController.text.isNotEmpty
-                                        ? detailsController.text
-                                        : service!.details;
-                                newService.duration =
-                                    _durationToISO8601(selectedDuration);
-                                newService.serviceTypeId =
-                                    newService.serviceTypeId ??
-                                        service!.serviceTypeId;
-                                await Provider.of<CarRepairShopServiceProvider>(
-                                        context,
-                                        listen: false)
-                                    .updateService(service!.id, newService)
-                                    .then((_) {
-                                  _applyFilters();
-                                });
+                        ),
+                        const SizedBox(height: 20),
+                        if (base64Image != "")
+                          Image.memory(
+                            base64Decode(base64Image!),
+                            height: 200,
+                            width: 200,
+                            fit: BoxFit.contain,
+                          )
+                        else
+                          const Icon(Icons.image, size: 150),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () async {
+                            FilePickerResult? result =
+                                await FilePicker.platform.pickFiles(
+                              type: FileType.image,
+                            );
+                            if (result != null) {
+                              setState(() {
+                                imagePath = result.files.single.path;
+                                base64Image = base64Encode(
+                                    File(imagePath!).readAsBytesSync());
+                              });
+                            }
+                          },
+                          child: const Text('Select Image'),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
                                 Navigator.of(context).pop();
-                              } else {
-                                if (nameController.text.isEmpty ||
-                                    priceController.text.isEmpty ||
-                                    selectedDuration.inMinutes == 0 ||
-                                    serviceTypeId == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Service name, price, duration and type are required!'),
-                                    ),
-                                  );
-                                } else {
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (_formKey.currentState?.validate() ??
+                                    false) {
                                   newService.name = nameController.text;
                                   newService.price =
-                                      double.tryParse(priceController.text) ??
-                                          0;
+                                      double.parse(priceController.text);
                                   newService.discount =
-                                      discountController.text.isNotEmpty
-                                          ? double.tryParse(
-                                                  discountController.text)! /
-                                              100
-                                          : null;
+                                      double.parse(discountController.text) /
+                                          100;
                                   newService.imageData = base64Image;
-                                  newService.details = detailsController.text;
+                                  newService.details =
+                                      detailsController.text.trim();
                                   newService.duration =
                                       _durationToISO8601(selectedDuration);
-                                  newService.serviceTypeId = serviceTypeId;
-
-                                  await Provider.of<
-                                              CarRepairShopServiceProvider>(
-                                          context,
-                                          listen: false)
-                                      .insertService(newService)
-                                      .then((_) {
-                                    Provider.of<CarRepairShopServiceProvider>(
-                                            context,
-                                            listen: false)
-                                        .getByCarRepairShop(
-                                            pageNumber: _pageNumber,
-                                            pageSize: _pageSize);
-                                  });
-                                  Navigator.of(context).pop();
+                                  newService.serviceTypeId =
+                                      selectedServiceType.id;
+                                  if (edit) {
+                                    try {
+                                      await Provider.of<
+                                                  CarRepairShopServiceProvider>(
+                                              context,
+                                              listen: false)
+                                          .updateService(
+                                              service!.id, newService)
+                                          .then((_) {
+                                        _applyFilters();
+                                      }).then((_) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text("Update successful!"),
+                                          ),
+                                        );
+                                      });
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(e.toString()),
+                                        ),
+                                      );
+                                    }
+                                    Navigator.of(context).pop();
+                                  } else {
+                                    try {
+                                      await Provider.of<
+                                                  CarRepairShopServiceProvider>(
+                                              context,
+                                              listen: false)
+                                          .insertService(newService)
+                                          .then((_) {
+                                        Provider.of<CarRepairShopServiceProvider>(
+                                                context,
+                                                listen: false)
+                                            .getByCarRepairShop(
+                                                pageNumber: _pageNumber,
+                                                pageSize: _pageSize);
+                                      }).then((_) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text("Insert successful!"),
+                                          ),
+                                        );
+                                      });
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(e.toString()),
+                                        ),
+                                      );
+                                    }
+                                    Navigator.of(context).pop();
+                                  }
                                 }
-                              }
-                            },
-                            child: const Text('Save'),
-                          ),
-                        ],
-                      ),
-                    ],
+                              },
+                              child: const Text('Save'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -596,7 +637,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                     children: [
                                       if (service.discount != 0) ...[
                                         TextSpan(
-                                          text: '${service.price}€ ',
+                                          text:
+                                              '${service.price.toStringAsFixed(2)}€ ',
                                           style: const TextStyle(
                                             decoration:
                                                 TextDecoration.lineThrough,
@@ -604,14 +646,16 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: ' ${service.discountedPrice}€',
+                                          text:
+                                              ' ${service.discountedPrice.toStringAsFixed(2)}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
                                         ),
                                       ] else ...[
                                         TextSpan(
-                                          text: '${service.price}€',
+                                          text:
+                                              '${service.price.toStringAsFixed(2)}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
@@ -626,7 +670,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
-                                    'Discount: ${(service.discount * 100).toInt()}%',
+                                    'Discount: ${(service.discount * 100).toInt().toStringAsFixed(2)}%',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall
@@ -753,12 +797,26 @@ class _ServicesScreenState extends State<ServicesScreen> {
               },
             );
             if (confirmDelete) {
-              await Provider.of<CarRepairShopServiceProvider>(context,
-                      listen: false)
-                  .deleteService(service.id)
-                  .then((_) {
-                _applyFilters();
-              });
+              try {
+                await Provider.of<CarRepairShopServiceProvider>(context,
+                        listen: false)
+                    .deleteService(service.id)
+                    .then((_) {
+                  _applyFilters();
+                }).then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Deleting successful!"),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
             }
           },
           style: ElevatedButton.styleFrom(
@@ -793,12 +851,26 @@ class _ServicesScreenState extends State<ServicesScreen> {
               },
             );
             if (confirmActivate) {
-              await Provider.of<CarRepairShopServiceProvider>(context,
-                      listen: false)
-                  .activate(service.id)
-                  .then((_) {
-                _applyFilters();
-              });
+              try {
+                await Provider.of<CarRepairShopServiceProvider>(context,
+                        listen: false)
+                    .activate(service.id)
+                    .then((_) {
+                  _applyFilters();
+                }).then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Activating successful!"),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
             }
           },
           style: ElevatedButton.styleFrom(
@@ -836,12 +908,26 @@ class _ServicesScreenState extends State<ServicesScreen> {
               },
             );
             if (confirmHide) {
-              await Provider.of<CarRepairShopServiceProvider>(context,
-                      listen: false)
-                  .hide(service.id)
-                  .then((_) {
-                _applyFilters();
-              });
+              try {
+                await Provider.of<CarRepairShopServiceProvider>(context,
+                        listen: false)
+                    .hide(service.id)
+                    .then((_) {
+                  _applyFilters();
+                }).then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Hiding successful!"),
+                    ),
+                  );
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString()),
+                  ),
+                );
+              }
             }
           },
           style: ElevatedButton.styleFrom(

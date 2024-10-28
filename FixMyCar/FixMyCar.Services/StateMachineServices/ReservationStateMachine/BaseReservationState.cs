@@ -105,6 +105,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 "orderpendingapproval" => _serviceProvider.GetService<OrderPendingApprovalReservationState>()!,
                 "orderdateconflict" => _serviceProvider.GetService<OrderDateConflictReservationState>()!,
                 "ready" => _serviceProvider.GetService<ReadyReservationState>()!,
+                "overbooked" => _serviceProvider.GetService<OverbookedReservationState>()!,
                 "accepted" => _serviceProvider.GetService<AcceptedReservationState>()!,
                 "rejected" => _serviceProvider.GetService<RejectedReservationState>()!,
                 "cancelled" => _serviceProvider.GetService<CancelledReservationState>()!,
