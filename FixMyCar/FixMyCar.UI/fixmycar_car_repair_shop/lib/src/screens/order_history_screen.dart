@@ -76,6 +76,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           orderSearch: filterCriteria,
                           pageNumber: _pageNumber,
                           pageSize: _pageSize);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Order cancelled sucessfully."),
+                    ),
+                  );
                 });
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(

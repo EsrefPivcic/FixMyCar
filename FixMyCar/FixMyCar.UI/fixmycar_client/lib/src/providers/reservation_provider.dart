@@ -1,8 +1,10 @@
+import 'package:fixmycar_client/src/models/date_availability/date_availability.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation_insert_update.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation_search_object.dart';
 import 'package:fixmycar_client/src/models/search_result.dart';
 import 'package:fixmycar_client/src/providers/base_provider.dart';
+import 'package:fixmycar_client/src/utilities/custom_exception.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -15,12 +17,46 @@ class ReservationProvider
 
   ReservationProvider() : super('Reservation');
 
+  Future<List<DateAvailability>> getAvailability({required int shopId}) async {
+    notifyListeners();
+
+    try {
+      String url =
+          '${BaseProvider.baseUrl}/$endpoint/GetShopAvailability?carRepairShopId=$shopId';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: await createHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseBody = jsonDecode(response.body);
+
+        List<DateAvailability> availability = responseBody
+            .map((item) => DateAvailability.fromJson(item))
+            .toList()
+            .cast<DateAvailability>();
+
+        return availability;
+      } else {
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
+      }
+    } on CustomException {
+      rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
+    } finally {
+      notifyListeners();
+    }
+  }
+
   Future<void> insertReservation(ReservationInsertUpdate reservation) async {
     try {
       final reservationResponse = await _createReservation(reservation);
 
       if (reservationResponse.statusCode != 200) {
-        _handleError(reservationResponse, step: 'Reservation creation');
+        handleHttpError(reservationResponse);
         return;
       }
 
@@ -33,13 +69,18 @@ class ReservationProvider
 
       int totalAmount = (amount * 100).toInt();
 
-      final paymentResponse =
+      final paymentIntentResponse =
           await _createPaymentIntent(reservationId, totalAmount);
 
-      final paymentResponseBody = jsonDecode(paymentResponse.body);
+      if (paymentIntentResponse.statusCode != 200) {
+        handleHttpError(paymentIntentResponse);
+        return;
+      }
 
-      final clientSecret = paymentResponseBody['clientSecret'];
-      final paymentIntentId = paymentResponseBody['paymentIntentId'];
+      final paymentIntentResponseBody = jsonDecode(paymentIntentResponse.body);
+
+      final clientSecret = paymentIntentResponseBody['clientSecret'];
+      final paymentIntentId = paymentIntentResponseBody['paymentIntentId'];
 
       try {
         await _confirmPayment(clientSecret);
@@ -53,7 +94,6 @@ class ReservationProvider
             successful: false);
       }
     } catch (e) {
-      print('Error during order insertion: $e');
       rethrow;
     }
   }
@@ -98,28 +138,11 @@ class ReservationProvider
     );
 
     if (response.statusCode != 200) {
-      throw Exception(
-          'Failed to update payment status. Status code: ${response.statusCode}');
+      handleHttpError(response);
+      return;
     }
 
     print(successful ? 'Payment status: successful' : 'Payment status: failed');
-  }
-
-  void _handleError(dynamic response, {required String step}) {
-    final responseBody = jsonDecode(response.body);
-    final errors = responseBody['errors'] as Map<String, dynamic>?;
-    if (errors != null) {
-      final userErrors = errors['UserError'] as List<dynamic>?;
-      if (userErrors != null && userErrors.isNotEmpty) {
-        throw Exception('$step failed. User error: ${userErrors.first}');
-      } else {
-        throw Exception(
-            '$step failed. Server error: Status code ${response['statusCode']}');
-      }
-    } else {
-      throw Exception(
-          '$step failed. Unknown error: Status code ${response['statusCode']}');
-    }
   }
 
   Future<void> updateReservation(
@@ -230,29 +253,17 @@ class ReservationProvider
         print('Adding order successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
+  @override
   Future<void> delete(int id) async {
     try {
       final response = await http.put(
@@ -262,26 +273,13 @@ class ReservationProvider
         print('Deleting reservation successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -294,26 +292,13 @@ class ReservationProvider
         print('Cancelling reservation successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }

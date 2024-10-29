@@ -4,6 +4,7 @@ import 'package:fixmycar_client/src/models/car_model/car_models_by_manufacturer.
 import 'package:fixmycar_client/src/models/car_repair_shop_discount/car_repair_shop_discount.dart';
 import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_shop_service.dart';
 import 'package:fixmycar_client/src/models/car_repair_shop_service/car_repair_shop_service_search_object.dart';
+import 'package:fixmycar_client/src/models/date_availability/date_availability.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation_insert_update.dart';
 import 'package:fixmycar_client/src/models/user/user.dart';
 import 'package:fixmycar_client/src/providers/car_models_by_manufacturer_provider.dart';
@@ -16,6 +17,7 @@ import 'package:fixmycar_client/src/providers/reservation_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'dart:convert';
 import 'master_screen.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
@@ -57,10 +59,9 @@ class _CarRepairShopServicesScreenState
 
       await _fetchDiscounts();
       await _fetchCarModels();
+      await _fetchAvailability();
     });
   }
-
-  List<int> selectedServiceIds = [];
 
   String _selectedDiscountFilter = 'all';
   String _selectedTypeFilter = 'all';
@@ -68,8 +69,8 @@ class _CarRepairShopServicesScreenState
   bool _isFilterApplied = false;
   bool clientOrder = false;
   bool isOrderWithRepairs = false;
-  DateTime? reservationDate;
   List<CarRepairShopDiscount> _discounts = [];
+
   List<CarModelsByManufacturer> _carModelsByManufacturer = [];
   late List<CarRepairShopService> recommendedServices;
   CarManufacturer? _selectedManufacturer;
@@ -77,6 +78,66 @@ class _CarRepairShopServicesScreenState
 
   TextEditingController _nameFilterController = TextEditingController();
   TextEditingController _orderIdContoller = TextEditingController();
+
+  Map<DateTime, Duration> _availabileDays = {};
+  late final List<int> _workingDays =
+      parseWorkDays(carRepairShopDetails.workDays!);
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  List<int> selectedServiceIds = [];
+  Duration _totalServicesDuration = Duration();
+  late final Duration _totalEffectiveWorkTime =
+      _calculateTotalEffectiveWorkTime(
+          carRepairShopDetails.workingHours, carRepairShopDetails.employees);
+
+  Duration _calculateTotalEffectiveWorkTime(
+      String? workingHours, int? employees) {
+    if (workingHours == null || employees == null || employees <= 0) {
+      return Duration.zero;
+    }
+
+    List<String> parts = workingHours.split(':');
+    int hours = int.parse(parts[0]);
+    int minutes = int.parse(parts[1]);
+    int seconds = int.parse(parts[2]);
+
+    Duration totalWorkingTime =
+        Duration(hours: hours, minutes: minutes, seconds: seconds);
+
+    Duration bufferTimePerEmployee = Duration(hours: 1, minutes: 30);
+
+    Duration totalBufferTime = bufferTimePerEmployee * employees;
+
+    Duration totalEffectiveWorkTime =
+        (totalWorkingTime * employees) - totalBufferTime;
+
+    if (totalEffectiveWorkTime.isNegative) {
+      totalEffectiveWorkTime = Duration.zero;
+    }
+
+    return totalEffectiveWorkTime;
+  }
+
+  bool _isDayEnabled(DateTime day) {
+    bool isWorkingDay = _workingDays.contains(day.weekday);
+
+    if (!isWorkingDay) {
+      return false;
+    }
+
+    DateTime selectedDay = DateTime(day.year, day.month, day.day);
+
+    for (DateTime availableDay in _availabileDays.keys) {
+      DateTime availableDate =
+          DateTime(availableDay.year, availableDay.month, availableDay.day);
+
+      if (selectedDay == availableDate) {
+        return _availabileDays[availableDay]! >= _totalServicesDuration;
+      }
+    }
+
+    return true;
+  }
 
   Future<void> _fetchCarModels() async {
     final carModelsByManufacturerProvider =
@@ -113,6 +174,111 @@ class _CarRepairShopServicesScreenState
     });
   }
 
+  int parseWorkDay(String day) {
+    switch (day) {
+      case "Sunday":
+        return 0;
+      case "Monday":
+        return 1;
+      case "Tuesday":
+        return 2;
+      case "Wednesday":
+        return 3;
+      case "Thursday":
+        return 4;
+      case "Friday":
+        return 5;
+      case "Saturday":
+        return 6;
+      default:
+        throw ArgumentError("Invalid day of the week");
+    }
+  }
+
+  List<int> parseWorkDays(List<String> workDays) {
+    return workDays.map((day) => parseWorkDay(day)).toList();
+  }
+
+  Future<void> _fetchAvailability() async {
+    final reservationProvider =
+        Provider.of<ReservationProvider>(context, listen: false);
+    List<DateAvailability> availableDays =
+        await reservationProvider.getAvailability(shopId: carRepairShopId);
+
+    setState(() {
+      _availabileDays = {
+        for (var day in availableDays)
+          DateTime.parse(day.date): _parseDuration(day.freeHours)
+      };
+    });
+  }
+
+  Duration _parseDuration(String durationStr) {
+    List<String> parts = durationStr.split(':');
+    return Duration(
+      hours: int.parse(parts[0]),
+      minutes: int.parse(parts[1]),
+      seconds: int.parse(parts[2]),
+    );
+  }
+
+  void _showCalendarDialog(
+      BuildContext context, Function(DateTime) onDaySelected) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              title: const Text('Select Reservation Day'),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 400,
+                child: TableCalendar(
+                  focusedDay: _focusedDay,
+                  firstDay: DateTime.now(),
+                  lastDay: DateTime(DateTime.now().year + 1),
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    if (_isDayEnabled(selectedDay)) {
+                      setDialogState(() {
+                        _selectedDay = selectedDay;
+                        _focusedDay = focusedDay;
+                      });
+
+                      onDaySelected(selectedDay);
+
+                      setState(() {
+                        _selectedDay = selectedDay;
+                        _focusedDay = focusedDay;
+                      });
+                    }
+                  },
+                  enabledDayPredicate: _isDayEnabled,
+                  calendarStyle: CalendarStyle(
+                    todayDecoration: const BoxDecoration(
+                        color: Colors.blue, shape: BoxShape.circle),
+                    selectedDecoration: const BoxDecoration(
+                        color: Colors.green, shape: BoxShape.circle),
+                    disabledTextStyle: TextStyle(color: Colors.grey.shade800),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Ok'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   String _formatDate(String dateTimeString) {
     final dateTime = DateTime.parse(dateTimeString);
     return DateFormat('dd.MM.yyyy').format(dateTime);
@@ -135,12 +301,12 @@ class _CarRepairShopServicesScreenState
         }
         if (discountValue != 0) {
           double discountedTotal = totalAmount - (totalAmount * discountValue);
-          return "$discountedTotal€";
+          return "${discountedTotal.toStringAsFixed(2)}€";
         } else {
-          return "$totalAmount€";
+          return "${totalAmount.toStringAsFixed(2)}€";
         }
       } else {
-        return "$totalAmount€";
+        return "${totalAmount.toStringAsFixed(2)}€";
       }
     } else {
       return "Unknown";
@@ -148,203 +314,267 @@ class _CarRepairShopServicesScreenState
   }
 
   void _openShoppingCartForm(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    bool isCardValid = false;
+    bool cardError = false;
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         builder: (BuildContext context) {
           return StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
+              builder: (BuildContext context, StateSetter setModalState) {
             return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                width: double.infinity,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Your Services', style: TextStyle(fontSize: 24)),
-                    const SizedBox(height: 16.0),
-                    if (selectedServiceIds.isEmpty) ...[
-                      const Text('No items in your cart.')
-                    ] else ...[
-                      SizedBox(
-                        height: 200,
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          itemCount: selectedServiceIds.length,
-                          itemBuilder: (context, index) {
-                            final serviceId = selectedServiceIds[index];
-                            final service = loadedServices
-                                .firstWhere((s) => s.id == serviceId);
-                            return ListTile(
-                              leading: service.imageData != ""
-                                  ? Image.memory(
-                                      base64Decode(service.imageData!),
-                                      fit: BoxFit.contain,
-                                      width: 50,
-                                      height: 50,
-                                    )
-                                  : const Icon(Icons.image, size: 50),
-                              title: Text(service.name),
-                              subtitle: Text(service.serviceTypeName),
-                            );
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                right: 10,
+                left: 10,
+                top: 10,
+              ),
+              child: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Container(
+                    width: double.infinity,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Your Services',
+                            style: TextStyle(fontSize: 24)),
+                        const SizedBox(height: 16.0),
+                        if (selectedServiceIds.isEmpty) ...[
+                          const Text('No items in your cart.')
+                        ] else ...[
+                          SizedBox(
+                            height: 200,
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: selectedServiceIds.length,
+                              itemBuilder: (context, index) {
+                                final serviceId = selectedServiceIds[index];
+                                final service = loadedServices
+                                    .firstWhere((s) => s.id == serviceId);
+                                return ListTile(
+                                  leading: service.imageData != ""
+                                      ? Image.memory(
+                                          base64Decode(service.imageData!),
+                                          fit: BoxFit.contain,
+                                          width: 50,
+                                          height: 50,
+                                        )
+                                      : const Icon(Icons.image, size: 50),
+                                  title: Text(service.name),
+                                  subtitle: Text(service.serviceTypeName),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Text("Total amount: ${_loadTotalAmount()}"),
+                        ],
+                        const SizedBox(height: 16.0),
+                        if (isOrderWithRepairs) ...[
+                          Row(
+                            children: [
+                              const Text('Car parts ordered by me:'),
+                              Switch(
+                                value: clientOrder,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    clientOrder = value;
+                                  });
+                                  setModalState(() {
+                                    clientOrder = value;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          if (clientOrder) ...[
+                            TextFormField(
+                              controller: _orderIdContoller,
+                              decoration: const InputDecoration(
+                                  labelText: 'Order Number'),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return null;
+                                } else {
+                                  final orderId = int.tryParse(value.trim());
+                                  if (orderId == null) {
+                                    return "Please enter a valid order number (numeric)";
+                                  } else {
+                                    return null;
+                                  }
+                                }
+                              },
+                            ),
+                            const Text('You can add order number later')
+                          ],
+                        ],
+                        const SizedBox(height: 5.0),
+                        DropdownButtonFormField<CarManufacturer>(
+                          value: _selectedManufacturer,
+                          validator: (value) {
+                            if (value == null) {
+                              return "Select car manufacturer";
+                            }
+                            return null;
                           },
+                          onChanged: (CarManufacturer? newValue) {
+                            setState(() {
+                              _selectedManufacturer = newValue;
+                              _selectedModel = null;
+                            });
+                            setModalState(() {
+                              _selectedManufacturer = newValue;
+                              _selectedModel = null;
+                            });
+                          },
+                          items: _carModelsByManufacturer
+                              .map<DropdownMenuItem<CarManufacturer>>(
+                                  (CarModelsByManufacturer cm) {
+                            return DropdownMenuItem<CarManufacturer>(
+                              value: cm.manufacturer,
+                              child: Text(cm.manufacturer.name),
+                            );
+                          }).toList(),
+                          isExpanded: true,
+                          hint: const Text('Select a manufacturer'),
                         ),
-                      ),
-                      Text("Total amount: ${_loadTotalAmount()}"),
-                    ],
-                    const SizedBox(height: 16.0),
-                    if (isOrderWithRepairs) ...[
-                      Row(
-                        children: [
-                          const Text('Car parts ordered by me:'),
-                          Switch(
-                            value: clientOrder,
-                            onChanged: (bool value) {
+                        if (_selectedManufacturer != null) ...[
+                          const SizedBox(height: 5.0),
+                          DropdownButtonFormField<CarModel>(
+                            value: _selectedModel,
+                            validator: (value) {
+                              if (value == null) {
+                                return "Select car model";
+                              }
+                              return null;
+                            },
+                            onChanged: (CarModel? newValue) {
                               setState(() {
-                                clientOrder = value;
+                                if (newValue != null) {
+                                  _selectedModel = newValue;
+                                }
+                              });
+                              setModalState(() {
+                                if (newValue != null) {
+                                  _selectedModel = newValue;
+                                }
                               });
                             },
+                            items: _carModelsByManufacturer
+                                .firstWhere((cm) =>
+                                    cm.manufacturer == _selectedManufacturer!)
+                                .models
+                                .map<DropdownMenuItem<CarModel>>(
+                                    (CarModel model) {
+                              return DropdownMenuItem<CarModel>(
+                                value: model,
+                                child:
+                                    Text('${model.name} (${model.modelYear})'),
+                              );
+                            }).toList(),
+                            isExpanded: true,
+                            hint: const Text('Select a model'),
                           ),
                         ],
-                      ),
-                      if (clientOrder) ...[
-                        TextField(
-                          controller: _orderIdContoller,
-                          decoration:
-                              const InputDecoration(labelText: 'Order Number'),
+                        const SizedBox(height: 5.0),
+                        ElevatedButton(
+                          onPressed: () {
+                            _showCalendarDialog(
+                              context,
+                              (DateTime selectedDay) {
+                                setModalState(() {
+                                  _selectedDay = selectedDay;
+                                });
+                              },
+                            );
+                          },
+                          child: const Text('Select Reservation Date'),
                         ),
-                        const Text('You can add order number later')
-                      ],
-                    ],
-                    const SizedBox(height: 5.0),
-                    DropdownButtonFormField<CarManufacturer>(
-                      value: _selectedManufacturer,
-                      validator: (value) {
-                        if (value == null) {
-                          return "Select car manufacturer";
-                        }
-                        return null;
-                      },
-                      onChanged: (CarManufacturer? newValue) {
-                        setState(() {
-                          _selectedManufacturer = newValue;
-                          _selectedModel = null;
-                        });
-                      },
-                      items: _carModelsByManufacturer
-                          .map<DropdownMenuItem<CarManufacturer>>(
-                              (CarModelsByManufacturer cm) {
-                        return DropdownMenuItem<CarManufacturer>(
-                          value: cm.manufacturer,
-                          child: Text(cm.manufacturer.name),
-                        );
-                      }).toList(),
-                      isExpanded: true,
-                      hint: const Text('Select a manufacturer'),
-                    ),
-                    if (_selectedManufacturer != null) ...[
-                      const SizedBox(height: 5.0),
-                      DropdownButtonFormField<CarModel>(
-                        value: _selectedModel,
-                        validator: (value) {
-                          if (value == null) {
-                            return "Select car model";
-                          }
-                          return null;
-                        },
-                        onChanged: (CarModel? newValue) {
-                          setState(() {
-                            if (newValue != null) {
-                              _selectedModel = newValue;
-                            }
-                          });
-                        },
-                        items: _carModelsByManufacturer
-                            .firstWhere((cm) =>
-                                cm.manufacturer == _selectedManufacturer!)
-                            .models
-                            .map<DropdownMenuItem<CarModel>>((CarModel model) {
-                          return DropdownMenuItem<CarModel>(
-                            value: model,
-                            child: Text('${model.name} (${model.modelYear})'),
-                          );
-                        }).toList(),
-                        isExpanded: true,
-                        hint: const Text('Select a model'),
-                      ),
-                    ],
-                    const SizedBox(height: 5.0),
-                    ElevatedButton.icon(
-                        icon: const Icon(Icons.calendar_month),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(18, 255, 255, 255),
-                        ),
-                        onPressed: () async {
-                          final selectedReservationDate = await showDatePicker(
-                              context: context,
-                              initialDate:
-                                  DateTime.now().add(const Duration(days: 1)),
-                              firstDate:
-                                  DateTime.now().add(const Duration(days: 1)),
-                              lastDate: DateTime(2100),
-                              helpText: "Reservation date");
-
-                          if (selectedReservationDate != null) {
+                        Text(
+                            "Reservation date: ${_selectedDay != null ? _formatDate(_selectedDay.toString()) : 'Select reservation date to continue'}"),
+                        const SizedBox(height: 16.0),
+                        stripe.CardField(
+                          onCardChanged: (card) {
                             setState(() {
-                              reservationDate = selectedReservationDate;
+                              isCardValid = card!.complete;
+                              if (card.complete) {
+                                cardError = false;
+                              }
                             });
-                          }
-                        },
-                        label: const Text("Select reservation date")),
-                    Text(
-                        "Reservation date: ${reservationDate != null ? _formatDate(reservationDate.toString()) : 'not selected'}"),
-                    const SizedBox(height: 16.0),
-                    stripe.CardField(
-                      onCardChanged: (card) {
-                        print(card);
-                      },
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(18, 255, 255, 255),
+                            setModalState(() {
+                              isCardValid = card!.complete;
+                              if (card.complete) {
+                                cardError = false;
+                              }
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
                           ),
-                          onPressed: selectedServiceIds.isNotEmpty &&
-                                  reservationDate != null
-                              ? () {
-                                  _confirmPlaceReservation(context);
-                                }
-                              : null,
-                          child: const Text('Place Reservation'),
                         ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(18, 255, 255, 255),
+                        if (!isCardValid && cardError) ...[
+                          const SizedBox(height: 5.0),
+                          Text(
+                            "Please insert card details",
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error),
                           ),
-                          onPressed: () => _confirmDiscard(context),
-                          child: const Text('Discard Reservation'),
+                        ],
+                        const SizedBox(height: 16.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255),
+                              ),
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255),
+                              ),
+                              onPressed: () => _confirmDiscard(context),
+                              child: const Text('Discard'),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255),
+                              ),
+                              onPressed: selectedServiceIds.isNotEmpty &&
+                                      _selectedDay != null
+                                  ? () {
+                                      if ((formKey.currentState?.validate() ??
+                                          false)) {
+                                        if (isCardValid) {
+                                          _confirmPlaceReservation(context);
+                                        } else {
+                                          setModalState(() {
+                                            cardError = true;
+                                          });
+                                        }
+                                      }
+                                    }
+                                  : null,
+                              child: const Text('Confirm'),
+                            ),
+                          ],
                         ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(18, 255, 255, 255),
-                          ),
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
+                        const SizedBox(
+                          height: 10,
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             );
@@ -364,9 +594,14 @@ class _CarRepairShopServicesScreenState
               onPressed: () {
                 setState(() {
                   clientOrder = false;
-                  reservationDate = null;
+                  _selectedDay = null;
                   selectedServiceIds.clear();
                 });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Discard successful!"),
+                  ),
+                );
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
@@ -393,90 +628,59 @@ class _CarRepairShopServicesScreenState
           actions: [
             TextButton(
               onPressed: () async {
-                bool validateOrder = false;
-                bool validateDate = false;
                 ReservationInsertUpdate newReservation;
-
-                if (reservationDate != null) {
-                  validateDate = true;
-                } else {
-                  validateDate = false;
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Please provide a valid reservation date!"),
-                    ),
-                  );
-                }
                 if (clientOrder && isOrderWithRepairs) {
                   int? orderId;
-                  if (_orderIdContoller.text.isNotEmpty) {
-                    orderId = int.tryParse(_orderIdContoller.text);
-                    if (orderId == null) {
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                      validateOrder = false;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Please provide a valid order number!"),
-                        ),
-                      );
-                    } else {
-                      validateOrder = true;
-                    }
-                  } else {
-                    validateOrder = true;
-                  }
+                  orderId = int.tryParse(_orderIdContoller.text);
                   newReservation = ReservationInsertUpdate(
                       carRepairShopId,
                       _selectedModel!.id,
                       orderId,
                       clientOrder,
-                      reservationDate,
+                      _selectedDay,
                       selectedServiceIds);
                 } else {
-                  validateOrder = true;
                   newReservation = ReservationInsertUpdate(
                       carRepairShopId,
                       _selectedModel!.id,
                       null,
                       clientOrder,
-                      reservationDate,
+                      _selectedDay,
                       selectedServiceIds);
                 }
-                if (validateDate && validateOrder) {
-                  try {
-                    await Provider.of<ReservationProvider>(context,
-                            listen: false)
-                        .insertReservation(newReservation)
-                        .then((_) {
-                      setState(() {
-                        selectedServiceIds.clear();
-                        _orderIdContoller.clear();
-                        reservationDate = null;
-                        _selectedManufacturer = null;
-                        _selectedModel = null;
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const ReservationHistoryScreen(),
-                          ),
-                        );
-                      });
+                try {
+                  await Provider.of<ReservationProvider>(context, listen: false)
+                      .insertReservation(newReservation)
+                      .then((_) {
+                    setState(() {
+                      selectedServiceIds.clear();
+                      _orderIdContoller.clear();
+                      _selectedDay = null;
+                      _selectedManufacturer = null;
+                      _selectedModel = null;
                     });
-                  } catch (e) {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
+                      const SnackBar(
+                        content: Text("Reservation successful!"),
                       ),
                     );
-                  }
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ReservationHistoryScreen(),
+                      ),
+                    );
+                  });
+                } catch (e) {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString()),
+                    ),
+                  );
                 }
               },
               child: const Text('Yes'),
@@ -797,21 +1001,32 @@ class _CarRepairShopServicesScreenState
                                       onChanged: (bool? value) {
                                         setState(() {
                                           if (value == true) {
-                                            if (selectedServiceIds.length < 5) {
-                                              selectedServiceIds
-                                                  .add(service.id);
-                                            } else {
+                                            Duration tempTotalServicesDuration =
+                                                _totalServicesDuration +
+                                                    _parseDuration(
+                                                        service.duration);
+                                            if (tempTotalServicesDuration >
+                                                _totalEffectiveWorkTime) {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 const SnackBar(
                                                   content: Text(
-                                                      "You can't reserve more than 5 services per day!"),
+                                                      "Adding this service exceeds shop working time!"),
                                                 ),
                                               );
+                                            } else {
+                                              selectedServiceIds
+                                                  .add(service.id);
+                                              _totalServicesDuration +=
+                                                  _parseDuration(
+                                                      service.duration);
                                             }
                                           } else {
                                             selectedServiceIds
                                                 .remove(service.id);
+                                            _totalServicesDuration -=
+                                                _parseDuration(
+                                                    service.duration);
                                           }
                                         });
                                         _checkForTypes();

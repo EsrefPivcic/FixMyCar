@@ -8,6 +8,7 @@ part of 'reservation.dart';
 
 Reservation _$ReservationFromJson(Map<String, dynamic> json) => Reservation(
       (json['id'] as num).toInt(),
+      (json['carRepairShopId'] as num).toInt(),
       json['carRepairShopName'] as String,
       json['clientUsername'] as String,
       (json['orderId'] as num?)?.toInt(),
@@ -26,6 +27,7 @@ Reservation _$ReservationFromJson(Map<String, dynamic> json) => Reservation(
 Map<String, dynamic> _$ReservationToJson(Reservation instance) =>
     <String, dynamic>{
       'id': instance.id,
+      'carRepairShopId': instance.carRepairShopId,
       'carRepairShopName': instance.carRepairShopName,
       'clientUsername': instance.clientUsername,
       'orderId': instance.orderId,

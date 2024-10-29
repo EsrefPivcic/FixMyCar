@@ -29,8 +29,8 @@ namespace FixMyCar.Services.Mapping
             CreateMap<CarRepairShop, CarRepairShopUpdateDTO>();
             CreateMap<CarRepairShop, CarRepairShopGetDTO>()
                 .ForMember(dest => dest.WorkDays, opt => opt.MapFrom(src => src.WorkDays.Select(d => d.ToString()).ToList()))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name))
-                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City.Name))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role != null ? src.Role.Name : "Unknown"))
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City != null ? src.City.Name : "Unknown"))
                 .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Image != null ? Convert.ToBase64String(src.Image) : string.Empty));
         }
     }

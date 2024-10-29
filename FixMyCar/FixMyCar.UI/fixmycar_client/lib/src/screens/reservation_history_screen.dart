@@ -1,12 +1,16 @@
+import 'package:fixmycar_client/src/models/date_availability/date_availability.dart';
 import 'package:fixmycar_client/src/models/order/order_essential.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation_insert_update.dart';
 import 'package:fixmycar_client/src/models/reservation/reservation_search_object.dart';
+import 'package:fixmycar_client/src/models/user/user.dart';
+import 'package:fixmycar_client/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_client/src/providers/order_essential_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'master_screen.dart';
 import 'package:intl/intl.dart';
 
@@ -35,6 +39,244 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
               pageNumber: _pageNumber,
               pageSize: _pageSize);
     });
+  }
+
+  Map<DateTime, Duration> _availabileDays = {};
+  List<int> _workingDays = [];
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  Duration _totalServicesDuration = Duration();
+
+  Duration _parseDuration(String durationStr) {
+    List<String> parts = durationStr.split(':');
+    return Duration(
+      hours: int.parse(parts[0]),
+      minutes: int.parse(parts[1]),
+      seconds: int.parse(parts[2]),
+    );
+  }
+
+  Future<void> _fetchAvailability(int carRepairShopId) async {
+    final reservationProvider =
+        Provider.of<ReservationProvider>(context, listen: false);
+    List<DateAvailability> availableDays =
+        await reservationProvider.getAvailability(shopId: carRepairShopId);
+
+    setState(() {
+      _availabileDays = {
+        for (var day in availableDays)
+          DateTime.parse(day.date): _parseDuration(day.freeHours)
+      };
+    });
+  }
+
+  int parseWorkDay(String day) {
+    switch (day) {
+      case "Sunday":
+        return 0;
+      case "Monday":
+        return 1;
+      case "Tuesday":
+        return 2;
+      case "Wednesday":
+        return 3;
+      case "Thursday":
+        return 4;
+      case "Friday":
+        return 5;
+      case "Saturday":
+        return 6;
+      default:
+        throw ArgumentError("Invalid day of the week");
+    }
+  }
+
+  List<int> parseWorkDays(List<String> workDays) {
+    return workDays.map((day) => parseWorkDay(day)).toList();
+  }
+
+  Future<void> _fetchWorkingDays(int carRepairShopId) async {
+    final shopProvider =
+        Provider.of<CarRepairShopProvider>(context, listen: false);
+    User? shop;
+
+    try {
+      shop = await shopProvider.getShopById(shopId: carRepairShopId);
+    } catch (e) {
+      print(e.toString());
+      shop = null;
+    }
+
+    if (shop != null) {
+      setState(() {
+        _workingDays = parseWorkDays(shop!.workDays!);
+      });
+    }
+  }
+
+  bool _isDayEnabled(DateTime day) {
+    bool isWorkingDay = _workingDays.contains(day.weekday);
+
+    if (!isWorkingDay) {
+      return false;
+    }
+
+    DateTime selectedDay = DateTime(day.year, day.month, day.day);
+
+    for (DateTime availableDay in _availabileDays.keys) {
+      DateTime availableDate =
+          DateTime(availableDay.year, availableDay.month, availableDay.day);
+
+      if (selectedDay == availableDate) {
+        return _availabileDays[availableDay]! >= _totalServicesDuration;
+      }
+    }
+
+    return true;
+  }
+
+  void _showCalendarDialog(
+      BuildContext context, Function(DateTime) onDaySelected) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              title: const Text('Select Reservation Day'),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 400,
+                child: TableCalendar(
+                  focusedDay: _focusedDay,
+                  firstDay: DateTime.now(),
+                  lastDay: DateTime(DateTime.now().year + 1),
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    if (_isDayEnabled(selectedDay)) {
+                      setDialogState(() {
+                        _selectedDay = selectedDay;
+                        _focusedDay = focusedDay;
+                      });
+
+                      onDaySelected(selectedDay);
+                    }
+                  },
+                  enabledDayPredicate: _isDayEnabled,
+                  calendarStyle: CalendarStyle(
+                    todayDecoration: const BoxDecoration(
+                        color: Colors.blue, shape: BoxShape.circle),
+                    selectedDecoration: const BoxDecoration(
+                        color: Colors.green, shape: BoxShape.circle),
+                    disabledTextStyle: TextStyle(color: Colors.grey.shade800),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Ok'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future showUpdateForm(Reservation reservation) async {
+    _totalServicesDuration = _parseDuration(reservation.totalDuration);
+    await _fetchAvailability(reservation.carRepairShopId);
+    await _fetchWorkingDays(reservation.carRepairShopId);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Update Reservation'),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setUpdateDialogState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      _showCalendarDialog(
+                        context,
+                        (DateTime selectedDay) {
+                          setUpdateDialogState(() {
+                            _selectedDay = selectedDay;
+                          });
+                        },
+                      );
+                    },
+                    child: const Text('Select Reservation Date'),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text(_selectedDay != null
+                      ? 'Reservation date: ${_formatDate(_selectedDay.toString())}'
+                      : 'Please select new reservation date to continue.'),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedDay = null;
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: _selectedDay != null
+                        ? () async {
+                            ReservationInsertUpdate updateReservation =
+                                ReservationInsertUpdate.n();
+                            updateReservation.reservationDate = _selectedDay;
+                            try {
+                              await Provider.of<ReservationProvider>(context,
+                                      listen: false)
+                                  .updateReservation(
+                                      reservation.id, updateReservation)
+                                  .then((_) {
+                                Provider.of<ReservationProvider>(context,
+                                        listen: false)
+                                    .getByClient(
+                                        reservationSearch: filterCriteria,
+                                        pageNumber: _pageNumber,
+                                        pageSize: _pageSize);
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Update successful!"),
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(e.toString()),
+                                ),
+                              );
+                            }
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          }
+                        : null,
+                    child: const Text('Save'),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
   String _formatDate(String dateTimeString) {
@@ -104,6 +346,8 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
         return "Missing Payment";
       case "paymentfailed":
         return "Payment Failed";
+      case "overbooked":
+        return "Overbooked (update reservation date!)";
       default:
         return state;
     }
@@ -132,6 +376,8 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
       case 'cancelled':
         return Colors.red.shade700;
       case 'paymentfailed':
+        return Colors.red.shade700;
+      case 'overbooked':
         return Colors.red.shade700;
       default:
         return Colors.white;
@@ -206,6 +452,11 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                           pageNumber: _pageNumber,
                           pageSize: _pageSize);
                 });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Cancelling reservation successful!"),
+                  ),
+                );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -232,149 +483,80 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
   final _orderController = TextEditingController();
 
   Future _addOrder(int reservationId) async {
+    final formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Add Order'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _orderController,
-                decoration: const InputDecoration(labelText: 'Order number'),
+        return Form(
+          key: formKey,
+          child: AlertDialog(
+            title: const Text('Add Order'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _orderController,
+                  decoration: const InputDecoration(labelText: 'Order number'),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Please enter an order number";
+                    }
+                    final orderId = int.tryParse(value.trim());
+                    if (orderId == null) {
+                      return "Please enter a valid order number (numeric)";
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  _orderController.clear();
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  if ((formKey.currentState?.validate() ?? false)) {
+                    final orderIdText = _orderController.text;
+                    final orderId = int.parse(orderIdText);
+
+                    try {
+                      await Provider.of<ReservationProvider>(context,
+                              listen: false)
+                          .addOrder(reservationId, orderId);
+                      await Provider.of<ReservationProvider>(context,
+                              listen: false)
+                          .getByClient(
+                              reservationSearch: filterCriteria,
+                              pageNumber: _pageNumber,
+                              pageSize: _pageSize);
+                      _orderController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Adding order successful!"),
+                        ),
+                      );
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    } catch (e) {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.toString()),
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Add Order'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _orderController.clear();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                final orderIdText = _orderController.text;
-                final orderId = int.tryParse(orderIdText);
-
-                if (orderId == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a valid order number!'),
-                    ),
-                  );
-                } else {
-                  try {
-                    await Provider.of<ReservationProvider>(context,
-                            listen: false)
-                        .addOrder(reservationId, orderId);
-                    await Provider.of<ReservationProvider>(context,
-                            listen: false)
-                        .getByClient(
-                            reservationSearch: filterCriteria,
-                            pageNumber: _pageNumber,
-                            pageSize: _pageSize);
-                    _orderController.clear();
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  } catch (e) {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Add Order'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future showUpdateForm(Reservation reservation) async {
-    DateTime? selectedReservationDate =
-        DateTime.parse(reservation.reservationDate);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Update Reservation'),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ElevatedButton.icon(
-                      icon: const Icon(Icons.calendar_month),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color.fromARGB(18, 255, 255, 255),
-                      ),
-                      onPressed: () async {
-                        final newReservationDate = await showDatePicker(
-                            context: context,
-                            initialDate: selectedReservationDate,
-                            firstDate:
-                                DateTime.now().add(const Duration(days: 1)),
-                            lastDate: DateTime(2100),
-                            helpText: "Reservation date");
-
-                        if (newReservationDate != null) {
-                          setState(() {
-                            selectedReservationDate = newReservationDate;
-                          });
-                        }
-                      },
-                      label: const Text("Select reservation date")),
-                  Text(
-                      "Reservation date: ${selectedReservationDate != null ? _formatDate(selectedReservationDate.toString()) : 'not selected'}"),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                ReservationInsertUpdate updateReservation =
-                    ReservationInsertUpdate.n();
-                updateReservation.reservationDate = selectedReservationDate;
-                try {
-                  await Provider.of<ReservationProvider>(context, listen: false)
-                      .updateReservation(reservation.id, updateReservation)
-                      .then((_) {
-                    Provider.of<ReservationProvider>(context, listen: false)
-                        .getByClient(
-                            reservationSearch: filterCriteria,
-                            pageNumber: _pageNumber,
-                            pageSize: _pageSize);
-                  });
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(e.toString()),
-                    ),
-                  );
-                }
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Save'),
-            ),
-          ],
         );
       },
     );
@@ -587,8 +769,8 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                     TextSpan(
                                       text: _getOrderDisplayState(order.state),
                                       style: TextStyle(
-                                          color: _getOrderStateColor(order
-                                              .state)), // Color for the state
+                                          color:
+                                              _getOrderStateColor(order.state)),
                                     ),
                                   ],
                                 ),
@@ -642,7 +824,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                               child: ExpansionTile(
                                 title: Text(reservationDetail.serviceName),
                                 subtitle: Text(
-                                    'Price (Discount Applied): ${reservationDetail.serviceDiscountedPrice}'),
+                                    'Price (Discount Applied): ${reservationDetail.serviceDiscountedPrice.toStringAsFixed(2)}'),
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -654,7 +836,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                         Text(
                                             'Non-Discounted Price: €${reservationDetail.servicePrice.toStringAsFixed(2)}'),
                                         Text(
-                                            'Discount: ${reservationDetail.serviceDiscount * 100}%'),
+                                            'Discount: ${(reservationDetail.serviceDiscount * 100).toStringAsFixed(2)}%'),
                                       ],
                                     ),
                                   ),
@@ -692,7 +874,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                 backgroundColor:
                                     const Color.fromARGB(255, 31, 75, 157),
                               ),
-                              child: const Text('Update Reservation'),
+                              child: const Text('Update Reservation Date'),
                             )),
                             const SizedBox(width: 8.0),
                           ],
@@ -830,6 +1012,18 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                     },
                   ),
                 ],
+                RadioListTile(
+                  title: const Text("Overbooked"),
+                  value: "overbooked",
+                  groupValue: filterCriteria.state,
+                  onChanged: (value) {
+                    setState(() {
+                      filterCriteria.state = value;
+                    });
+                    _clearCompletionDates();
+                    _clearEstimatedCompletionDates();
+                  },
+                ),
                 RadioListTile(
                   title: const Text("Ready"),
                   value: "ready",
@@ -1371,6 +1565,15 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                   });
                 },
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text("${filterCriteria.minTotalAmount!.toStringAsFixed(0)}€"),
+                  const SizedBox(width: 10),
+                  Text("${filterCriteria.maxTotalAmount!.toStringAsFixed(0)}€"),
+                ],
+              ),
+              const SizedBox(height: 10),
             ]),
             ListTile(
               title: ElevatedButton(
@@ -1511,12 +1714,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   IconButton(
-                                    icon: reservation.state != "accepted" &&
-                                            (reservation.state != "ongoing" &&
-                                                reservation.state !=
-                                                    "completed")
-                                        ? const Icon(Icons.settings)
-                                        : const Icon(Icons.info_outline),
+                                    icon: const Icon(Icons.info_outline),
                                     onPressed: () {
                                       _showReservationDetails(
                                           context, reservation);

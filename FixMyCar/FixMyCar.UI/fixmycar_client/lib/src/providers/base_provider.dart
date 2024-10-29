@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:fixmycar_client/src/models/search_result.dart';
+import 'package:fixmycar_client/src/utilities/custom_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -47,11 +48,14 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
           result: results,
         );
       } else {
-        throw Exception('Failed to load data');
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
       }
-    } catch (e) {
-      print('Error fetching data: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -61,6 +65,8 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
     required T Function(Map<String, dynamic>) fromJson,
   }) async {
     try {
+      print(
+          "target: $baseUrl/$endpoint${customEndpoint.isNotEmpty ? '/$customEndpoint' : ''}/$id");
       String url =
           '$baseUrl/$endpoint${customEndpoint.isNotEmpty ? '/$customEndpoint' : ''}/$id';
       final response = await http.get(
@@ -74,19 +80,21 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
 
         return result;
       } else {
-        throw Exception('Failed to load data');
+        handleHttpError(response);
+        throw CustomException('Unhandled HTTP error');
       }
-    } catch (e) {
-      print('Error fetching data: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      print(e.toString());
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
   Future<void> insert(TInsertUpdate item,
       {String customEndpoint = '',
       required Map<String, dynamic> Function(TInsertUpdate) toJson}) async {
-    print("Reservation: ${jsonEncode(item)}");
-
     try {
       final response = await http.post(
         Uri.parse(
@@ -99,26 +107,13 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
         print('Insert successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception(
-                  'User error. $error Status code: ${response.statusCode}');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -138,26 +133,13 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
         print('Update successful.');
         notifyListeners();
       } else {
-        final responseBody = jsonDecode(response.body);
-        final errors = responseBody['errors'] as Map<String, dynamic>?;
-
-        if (errors != null) {
-          final userErrors = errors['UserError'] as List<dynamic>?;
-          if (userErrors != null) {
-            for (var error in userErrors) {
-              throw Exception('User error. $error');
-            }
-          } else {
-            throw Exception(
-                'Server side error. Status code: ${response.statusCode}');
-          }
-        } else {
-          throw Exception('Unknown error. Status code: ${response.statusCode}');
-        }
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error updating data: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
@@ -171,12 +153,35 @@ abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
         print('Delete successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to delete the item. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error deleting the item: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
+    }
+  }
+
+  void handleHttpError(http.Response response) {
+    if (response.statusCode != 200) {
+      final responseBody = jsonDecode(response.body);
+      final errors = responseBody['errors'] as Map<String, dynamic>?;
+
+      if (errors != null) {
+        final userErrors = errors['UserError'] as List<dynamic>?;
+        if (userErrors != null) {
+          for (var error in userErrors) {
+            throw CustomException('$error');
+          }
+        } else {
+          throw CustomException(
+              'Server side error. Status code: ${response.statusCode}');
+        }
+      } else {
+        throw CustomException(
+            'Unknown error. Status code: ${response.statusCode}');
+      }
     }
   }
 }

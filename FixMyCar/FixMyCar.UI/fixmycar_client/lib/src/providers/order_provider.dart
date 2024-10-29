@@ -5,6 +5,7 @@ import 'package:fixmycar_client/src/models/order/order_insert_update.dart';
 import 'package:fixmycar_client/src/models/order/order_search_object.dart';
 import 'package:fixmycar_client/src/models/search_result.dart';
 import 'package:fixmycar_client/src/providers/base_provider.dart';
+import 'package:fixmycar_client/src/utilities/custom_exception.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 
@@ -82,7 +83,7 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
       final orderResponse = await _createOrder(order);
 
       if (orderResponse.statusCode != 200) {
-        _handleError(orderResponse, step: 'Order creation');
+        handleHttpError(orderResponse);
         return;
       }
 
@@ -95,12 +96,18 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
 
       int totalAmount = (amount * 100).toInt();
 
-      final paymentResponse = await _createPaymentIntent(orderId, totalAmount);
+      final paymentIntentResponse =
+          await _createPaymentIntent(orderId, totalAmount);
 
-      final paymentResponseBody = jsonDecode(paymentResponse.body);
+      if (paymentIntentResponse.statusCode != 200) {
+        handleHttpError(paymentIntentResponse);
+        return;
+      }
 
-      final clientSecret = paymentResponseBody['clientSecret'];
-      final paymentIntentId = paymentResponseBody['paymentIntentId'];
+      final paymentIntentResponseBody = jsonDecode(paymentIntentResponse.body);
+
+      final clientSecret = paymentIntentResponseBody['clientSecret'];
+      final paymentIntentId = paymentIntentResponseBody['paymentIntentId'];
 
       try {
         await _confirmPayment(clientSecret);
@@ -112,7 +119,6 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
         await _updatePaymentStatus(orderId, paymentIntentId, successful: false);
       }
     } catch (e) {
-      print('Error during order insertion: $e');
       rethrow;
     }
   }
@@ -154,8 +160,8 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
     );
 
     if (response.statusCode != 200) {
-      throw Exception(
-          'Failed to update payment status. Status code: ${response.statusCode}');
+      handleHttpError(response);
+      return;
     }
 
     print(successful ? 'Payment status: successful' : 'Payment status: failed');
@@ -177,15 +183,17 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
         print('Cancel successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to cancel the order. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error canceling the order: $e');
+    } on CustomException {
       rethrow;
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 
+  @override
   Future<void> delete(int id) async {
     try {
       final response = await http.put(
@@ -195,28 +203,13 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
         print('Delete successful.');
         notifyListeners();
       } else {
-        throw Exception(
-            'Failed to delete the order. Status code: ${response.statusCode}');
+        handleHttpError(response);
       }
-    } catch (e) {
-      print('Error deleting the order: $e');
+    } on CustomException {
       rethrow;
-    }
-  }
-
-  void _handleError(dynamic response, {required String step}) {
-    final errors = response['errors'] as Map<String, dynamic>?;
-    if (errors != null) {
-      final userErrors = errors['UserError'] as List<dynamic>?;
-      if (userErrors != null && userErrors.isNotEmpty) {
-        throw Exception('$step failed. User error: ${userErrors.first}');
-      } else {
-        throw Exception(
-            '$step failed. Server error: Status code ${response['statusCode']}');
-      }
-    } else {
-      throw Exception(
-          '$step failed. Unknown error: Status code ${response['statusCode']}');
+    } catch (e) {
+      throw CustomException(
+          "Can't reach the server. Please check your internet connection.");
     }
   }
 }

@@ -5,6 +5,7 @@ part 'reservation.g.dart';
 @JsonSerializable()
 class Reservation {
   int id;
+  int carRepairShopId;
   String carRepairShopName;
   String clientUsername;
   int? orderId;
@@ -21,6 +22,7 @@ class Reservation {
 
   Reservation(
       this.id,
+      this.carRepairShopId,
       this.carRepairShopName,
       this.clientUsername,
       this.orderId,

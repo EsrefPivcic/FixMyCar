@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:fixmycar_client/src/models/chat_message/chat_message.dart';
 import 'package:fixmycar_client/src/providers/chat_history_provider.dart';
+import 'package:fixmycar_client/src/screens/chat_history_screen.dart';
 import 'package:fixmycar_client/src/services/signalr_chat_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -149,8 +150,18 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: Row(
             children: [
+              IconButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ChatHistoryScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.arrow_back)),
               if (widget.recipientImage.isNotEmpty) ...[
                 CircleAvatar(
                   backgroundImage:

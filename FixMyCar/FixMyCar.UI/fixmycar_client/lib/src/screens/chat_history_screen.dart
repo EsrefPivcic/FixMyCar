@@ -34,85 +34,90 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
   late List<UserMinimal> chats = [];
   final _usernameController = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
         child: Center(
       child: Card(
-          child: Padding(
-              padding: EdgeInsets.all(10),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: _usernameController,
-                    decoration: const InputDecoration(labelText: 'Username'),
-                  ),
-                  const SizedBox(height: 5),
-                  TextButton(
-                    onPressed: () async {
-                      if (_usernameController.text.isNotEmpty) {
-                        var userProvider =
-                            Provider.of<UserProvider>(context, listen: false);
+        child: Form(
+            key: _formKey,
+            child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Enter recipient username to start a new chat.'),
+                    TextFormField(
+                        controller: _usernameController,
+                        decoration:
+                            const InputDecoration(labelText: 'Username'),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Please enter recipient username";
+                          }
+                          return null;
+                        }),
+                    const SizedBox(height: 5),
+                    TextButton(
+                      onPressed: () async {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          var userProvider =
+                              Provider.of<UserProvider>(context, listen: false);
 
-                        try {
-                          UserMinimal userExists = await userProvider.exists(
-                              username: _usernameController.text);
-                          Navigator.of(context).pop();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ChatScreen(
-                                      recipientUserId: userExists.username,
-                                      recipientImage: userExists.image!,
-                                    )),
-                          ).then((_) {
-                            _usernameController.text = "";
-                          });
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("This user doesn't exist!"),
-                            ),
-                          );
-                          Navigator.of(context).pop();
+                          try {
+                            UserMinimal userExists = await userProvider.exists(
+                                username: _usernameController.text);
+
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChatScreen(
+                                        recipientUserId: userExists.username,
+                                        recipientImage: userExists.image!,
+                                      )),
+                            ).then((_) {
+                              _usernameController.text = "";
+                            });
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(e.toString()),
+                              ),
+                            );
+                          }
                         }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Please enter a username!"),
-                          ),
-                        );
-                      }
-                    },
-                    child: const Text('New Chat'),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Previous chats:'),
-                  if (chats.isNotEmpty) ...[
-                    SizedBox(
-                      height: 200,
-                      child: Column(
-                        children: List.generate(chats.length, (index) {
-                          final user = chats[index];
-                          return Padding(
-                            padding: const EdgeInsets.all(2.5),
-                            child: ListTile(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChatScreen(
-                                      recipientUserId: user.username,
-                                      recipientImage: user.image!,
-                                    ),
-                                  ),
-                                ).then((_) {
-                                  _usernameController.text = "";
-                                });
-                              },
-                              leading:
-                                  user.image != null && user.image!.isNotEmpty
+                      },
+                      child: const Text('New Chat'),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Previous chats:'),
+                    if (chats.isNotEmpty) ...[
+                      SizedBox(
+                        height: 350,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: List.generate(chats.length, (index) {
+                              final user = chats[index];
+                              return Padding(
+                                padding: const EdgeInsets.all(2.5),
+                                child: ListTile(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatScreen(
+                                          recipientUserId: user.username,
+                                          recipientImage: user.image!,
+                                        ),
+                                      ),
+                                    ).then((_) {
+                                      _usernameController.text = "";
+                                    });
+                                  },
+                                  leading: user.image != null &&
+                                          user.image!.isNotEmpty
                                       ? CircleAvatar(
                                           maxRadius: 25,
                                           backgroundImage: MemoryImage(
@@ -122,35 +127,37 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                                           maxRadius: 25,
                                           child: Icon(Icons.person),
                                         ),
-                              title: Text(
-                                '${user.name} ${user.surname} (${user.username})',
-                              ),
-                            ),
-                          );
-                        }),
+                                  title: Text(
+                                    '${user.name} ${user.surname} (${user.username})',
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
                       ),
-                    )
-                  ] else ...[
-                    const SizedBox(height: 5),
-                    const Text('No previous chats found.'),
+                    ] else ...[
+                      const SizedBox(height: 5),
+                      const Text('No previous chats found.'),
+                    ],
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                    recipientUserId: "admin",
+                                    recipientImage: "",
+                                  )),
+                        ).then((_) {
+                          _usernameController.text = "";
+                        });
+                      },
+                      child: const Text('Contact the admin'),
+                    ),
                   ],
-                  TextButton(
-                    onPressed: () async {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ChatScreen(
-                                  recipientUserId: "admin",
-                                  recipientImage: "",
-                                )),
-                      ).then((_) {
-                        _usernameController.text = "";
-                      });
-                    },
-                    child: const Text('Contact the admin'),
-                  ),
-                ],
-              ))),
+                ))),
+      ),
     ));
   }
 }

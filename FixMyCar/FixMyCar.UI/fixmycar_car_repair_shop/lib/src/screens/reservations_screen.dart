@@ -828,7 +828,8 @@ class _ReservationsScreen extends State<ReservationsScreen> {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).hoverColor,
+                                backgroundColor:
+                                    const Color.fromARGB(255, 47, 121, 51),
                               ),
                               child: const Text("Accept Reservation"),
                             ),

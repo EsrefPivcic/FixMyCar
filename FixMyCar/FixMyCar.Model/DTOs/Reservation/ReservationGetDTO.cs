@@ -11,6 +11,8 @@ namespace FixMyCar.Model.DTOs.Reservation
     public class ReservationGetDTO
     {
         public int Id { get; set; }
+
+        public int CarRepairShopId { get; set; }
         public string CarRepairShopName { get; set; }
         public string ClientUsername { get; set; }
         public int? OrderId { get; set; }

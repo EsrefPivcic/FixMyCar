@@ -25,6 +25,7 @@ class AppConstants {
   static const String cityError = 'Please enter your city';
   static const String passwordConfirmError = 'Passwords do not match';
   static const String registerButtonLabel = 'Register';
+  static const String newGenderError = 'Please specify new gender';
 }
 
 class AppPadding {

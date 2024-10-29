@@ -6,7 +6,9 @@ import 'package:fixmycar_client/src/models/user/user_update_username.dart';
 import 'package:fixmycar_client/src/providers/auth_provider.dart';
 import 'package:fixmycar_client/src/providers/client_provider.dart';
 import 'package:fixmycar_client/src/screens/login_screen.dart';
+import 'package:fixmycar_client/src/utilities/phone_number_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:fixmycar_client/src/providers/user_provider.dart';
 import 'master_screen.dart';
@@ -72,149 +74,298 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
+  Widget _buildTextField(String currentValue, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      initialValue: currentValue,
+      onChanged: (newValue) {
+        _editValue = newValue;
+      },
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: keyboardType,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(25),
+      ],
+      obscureText: obscureText,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value == currentValue) {
+          return "New value can't be the same";
+        }
+        if (num.tryParse(value) is num) {
+          return "This value can't be numeric";
+        }
+        if (value.length > 25) {
+          return "This value can't be longer than 25 characters";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPostalCodeTextField(String currentValue, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      initialValue: currentValue,
+      onChanged: (newValue) {
+        _editValue = newValue;
+      },
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      keyboardType: keyboardType,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(25),
+      ],
+      obscureText: obscureText,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value == currentValue) {
+          return "New postal code can't be the same";
+        }
+        if (value.length > 25) {
+          return "This value can't be longer than 25 characters";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildEmailField(String currentValue, String errorText) {
+    return TextFormField(
+      initialValue: currentValue,
+      decoration: InputDecoration(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      onChanged: (newValue) {
+        _editValue = newValue;
+      },
+      keyboardType: TextInputType.emailAddress,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(40),
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return errorText;
+        }
+        if (value == currentValue) {
+          return "New email can't be the same";
+        }
+        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+          return "Please enter a valid email address";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPhoneNumberField(String currentValue, String errorText) {
+    String noPrefix = currentValue.trim().replaceFirst('+387 ', '');
+    return TextFormField(
+      initialValue: noPrefix,
+      decoration: InputDecoration(
+        prefixText: '+387 ',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.textFieldRadius),
+        ),
+      ),
+      onChanged: (newValue) {
+        _editValue = "+387 $newValue";
+      },
+      keyboardType: TextInputType.phone,
+      inputFormatters: [
+        PhoneNumberFormatter(),
+        LengthLimitingTextInputFormatter(12),
+      ],
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return errorText;
+        }
+        if (value == noPrefix) {
+          return "New phone number can't be the same";
+        }
+        if (!RegExp(r'^\d{8,9}$').hasMatch(value.replaceAll(' ', ''))) {
+          return "Phone number must be 8 or 9 digits";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _customTextFormField(
+      {required String field,
+      required String currentValue,
+      required String error}) {
+    switch (field) {
+      case 'name':
+        return _buildTextField(currentValue, error);
+      case 'surname':
+        return _buildTextField(currentValue, error);
+      case 'email':
+        return _buildEmailField(currentValue, error);
+      case 'phone':
+        return _buildPhoneNumberField(currentValue, error);
+      case 'address':
+        return _buildTextField(currentValue, error);
+      case 'postalCode':
+        return _buildPostalCodeTextField(currentValue, error);
+      case 'city':
+        return _buildTextField(currentValue, error);
+      default:
+        return _buildTextField(currentValue, error);
+    }
+  }
+
   String? _dropdownValue;
   Widget _buildEditableField({
     required String label,
-    required String value,
+    required String currentValue,
     required String field,
+    required String error,
   }) {
+    final _formKey = GlobalKey<FormState>();
     if (field == 'gender') {
-      _dropdownValue ??=
-          (value == 'Female' || value == 'Male') ? value : 'Custom';
+      _dropdownValue ??= (currentValue == 'Female' || currentValue == 'Male')
+          ? currentValue
+          : 'Custom';
 
       if (_editValue == null && _dropdownValue == 'Custom') {
-        _editValue = value;
+        _editValue = currentValue;
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 4.0),
-        if (_editingField == field)
-          Row(
-            children: [
-              if (field == 'gender') ...[
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _dropdownValue,
-                    items: ['Female', 'Male', 'Custom'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        _dropdownValue = newValue;
-                        if (_dropdownValue == 'Custom') {
-                          _editValue = value;
-                        } else {
-                          _editValue = _dropdownValue;
-                        }
-                      });
-                    },
-                    decoration: InputDecoration(
-                      labelText: AppConstants.genderLabel,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                    ),
-                    validator: (_dropdownValue) {
-                      if (_dropdownValue == null || _dropdownValue.isEmpty) {
-                        return AppConstants.genderError;
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                if (_dropdownValue == 'Custom') ...[
-                  const SizedBox(width: 8.0),
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4.0),
+          if (_editingField == field)
+            Row(
+              children: [
+                if (field == 'gender') ...[
                   Expanded(
-                    child: TextFormField(
-                      initialValue: '',
+                    child: DropdownButtonFormField<String>(
+                      value: _dropdownValue,
+                      items: ['Female', 'Male', 'Custom'].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _dropdownValue = newValue;
+                          if (_dropdownValue == 'Custom') {
+                            _editValue = currentValue;
+                          } else {
+                            _editValue = _dropdownValue;
+                          }
+                        });
+                      },
                       decoration: InputDecoration(
+                        labelText: AppConstants.genderLabel,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                       ),
-                      onChanged: (newValue) {
-                        _editValue = newValue;
+                      validator: (_dropdownValue) {
+                        if (_dropdownValue == null ||
+                            _dropdownValue.isEmpty ||
+                            _dropdownValue == currentValue) {
+                          return AppConstants.newGenderError;
+                        }
+                        return null;
                       },
                     ),
                   ),
-                ]
-              ] else ...[
-                Expanded(
-                  child: TextFormField(
-                    initialValue: value,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
+                  if (_dropdownValue == 'Custom') ...[
+                    const SizedBox(width: 8.0),
+                    Expanded(
+                      child: TextFormField(
+                          initialValue: currentValue,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          onChanged: (newValue) {
+                            _editValue = newValue;
+                          },
+                          validator: (value) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                value == currentValue) {
+                              return AppConstants.newGenderError;
+                            }
+                            return null;
+                          }),
                     ),
-                    onChanged: (newValue) {
-                      _editValue = newValue;
-                    },
+                  ]
+                ] else ...[
+                  Expanded(
+                    child: _customTextFormField(
+                        field: field, currentValue: currentValue, error: error),
                   ),
-                ),
-              ],
-              const SizedBox(width: 8.0),
-              TextButton(
-                onPressed: () {
-                  _toggleEdit(field);
-                  setState(() {
-                    _editValue = null;
-                    _dropdownValue = null;
-                  });
-                },
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_editValue != null &&
-                      _editValue!.isNotEmpty &&
-                      (_editValue != value)) {
-                    _updateUser(field);
-                    await Provider.of<UserProvider>(context, listen: false)
-                        .updateByToken(user: _userUpdate!)
-                        .then((_) {
-                      Provider.of<ClientProvider>(context, listen: false)
-                          .getByToken();
-                      setState(() {
-                        _editValue = null;
-                        _dropdownValue = null;
-                      });
-                      _toggleEdit(field);
-                    });
-                  } else {
+                ],
+                const SizedBox(width: 8.0),
+                TextButton(
+                  onPressed: () {
+                    _toggleEdit(field);
                     setState(() {
                       _editValue = null;
                       _dropdownValue = null;
                     });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            "This value can't be empty or the same as the old one!"),
-                      ),
-                    );
-                  }
-                },
-                child: const Text('Apply'),
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      _updateUser(field);
+                      await Provider.of<UserProvider>(context, listen: false)
+                          .updateByToken(user: _userUpdate!)
+                          .then((_) {
+                        Provider.of<ClientProvider>(context, listen: false)
+                            .getByToken();
+                        setState(() {
+                          _editValue = null;
+                          _dropdownValue = null;
+                        });
+                        _toggleEdit(field);
+                      });
+                    }
+                  },
+                  child: const Text('Apply'),
+                ),
+              ],
+            )
+          else
+            ListTile(
+              title: Text(currentValue),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () => _toggleEdit(field),
               ),
-            ],
-          )
-        else
-          ListTile(
-            title: Text(value),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () => _toggleEdit(field),
             ),
-          ),
-        const Divider(),
-      ],
+          const Divider(),
+        ],
+      ),
     );
   }
 
@@ -244,40 +395,103 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final _newPasswordController = TextEditingController();
   final _confirmNewPasswordController = TextEditingController();
 
+  Widget _buildPasswordField(
+      TextEditingController controller, String labelText, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+      ),
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(30),
+      ],
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return errorText;
+        }
+        if (value.trim().length != value.length) {
+          return "Passwords can't have leading or trailing whitespaces";
+        }
+        if (value.length > 30) {
+          return "Password can't be longer than 30 characters";
+        }
+        if (value.length < 6) {
+          return "Password should be at least 6 characters long";
+        }
+        if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)').hasMatch(value)) {
+          return "Password must contain at least one letter and one number";
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildConfirmPasswordField(
+      TextEditingController controller, String labelText, String errorText,
+      {TextInputType keyboardType = TextInputType.text,
+      bool obscureText = false}) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: labelText,
+      ),
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(30),
+      ],
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "Please confirm password";
+        }
+        if (value != _newPasswordController.text) {
+          return errorText;
+        }
+        return null;
+      },
+    );
+  }
+
   void _showChangePasswordForm() {
+    final _formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Change Password'),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _oldPasswordController,
-                  decoration: const InputDecoration(labelText: 'Old Password'),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 16.0),
-                TextField(
-                  controller: _newPasswordController,
-                  decoration: const InputDecoration(labelText: 'New Password'),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 16.0),
-                TextField(
-                  controller: _confirmNewPasswordController,
-                  decoration:
-                      const InputDecoration(labelText: 'Confirm New Password'),
-                  obscureText: true,
-                ),
-              ],
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _oldPasswordController,
+                    decoration:
+                        const InputDecoration(labelText: 'Old Password'),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return AppConstants.passwordError;
+                      }
+                      return null;
+                    },
+                  ),
+                  _buildPasswordField(_newPasswordController,
+                      AppConstants.passwordLabel, AppConstants.passwordError,
+                      obscureText: true),
+                  _buildConfirmPasswordField(
+                      _confirmNewPasswordController,
+                      AppConstants.passwordConfirmLabel,
+                      AppConstants.passwordConfirmError,
+                      obscureText: true)
+                ],
+              ),
             ),
           ),
           actions: [
@@ -290,27 +504,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               },
               child: const Text('Cancel'),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () async {
-                if (_oldPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Old password is required!'),
-                    ),
-                  );
-                } else if (_newPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('New password is required!'),
-                    ),
-                  );
-                } else if (_confirmNewPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter your new password again!'),
-                    ),
-                  );
-                } else {
+                if (_formKey.currentState?.validate() ?? false) {
                   UserUpdatePassword updatePassword = UserUpdatePassword(
                       _oldPasswordController.text,
                       _newPasswordController.text,
@@ -339,6 +535,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       );
                     });
                   } catch (e) {
+                    Navigator.of(context).pop();
+                    _oldPasswordController.clear();
+                    _newPasswordController.clear();
+                    _confirmNewPasswordController.clear();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(e.toString()),
@@ -358,32 +558,54 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final _passwordController = TextEditingController();
   final _usernameController = TextEditingController();
 
-  void _showChangeUsernameForm() {
+  void _showChangeUsernameForm(String currentValue) {
+    final _formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Change Username'),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(labelText: 'New Username'),
-                ),
-                const SizedBox(height: 16.0),
-                TextField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Your Password'),
-                  obscureText: true,
-                ),
-              ],
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _usernameController,
+                    decoration:
+                        const InputDecoration(labelText: 'New Username'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return AppConstants.usernameError;
+                      }
+                      if (value == currentValue) {
+                        return "New username can't be the same as the old one";
+                      }
+                      if (num.tryParse(value) is num) {
+                        return "Usernames can't be numeric";
+                      }
+                      if (value.length > 25) {
+                        return "Username can't be longer than 25 characters";
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(
+                        labelText: AppConstants.passwordLabel),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return AppConstants.passwordError;
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -395,21 +617,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               },
               child: const Text('Cancel'),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () async {
-                if (_usernameController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('New username is required!'),
-                    ),
-                  );
-                } else if (_passwordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password is required!'),
-                    ),
-                  );
-                } else {
+                if (_formKey.currentState?.validate() ?? false) {
+                  // Step 3: Validate the form
                   UserUpdateUsername updateUsername = UserUpdateUsername(
                       _usernameController.text, _passwordController.text);
                   try {
@@ -435,6 +646,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       );
                     });
                   } catch (e) {
+                    Navigator.of(context).pop();
+                    _usernameController.clear();
+                    _passwordController.clear();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(e.toString()),
@@ -541,52 +755,52 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       style: TextStyle(fontSize: 18))),
                   const SizedBox(height: 8.0),
                   _buildEditableField(
-                    label: 'Full Name',
-                    value: user.name,
-                    field: 'name',
-                  ),
+                      label: 'Name',
+                      currentValue: user.name,
+                      field: 'name',
+                      error: AppConstants.nameError),
                   _buildEditableField(
-                    label: 'Email',
-                    value: user.email,
-                    field: 'email',
-                  ),
+                      label: 'Surname',
+                      currentValue: user.surname,
+                      field: 'surname',
+                      error: AppConstants.surnameError),
                   _buildEditableField(
-                    label: 'Gender',
-                    value: user.gender,
-                    field: 'gender',
-                  ),
+                      label: 'Gender',
+                      currentValue: user.gender,
+                      field: 'gender',
+                      error: AppConstants.newGenderError),
                   _buildEditableField(
-                    label: 'Email',
-                    value: user.email,
-                    field: 'email',
-                  ),
+                      label: 'Email',
+                      currentValue: user.email,
+                      field: 'email',
+                      error: AppConstants.emailError),
                   _buildEditableField(
-                    label: 'Phone',
-                    value: user.phone,
-                    field: 'phone',
-                  ),
+                      label: 'Phone',
+                      currentValue: user.phone,
+                      field: 'phone',
+                      error: AppConstants.phoneError),
                   _buildEditableField(
-                    label: 'Address',
-                    value: user.address,
-                    field: 'address',
-                  ),
+                      label: 'Address',
+                      currentValue: user.address,
+                      field: 'address',
+                      error: AppConstants.addressError),
                   _buildEditableField(
-                    label: 'Postal Code',
-                    value: user.postalCode,
-                    field: 'postalCode',
-                  ),
+                      label: 'Postal Code',
+                      currentValue: user.postalCode,
+                      field: 'postalCode',
+                      error: AppConstants.postalCodeError),
                   _buildEditableField(
-                    label: 'City',
-                    value: user.city,
-                    field: 'city',
-                  ),
+                      label: 'City',
+                      currentValue: user.city,
+                      field: 'city',
+                      error: AppConstants.cityError),
                   const SizedBox(height: 8.0),
                   const Text.rich(TextSpan(
                       text: 'Account', style: TextStyle(fontSize: 18))),
                   const SizedBox(height: 8.0),
                   ElevatedButton.icon(
                     onPressed: () {
-                      _showChangeUsernameForm();
+                      _showChangeUsernameForm(user.username);
                     },
                     icon: const Icon(Icons.person),
                     label: const Text('Change Username'),

@@ -10,6 +10,19 @@ class CarRepairShopProvider extends BaseProvider<User, User> {
   List<User> carRepairShops = [];
   bool isLoading = false;
 
+  Future<User?> getShopById({required int shopId}) async {
+    notifyListeners();
+    try {
+      User result = await getById(
+        id: shopId,
+        fromJson: (json) => User.fromJson(json),
+      );
+      return result;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> getRepairShops(
       {required int pageNumber,
       required int pageSize,

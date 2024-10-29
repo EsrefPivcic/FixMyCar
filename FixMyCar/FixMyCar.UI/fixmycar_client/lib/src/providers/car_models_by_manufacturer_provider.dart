@@ -2,7 +2,8 @@ import 'package:fixmycar_client/src/models/search_result.dart';
 import 'package:fixmycar_client/src/providers/base_provider.dart';
 import 'package:fixmycar_client/src/models/car_model/car_models_by_manufacturer.dart';
 
-class CarModelsByManufacturerProvider extends BaseProvider<CarModelsByManufacturer, CarModelsByManufacturer> {
+class CarModelsByManufacturerProvider
+    extends BaseProvider<CarModelsByManufacturer, CarModelsByManufacturer> {
   List<CarModelsByManufacturer> modelsByManufacturer = [];
   int countOfItems = 0;
   bool isLoading = false;
@@ -27,7 +28,7 @@ class CarModelsByManufacturerProvider extends BaseProvider<CarModelsByManufactur
       modelsByManufacturer = [];
       countOfItems = 0;
       isLoading = false;
-      
+
       notifyListeners();
     }
   }

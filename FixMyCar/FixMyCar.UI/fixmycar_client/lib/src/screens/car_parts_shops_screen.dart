@@ -121,7 +121,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                         onPressed: () {
                           _showFilterDialog(context);
                         },
-                        label: const Text("Filters"),
+                        label: const Text("Filter by name"),
                       ),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.history),

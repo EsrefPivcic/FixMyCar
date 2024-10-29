@@ -113,8 +113,7 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
         await _updatePaymentStatus(orderId, paymentIntentId, successful: false);
       }
     } catch (e) {
-      print('Error during order creation: $e');
-      throw CustomException('Error during order creation.');
+      rethrow;
     }
   }
 
@@ -155,6 +154,7 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
       handleHttpError(response);
       return;
     }
+
     print(successful ? 'Payment status: successful' : 'Payment status: failed');
   }
 
@@ -184,6 +184,7 @@ class OrderProvider extends BaseProvider<Order, OrderInsertUpdate> {
     }
   }
 
+  @override
   Future<void> delete(int id) async {
     try {
       final response = await http.put(
