@@ -19,6 +19,7 @@ class Reservation {
   double carRepairShopDiscountValue;
   String state;
   String type;
+  String carModel;
 
   Reservation(
       this.id,
@@ -35,7 +36,8 @@ class Reservation {
       this.totalDuration,
       this.carRepairShopDiscountValue,
       this.state,
-      this.type);
+      this.type,
+      this.carModel);
 
   factory Reservation.fromJson(Map<String, dynamic> json) =>
       _$ReservationFromJson(json);

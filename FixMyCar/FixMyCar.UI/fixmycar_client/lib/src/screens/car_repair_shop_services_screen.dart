@@ -224,6 +224,7 @@ class _CarRepairShopServicesScreenState
 
   void _showCalendarDialog(
       BuildContext context, Function(DateTime) onDaySelected) {
+    CalendarFormat _calendarFormat = CalendarFormat.month;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -235,6 +236,17 @@ class _CarRepairShopServicesScreenState
                 width: double.maxFinite,
                 height: 400,
                 child: TableCalendar(
+                  availableCalendarFormats: const {
+                    CalendarFormat.month: 'Format',
+                    CalendarFormat.twoWeeks: 'Format',
+                    CalendarFormat.week: 'Format',
+                  },
+                  onFormatChanged: (format) {
+                    setDialogState(() {
+                      _calendarFormat = format;
+                    });
+                  },
+                  calendarFormat: _calendarFormat,
                   focusedDay: _focusedDay,
                   firstDay: DateTime.now(),
                   lastDay: DateTime(DateTime.now().year + 1),
@@ -301,22 +313,36 @@ class _CarRepairShopServicesScreenState
         }
         if (discountValue != 0) {
           double discountedTotal = totalAmount - (totalAmount * discountValue);
-          return "${discountedTotal.toStringAsFixed(2)}€";
+          return "€${discountedTotal.toStringAsFixed(2)}";
         } else {
-          return "${totalAmount.toStringAsFixed(2)}€";
+          return "€${totalAmount.toStringAsFixed(2)}";
         }
       } else {
-        return "${totalAmount.toStringAsFixed(2)}€";
+        return "€${totalAmount.toStringAsFixed(2)}";
       }
     } else {
       return "Unknown";
     }
   }
 
+  String _parseTimeOfDay(Duration duration) {
+    int hours = duration.inHours;
+    int minutes = duration.inMinutes.remainder(60);
+    return '${hours.toString().padLeft(2, '0')} hours, ${minutes.toString().padLeft(2, '0')} minutes';
+  }
+
+  TimeOfDay _parseTime(String timeString) {
+    final parts = timeString.split(':');
+    final hour = int.parse(parts[0]);
+    final minute = int.parse(parts[1]);
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
   void _openShoppingCartForm(BuildContext context) {
     final formKey = GlobalKey<FormState>();
     bool isCardValid = false;
     bool cardError = false;
+
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -373,6 +399,52 @@ class _CarRepairShopServicesScreenState
                             height: 5,
                           ),
                           Text("Total amount: ${_loadTotalAmount()}"),
+                          const SizedBox(
+                            height: 5,
+                          ),
+                          Text(
+                              "Estimated duration: ${_parseTimeOfDay(_totalServicesDuration)}"),
+                        ],
+                        const SizedBox(height: 16.0),
+                        FocusScope(
+                          child: Focus(
+                            onFocusChange: (hasFocus) {
+                              if (hasFocus) {
+                                Scrollable.ensureVisible(
+                                  context,
+                                  duration: const Duration(milliseconds: 300),
+                                  alignment: 1.0, // Align to bottom
+                                );
+                              }
+                            },
+                            child: stripe.CardField(
+                              onCardChanged: (card) {
+                                setState(() {
+                                  isCardValid = card!.complete;
+                                  if (card.complete) {
+                                    cardError = false;
+                                  }
+                                });
+                                setModalState(() {
+                                  isCardValid = card!.complete;
+                                  if (card.complete) {
+                                    cardError = false;
+                                  }
+                                });
+                              },
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (!isCardValid && cardError) ...[
+                          const SizedBox(height: 5.0),
+                          Text(
+                            "Please insert card details",
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error),
+                          ),
                         ],
                         const SizedBox(height: 16.0),
                         if (isOrderWithRepairs) ...[
@@ -496,35 +568,7 @@ class _CarRepairShopServicesScreenState
                           child: const Text('Select Reservation Date'),
                         ),
                         Text(
-                            "Reservation date: ${_selectedDay != null ? _formatDate(_selectedDay.toString()) : 'Select reservation date to continue'}"),
-                        const SizedBox(height: 16.0),
-                        stripe.CardField(
-                          onCardChanged: (card) {
-                            setState(() {
-                              isCardValid = card!.complete;
-                              if (card.complete) {
-                                cardError = false;
-                              }
-                            });
-                            setModalState(() {
-                              isCardValid = card!.complete;
-                              if (card.complete) {
-                                cardError = false;
-                              }
-                            });
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        if (!isCardValid && cardError) ...[
-                          const SizedBox(height: 5.0),
-                          Text(
-                            "Please insert card details",
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.error),
-                          ),
-                        ],
+                            "Reservation date: ${_selectedDay != null ? "${_formatDate(_selectedDay.toString())}." : 'Select reservation date to continue'}"),
                         const SizedBox(height: 16.0),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -617,14 +661,30 @@ class _CarRepairShopServicesScreenState
     );
   }
 
+  String _formatTimeOfDayCustom(TimeOfDay timeOfDay) {
+    final String hours = timeOfDay.hour.toString().padLeft(2, '0');
+    final String minutes = timeOfDay.minute.toString().padLeft(2, '0');
+
+    return "$hours:$minutes";
+  }
+
   Future<void> _confirmPlaceReservation(BuildContext context) async {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Place Reservation'),
-          content:
-              const Text('Are you sure you want to place this reservation?'),
+          content: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Are you sure you want to place this reservation?'),
+                const SizedBox(
+                  height: 10,
+                ),
+                Text(
+                    'Note: Please make sure to bring your vehicle for an appointment on ${_formatDate(_selectedDay.toString())}. at ${_formatTimeOfDayCustom(_parseTime(carRepairShopDetails.openingTime!))}.'),
+              ]),
           actions: [
             TextButton(
               onPressed: () async {
@@ -733,14 +793,16 @@ class _CarRepairShopServicesScreenState
                       ),
                     ),
                   _buildDetailRow('Price',
-                      '${service.price.toStringAsFixed(2)}€', dialogContext),
+                      '€${service.price.toStringAsFixed(2)}', dialogContext),
                   if (service.discount != 0)
-                    _buildDetailRow('Discount',
-                        '${(service.discount * 100).toInt()}%', dialogContext),
+                    _buildDetailRow(
+                        'Discount',
+                        '${(service.discount * 100).toStringAsFixed(2)}%',
+                        dialogContext),
                   if (service.discount != 0)
                     _buildDetailRow(
                       'Discounted Price',
-                      '${service.discountedPrice.toStringAsFixed(2)}€',
+                      '€${service.discountedPrice.toStringAsFixed(2)}',
                       dialogContext,
                     ),
                   _buildDetailRow(
@@ -751,7 +813,7 @@ class _CarRepairShopServicesScreenState
                     dialogContext,
                   ),
                   _buildDetailRow(
-                    'Duration',
+                    'Estimated Duration',
                     service.duration,
                     dialogContext,
                   ),
@@ -944,7 +1006,8 @@ class _CarRepairShopServicesScreenState
                                     children: [
                                       if (service.discount != 0) ...[
                                         TextSpan(
-                                          text: '${service.price}€ ',
+                                          text:
+                                              '€${service.price.toStringAsFixed(2)} ',
                                           style: const TextStyle(
                                             decoration:
                                                 TextDecoration.lineThrough,
@@ -952,14 +1015,16 @@ class _CarRepairShopServicesScreenState
                                           ),
                                         ),
                                         TextSpan(
-                                          text: ' ${service.discountedPrice}€',
+                                          text:
+                                              ' €${service.discountedPrice.toStringAsFixed(2)}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,
                                         ),
                                       ] else ...[
                                         TextSpan(
-                                          text: '${service.price}€',
+                                          text:
+                                              '${service.price.toStringAsFixed(2)}€',
                                           style: Theme.of(context)
                                               .textTheme
                                               .bodyLarge,

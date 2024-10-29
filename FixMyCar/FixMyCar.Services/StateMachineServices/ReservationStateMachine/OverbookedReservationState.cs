@@ -57,16 +57,23 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                     }
                 }
 
-                var order = await _context.Orders.FindAsync(entity.OrderId);
-
-                if (request.ReservationDate < order!.ShippingDate)
+                if (entity.Type == "Diagnostics")
                 {
-                    throw new UserException("New reservation date must be the same as order shipping date or later.");
+                    entity.State = "ready";
                 }
                 else
                 {
-                    entity.EstimatedCompletionDate = null;
-                    entity.State = "ready";
+                    var order = await _context.Orders.FindAsync(entity.OrderId);
+
+                    if (request.ReservationDate < order!.ShippingDate)
+                    {
+                        throw new UserException("New reservation date must be the same as order shipping date or later.");
+                    }
+                    else
+                    {
+                        entity.EstimatedCompletionDate = null;
+                        entity.State = "ready";
+                    }
                 }
             }
 

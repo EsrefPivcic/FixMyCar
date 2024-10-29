@@ -31,7 +31,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             {
                 if (order.CarRepairShop.Username != username)
                 {
-                    throw new UserException($"Order #{orderId} is not made by {username}!");
+                    throw new UserException($"Order #{orderId} is not made by you!");
                 }
             }
 
@@ -39,7 +39,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
             {
                 if (order.Client.Username != username)
                 {
-                    throw new UserException($"Order #{orderId} is not made by {username}!");
+                    throw new UserException($"Order #{orderId} is not made by you!");
                 }
             }
 

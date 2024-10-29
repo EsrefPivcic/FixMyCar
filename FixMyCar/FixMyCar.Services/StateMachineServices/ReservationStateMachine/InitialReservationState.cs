@@ -45,7 +45,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
 
                 if (order.Client == null || order.Client!.Username != user.Username)
                 {
-                    throw new UserException($"Order #{request.OrderId} is not made by {user.Username}!");
+                    throw new UserException($"Order #{request.OrderId} is not made by you!");
                 }
 
                 var alreadyUsed = await _context.Reservations.FirstOrDefaultAsync(x => x.OrderId == order.Id);

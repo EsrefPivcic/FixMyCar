@@ -772,16 +772,19 @@ class _HomeScreenState extends State<HomeScreen> {
       initialTime: _openingTime,
     );
     if (newTime != null) {
-      if ((newTime.hour < _closingTime.hour ||
-          (newTime.hour == _closingTime.hour &&
-              newTime.minute < _closingTime.minute))) {
+      final openingMinutes = newTime.hour * 60 + newTime.minute;
+      final closingMinutes = _closingTime.hour * 60 + _closingTime.minute;
+
+      final differenceInMinutes = closingMinutes - openingMinutes;
+
+      if (differenceInMinutes >= 240) {
         setState(() {
           _openingTime = newTime;
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
-              "Please pick a valid opening time! - It must be before the closing time!"),
+              "Opening time must be at least 4 hours earlier than the closing time!"),
         ));
       }
     }
@@ -793,16 +796,19 @@ class _HomeScreenState extends State<HomeScreen> {
       initialTime: _closingTime,
     );
     if (newTime != null) {
-      if ((newTime.hour > _openingTime.hour ||
-          (newTime.hour == _openingTime.hour &&
-              newTime.minute > _openingTime.minute))) {
+      final openingMinutes = _openingTime.hour * 60 + _openingTime.minute;
+      final closingMinutes = newTime.hour * 60 + newTime.minute;
+
+      final differenceInMinutes = closingMinutes - openingMinutes;
+
+      if (differenceInMinutes >= 240) {
         setState(() {
           _closingTime = newTime;
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
-              "Please pick a valid closing time! - It must be after the opening time!"),
+              "Closing time must be at least 4 hours after the opening time!"),
         ));
       }
     }

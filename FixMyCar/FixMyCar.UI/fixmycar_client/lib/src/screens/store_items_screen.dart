@@ -207,6 +207,29 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           Text("Total amount: ${_loadTotalAmount()}"),
                         ],
                         const SizedBox(height: 16.0),
+                        const Text('Enter Card Details'),
+                        stripe.CardField(
+                          onCardChanged: (card) {
+                            setState(() {
+                              isCardValid = card!.complete;
+                              if (card.complete) {
+                                cardError = false;
+                              }
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        if (!isCardValid && cardError) ...[
+                          const SizedBox(height: 5.0),
+                          Text(
+                            "Please insert card details",
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.error),
+                          ),
+                        ],
+                        const SizedBox(height: 16.0),
                         Row(
                           children: [
                             const Text('Use profile address'),
@@ -301,29 +324,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 }
                                 return null;
                               }),
-                        ],
-                        const SizedBox(height: 16.0),
-                        const Text('Enter Card Details'),
-                        stripe.CardField(
-                          onCardChanged: (card) {
-                            setState(() {
-                              isCardValid = card!.complete;
-                              if (card.complete) {
-                                cardError = false;
-                              }
-                            });
-                          },
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        if (!isCardValid && cardError) ...[
-                          const SizedBox(height: 5.0),
-                          Text(
-                            "Please insert card details",
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.error),
-                          ),
                         ],
                         const SizedBox(height: 16.0),
                         Row(

@@ -22,6 +22,7 @@ Reservation _$ReservationFromJson(Map<String, dynamic> json) => Reservation(
       (json['carRepairShopDiscountValue'] as num).toDouble(),
       json['state'] as String,
       json['type'] as String,
+      json['carModel'] as String,
     );
 
 Map<String, dynamic> _$ReservationToJson(Reservation instance) =>
@@ -41,4 +42,5 @@ Map<String, dynamic> _$ReservationToJson(Reservation instance) =>
       'carRepairShopDiscountValue': instance.carRepairShopDiscountValue,
       'state': instance.state,
       'type': instance.type,
+      'carModel': instance.carModel,
     };

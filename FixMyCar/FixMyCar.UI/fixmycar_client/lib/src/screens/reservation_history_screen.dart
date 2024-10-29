@@ -135,8 +135,9 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
     return true;
   }
 
-  void _showCalendarDialog(
-      BuildContext context, Function(DateTime) onDaySelected) {
+  void _showCalendarDialog(DateTime? orderDate, BuildContext context,
+      Function(DateTime) onDaySelected) {
+    CalendarFormat _calendarFormat = CalendarFormat.month;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -148,8 +149,19 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                 width: double.maxFinite,
                 height: 400,
                 child: TableCalendar(
-                  focusedDay: _focusedDay,
-                  firstDay: DateTime.now(),
+                  availableCalendarFormats: const {
+                    CalendarFormat.month: 'Format',
+                    CalendarFormat.twoWeeks: 'Format',
+                    CalendarFormat.week: 'Format',
+                  },
+                  onFormatChanged: (format) {
+                    setDialogState(() {
+                      _calendarFormat = format;
+                    });
+                  },
+                  calendarFormat: _calendarFormat,
+                  focusedDay: orderDate ?? _focusedDay,
+                  firstDay: orderDate ?? DateTime.now(),
                   lastDay: DateTime(DateTime.now().year + 1),
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   onDaySelected: (selectedDay, focusedDay) {
@@ -187,8 +199,9 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
     );
   }
 
-  Future showUpdateForm(Reservation reservation) async {
+  Future showUpdateForm(Reservation reservation, DateTime? orderDate) async {
     _totalServicesDuration = _parseDuration(reservation.totalDuration);
+
     await _fetchAvailability(reservation.carRepairShopId);
     await _fetchWorkingDays(reservation.carRepairShopId);
 
@@ -205,6 +218,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                   ElevatedButton(
                     onPressed: () {
                       _showCalendarDialog(
+                        orderDate,
                         context,
                         (DateTime selectedDay) {
                           setUpdateDialogState(() {
@@ -329,7 +343,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
       case "orderpendingapproval":
         return "Order Pending Approval";
       case "orderdateconflict":
-        return "Order Date Conflict";
+        return "Order Date Conflict (Update reservation date!)";
       case "ready":
         return "Ready";
       case "accepted":
@@ -347,7 +361,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
       case "paymentfailed":
         return "Payment Failed";
       case "overbooked":
-        return "Overbooked (update reservation date!)";
+        return "Overbooked (Update reservation date!)";
       default:
         return state;
     }
@@ -598,315 +612,282 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
             padding: const EdgeInsets.all(16),
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Reservation Details',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8.0),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Car Repair Shop: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: reservation.carRepairShopName),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Reservation Created On: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                                text: _formatDate(
-                                    reservation.reservationCreatedDate)),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Reservation Date: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                                text: _formatDate(reservation.reservationDate)),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Estimated Completion Date: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text: reservation.estimatedCompletionDate == null
-                                  ? "Not accepted"
-                                  : _formatDate(
-                                      reservation.estimatedCompletionDate!),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Completion Date: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text: reservation.completionDate == null
-                                  ? "Not completed"
-                                  : _formatDate(reservation.completionDate!),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Total price: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                                text:
-                                    '€${reservation.totalAmount.toStringAsFixed(2)}'),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Personal Discount: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                                text:
-                                    '${(reservation.carRepairShopDiscountValue * 100).toStringAsFixed(2)}%'),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'State: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                                text: _getDisplayState(reservation.state),
-                                style: TextStyle(
-                                    color: _getStateColor(reservation.state))),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Type: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: reservation.type),
-                          ],
-                        ),
-                      ),
-                      if (reservation.type != "Diagnostics") ...[
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              const TextSpan(
-                                text: 'Parts order handled by: ',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              TextSpan(
-                                  text: reservation.clientOrder == true
-                                      ? "Me"
-                                      : "Shop"),
-                            ],
-                          ),
-                        ),
-                        if (order == null &&
-                            reservation.clientOrder == true) ...[
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                await _addOrder(reservation.id);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).hoverColor,
-                              ),
-                              child: const Text("Add Order"),
-                            ),
-                          ),
-                        ],
-                        if (order != null) ...[
+                : ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.90,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 8.0),
+                          const Text("Reservation details",
+                              style: TextStyle(fontSize: 20)),
                           Card(
-                            margin: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: ExpansionTile(
-                              title: Text(
-                                  'Ordered from: ${order.carPartsShopName}'),
-                              subtitle: Text.rich(
-                                TextSpan(
-                                  children: [
-                                    const TextSpan(
-                                      text: 'State: ',
-                                    ),
-                                    TextSpan(
-                                      text: _getOrderDisplayState(order.state),
-                                      style: TextStyle(
-                                          color:
-                                              _getOrderStateColor(order.state)),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            child: ListTile(
+                              title: const Text('Car Repair Shop'),
+                              subtitle: Text(reservation.carRepairShopName),
+                            ),
+                          ),
+                          Card(
+                            child: Column(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0, vertical: 8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          'Order date: ${_formatDate(order.orderDate)}'),
-                                      Text(
-                                          'Shipping date: ${order.shippingDate != null ? _formatDate(order.shippingDate!) : 'Not accepted'}'),
-                                      Text('Items: ${order.items.join(', ')}'),
-                                    ],
+                                ListTile(
+                                  title: const Text('Reservation Created On'),
+                                  subtitle: Text(_formatDate(
+                                      reservation.reservationCreatedDate)),
+                                ),
+                                ListTile(
+                                  title: const Text('Reservation Date'),
+                                  subtitle: Text(
+                                      _formatDate(reservation.reservationDate)),
+                                ),
+                                ListTile(
+                                  title:
+                                      const Text('Estimated Completion Date'),
+                                  subtitle: Text(
+                                    reservation.estimatedCompletionDate == null
+                                        ? "Not accepted"
+                                        : _formatDate(reservation
+                                            .estimatedCompletionDate!),
+                                  ),
+                                ),
+                                ListTile(
+                                  title: const Text('Completion Date'),
+                                  subtitle: Text(
+                                    reservation.completionDate == null
+                                        ? "Not completed"
+                                        : _formatDate(
+                                            reservation.completionDate!),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ],
-                      ],
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Services Duration: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title: const Text('Total Price'),
+                                  subtitle: Text(
+                                      '€${reservation.totalAmount.toStringAsFixed(2)}'),
+                                ),
+                                ListTile(
+                                  title: const Text('Personal Discount'),
+                                  subtitle: Text(
+                                      '${(reservation.carRepairShopDiscountValue * 100).toStringAsFixed(2)}%'),
+                                ),
+                              ],
                             ),
-                            TextSpan(text: reservation.totalDuration),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      Text(
-                        'Services',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8.0),
-                      Expanded(
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: reservationDetails.length,
-                          itemBuilder: (context, index) {
-                            final reservationDetail = reservationDetails[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: ExpansionTile(
-                                title: Text(reservationDetail.serviceName),
-                                subtitle: Text(
-                                    'Price (Discount Applied): ${reservationDetail.serviceDiscountedPrice.toStringAsFixed(2)}'),
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0, vertical: 8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                          ),
+                          Card(
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  title:
+                                      const Text('Estimated Services Duration'),
+                                  subtitle: Text(reservation.totalDuration),
+                                ),
+                                ListTile(
+                                  title: const Text('Car Model'),
+                                  subtitle: Text(reservation.carModel),
+                                ),
+                                ListTile(
+                                  title: const Text('Type'),
+                                  subtitle: Text(reservation.type),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ListTile(
+                            title: const Text('State'),
+                            subtitle: Text(
+                              _getDisplayState(reservation.state),
+                              style: TextStyle(
+                                  color: _getStateColor(reservation.state)),
+                            ),
+                          ),
+                          if (reservation.type != "Diagnostics") ...[
+                            ListTile(
+                              title: const Text('Parts order handled by'),
+                              subtitle: Text(reservation.clientOrder == true
+                                  ? "Me"
+                                  : "Car Repair Shop"),
+                            ),
+                            if (order == null &&
+                                reservation.clientOrder == true) ...[
+                              Center(
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    await _addOrder(reservation.id);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(context).hoverColor,
+                                  ),
+                                  child: const Text("Add Order"),
+                                ),
+                              ),
+                            ],
+                            if (order != null) ...[
+                              Card(
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 4.0),
+                                child: ExpansionTile(
+                                  title: Text(
+                                      'Ordered from: ${order.carPartsShopName}'),
+                                  subtitle: Text.rich(
+                                    TextSpan(
                                       children: [
-                                        Text(
-                                            'Non-Discounted Price: €${reservationDetail.servicePrice.toStringAsFixed(2)}'),
-                                        Text(
-                                            'Discount: ${(reservationDetail.serviceDiscount * 100).toStringAsFixed(2)}%'),
+                                        const TextSpan(text: 'State: '),
+                                        TextSpan(
+                                          text: _getOrderDisplayState(
+                                              order.state),
+                                          style: TextStyle(
+                                              color: _getOrderStateColor(
+                                                  order.state)),
+                                        ),
                                       ],
                                     ),
                                   ),
-                                ],
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0, vertical: 8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                              'Order date: ${_formatDate(order.orderDate)}'),
+                                          Text(
+                                              'Shipping date: ${order.shippingDate != null ? _formatDate(order.shippingDate!) : 'Not accepted'}'),
+                                          Text(
+                                              'Items: ${order.items.join(', ')}'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          if (reservation.state == "awaitingorder" ||
-                              reservation.state == "ready" ||
-                              reservation.state == "orderpendingapproval" ||
-                              reservation.state == "orderdateconflict") ...[
-                            Center(
-                                child: ElevatedButton(
-                              onPressed: () async {
-                                await _confirmCancel(reservation.id);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              child: const Text('Cancel Reservation'),
-                            )),
-                            const SizedBox(width: 8.0),
-                            Center(
-                                child: ElevatedButton(
-                              onPressed: () async {
-                                await showUpdateForm(reservation);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 31, 75, 157),
-                              ),
-                              child: const Text('Update Reservation Date'),
-                            )),
-                            const SizedBox(width: 8.0),
+                            ],
                           ],
-                          if (reservation.state == "rejected" ||
-                              reservation.state == "cancelled" ||
-                              reservation.state == "completed" ||
-                              reservation.state == "missingpayment" ||
-                              reservation.state == "paymentfailed") ...[
-                            ElevatedButton(
-                              onPressed: () async {
-                                await _confirmDelete(reservation.id);
+                          const SizedBox(height: 16.0),
+                          Text(
+                            'Services',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          const SizedBox(height: 8.0),
+                          Flexible(
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: reservationDetails.length,
+                              itemBuilder: (context, index) {
+                                final reservationDetail =
+                                    reservationDetails[index];
+                                return Card(
+                                  margin:
+                                      const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: ExpansionTile(
+                                    title: Text(reservationDetail.serviceName),
+                                    subtitle: Text(
+                                        'Price (Discount Applied): €${reservationDetail.serviceDiscountedPrice.toStringAsFixed(2)}'),
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16.0, vertical: 8.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                                'Non-Discounted Price: €${reservationDetail.servicePrice.toStringAsFixed(2)}'),
+                                            Text(
+                                                'Discount: ${(reservationDetail.serviceDiscount * 100).toStringAsFixed(2)}%'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
                               },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              child: const Text('Delete From History'),
                             ),
-                          ],
-                          const SizedBox(width: 8.0),
-                          Center(
-                              child: ElevatedButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).hoverColor,
-                            ),
-                            child: const Text("Close"),
-                          )),
+                          ),
+                          const SizedBox(height: 16.0),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              if (reservation.state == "awaitingorder" ||
+                                  reservation.state == "ready" ||
+                                  reservation.state == "orderpendingapproval" ||
+                                  reservation.state == "orderdateconflict") ...[
+                                Center(
+                                    child: ElevatedButton(
+                                  onPressed: () async {
+                                    await _confirmCancel(reservation.id);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                  ),
+                                  child: const Text('Cancel Reservation'),
+                                )),
+                                const SizedBox(width: 8.0),
+                                Center(
+                                    child: ElevatedButton(
+                                  onPressed: () async {
+                                    if (order != null) {
+                                      if (order.state == "accepted") {
+                                        await showUpdateForm(
+                                            reservation,
+                                            DateTime.parse(
+                                                order.shippingDate!));
+                                      } else {
+                                        await showUpdateForm(reservation, null);
+                                      }
+                                    } else {
+                                      await showUpdateForm(reservation, null);
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 31, 75, 157),
+                                  ),
+                                  child: const Text('Update Reservation Date'),
+                                )),
+                                const SizedBox(width: 8.0),
+                              ],
+                              if (reservation.state == "rejected" ||
+                                  reservation.state == "cancelled" ||
+                                  reservation.state == "completed" ||
+                                  reservation.state == "missingpayment" ||
+                                  reservation.state == "paymentfailed") ...[
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    await _confirmDelete(reservation.id);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                  ),
+                                  child: const Text('Delete From History'),
+                                ),
+                              ],
+                              const SizedBox(width: 8.0),
+                              Center(
+                                  child: ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).hoverColor,
+                                ),
+                                child: const Text("Close"),
+                              )),
+                            ],
+                          )
                         ],
-                      )
-                    ],
+                      ),
+                    ),
                   ),
           ),
         );

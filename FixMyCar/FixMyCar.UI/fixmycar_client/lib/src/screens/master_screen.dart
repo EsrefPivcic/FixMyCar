@@ -36,6 +36,9 @@ class MasterScreen extends StatelessWidget {
                     "FixMyCar",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
+                  if (isLoggedIn) ...[
+                    const SizedBox(width: 55),
+                  ]
                 ],
               ),
             ),
