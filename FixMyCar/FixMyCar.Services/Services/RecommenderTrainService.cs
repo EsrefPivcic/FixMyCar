@@ -3,6 +3,7 @@ using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
 using FixMyCar.Services.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.ML;
 using Microsoft.ML.Trainers;
 
@@ -25,6 +26,12 @@ namespace FixMyCar.Services.Services
             lock (isLocked)
             {
                 var orders = _context.Orders.Include("OrderDetails").ToList();
+
+                if (orders.IsNullOrEmpty())
+                {
+                    throw new UserException("Recommender can't be trained. There is not enough data in the database.");
+                }
+
                 var data = new List<ProductEntry>();
                 ITransformer model = null;
 
@@ -85,6 +92,12 @@ namespace FixMyCar.Services.Services
             lock (isLocked2)
             {
                 var reservations = _context.Reservations.Include("ReservationDetails").ToList();
+
+                if (reservations.IsNullOrEmpty())
+                {
+                    throw new UserException("Recommender can't be trained. There is not enough data in the database.");
+                }
+
                 var data = new List<ProductEntry>();
                 ITransformer model = null;
 

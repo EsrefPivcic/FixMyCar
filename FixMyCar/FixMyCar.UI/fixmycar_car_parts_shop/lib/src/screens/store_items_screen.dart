@@ -465,6 +465,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               ),
               actions: [
                 TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
                   child: const Text('Apply Filters'),
                   onPressed: () {
                     _applyFilters();
@@ -721,15 +727,13 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Dialog(
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerLow,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Form(
                 key: _formKey,
                 child: Container(
-                  width: 400,
+                  width: 650,
                   padding: const EdgeInsets.all(16.0),
                   child: SingleChildScrollView(
                     child: Column(
@@ -846,12 +850,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                   if (!alreadyExists) {
                                     selectedModel = newValue;
                                     selectedCarModels.add(newValue);
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Model already selected'),
-                                      ),
-                                    );
                                   }
                                 }
                               });
@@ -927,7 +925,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         ),
                         const SizedBox(height: 20),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             ElevatedButton(
                               onPressed: () {

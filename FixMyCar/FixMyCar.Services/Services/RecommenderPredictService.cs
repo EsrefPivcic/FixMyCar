@@ -30,70 +30,84 @@ namespace FixMyCar.Services.Services
 
         public async Task<PagedResult<StoreItemGetDTO>> RecommendStoreItems(int storeItemId)
         {
-            DataViewSchema modelSchema;
-            ITransformer _model = mlContext.Model.Load("ordersmodel.zip", out modelSchema);
-            var storeItems = await _context.StoreItems.Where(x => x.Id != storeItemId).ToListAsync();
-            var predictionResult = new List<Tuple<StoreItem, float>>();
-
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<ProductEntry, CopurchasePrediction>(_model);
-
-            foreach (var storeItem in storeItems)
+            try
             {
-                var prediction = predictionEngine.Predict(
-                                     new ProductEntry()
-                                     {
-                                         ProductId = (uint)storeItemId,
-                                         CoPurchaseProductId = (uint)storeItem.Id
-                                     });
+                DataViewSchema modelSchema;
+                ITransformer _model = mlContext.Model.Load("ordersmodel.zip", out modelSchema);
+                var storeItems = await _context.StoreItems.Where(x => x.Id != storeItemId).ToListAsync();
+                var predictionResult = new List<Tuple<StoreItem, float>>();
 
-                predictionResult.Add(new Tuple<StoreItem, float>(storeItem, prediction.Score));
+                var predictionEngine = mlContext.Model.CreatePredictionEngine<ProductEntry, CopurchasePrediction>(_model);
+
+                foreach (var storeItem in storeItems)
+                {
+                    var prediction = predictionEngine.Predict(
+                                         new ProductEntry()
+                                         {
+                                             ProductId = (uint)storeItemId,
+                                             CoPurchaseProductId = (uint)storeItem.Id
+                                         });
+
+                    predictionResult.Add(new Tuple<StoreItem, float>(storeItem, prediction.Score));
+                }
+
+                var finalResults = predictionResult.OrderByDescending(x => x.Item2)
+                                                   .Select(x => x.Item1)
+                                                   .Take(3)
+                                                   .ToList();
+
+                PagedResult<StoreItemGetDTO> pagedResult = new PagedResult<StoreItemGetDTO>();
+
+                pagedResult.Result = _mapper.Map<List<StoreItemGetDTO>>(finalResults);
+                pagedResult.Count = finalResults.Count;
+
+                return pagedResult;
             }
-
-            var finalResults = predictionResult.OrderByDescending(x => x.Item2)
-                                               .Select(x => x.Item1)
-                                               .Take(3)
-                                               .ToList();
-
-            PagedResult<StoreItemGetDTO> pagedResult = new PagedResult<StoreItemGetDTO>();
-
-            pagedResult.Result = _mapper.Map<List<StoreItemGetDTO>>(finalResults);
-            pagedResult.Count = finalResults.Count;
-
-            return pagedResult;
+            catch (Exception)
+            {
+                throw new UserException("Warning! Recommender is currently not available.");
+            }
         }
 
         public async Task<PagedResult<CarRepairShopServiceGetDTO>> RecommendRepairShopServices(int repairShopServiceId)
         {
-            DataViewSchema modelSchema;
-            ITransformer _model = mlContext.Model.Load("reservationsmodel.zip", out modelSchema);
-            var repairShopServices = await _context.CarRepairShopServices.Where(x => x.Id != repairShopServiceId).ToListAsync();
-            var predictionResult = new List<Tuple<Model.Entities.CarRepairShopService, float>>();
-
-            var predictionEngine = mlContext.Model.CreatePredictionEngine<ProductEntry, CopurchasePrediction>(_model);
-
-            foreach (var repairShopService in repairShopServices)
+            try
             {
-                var prediction = predictionEngine.Predict(
-                                     new ProductEntry()
-                                     {
-                                         ProductId = (uint)repairShopServiceId,
-                                         CoPurchaseProductId = (uint)repairShopService.Id
-                                     });
+                DataViewSchema modelSchema;
+                ITransformer _model = mlContext.Model.Load("reservationsmodel.zip", out modelSchema);
+                var repairShopServices = await _context.CarRepairShopServices.Where(x => x.Id != repairShopServiceId).ToListAsync();
+                var predictionResult = new List<Tuple<Model.Entities.CarRepairShopService, float>>();
 
-                predictionResult.Add(new Tuple<Model.Entities.CarRepairShopService, float>(repairShopService, prediction.Score));
+                var predictionEngine = mlContext.Model.CreatePredictionEngine<ProductEntry, CopurchasePrediction>(_model);
+
+                foreach (var repairShopService in repairShopServices)
+                {
+                    var prediction = predictionEngine.Predict(
+                                         new ProductEntry()
+                                         {
+                                             ProductId = (uint)repairShopServiceId,
+                                             CoPurchaseProductId = (uint)repairShopService.Id
+                                         });
+
+                    predictionResult.Add(new Tuple<Model.Entities.CarRepairShopService, float>(repairShopService, prediction.Score));
+                }
+
+                var finalResults = predictionResult.OrderByDescending(x => x.Item2)
+                                                   .Select(x => x.Item1)
+                                                   .Take(3)
+                                                   .ToList();
+
+                PagedResult<CarRepairShopServiceGetDTO> pagedResult = new PagedResult<CarRepairShopServiceGetDTO>();
+
+                pagedResult.Result = _mapper.Map<List<CarRepairShopServiceGetDTO>>(finalResults);
+                pagedResult.Count = finalResults.Count;
+
+                return pagedResult;
             }
-
-            var finalResults = predictionResult.OrderByDescending(x => x.Item2)
-                                               .Select(x => x.Item1)
-                                               .Take(3)
-                                               .ToList();
-
-            PagedResult<CarRepairShopServiceGetDTO> pagedResult = new PagedResult<CarRepairShopServiceGetDTO>();
-
-            pagedResult.Result = _mapper.Map<List<CarRepairShopServiceGetDTO>>(finalResults);
-            pagedResult.Count = finalResults.Count;
-
-            return pagedResult;
+            catch (Exception)
+            {
+                throw new UserException("Warning! Recommender is currently not available.");
+            }
         }
     }
 }

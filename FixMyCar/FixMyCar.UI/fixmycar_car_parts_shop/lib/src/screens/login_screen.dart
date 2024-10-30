@@ -60,7 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: SizedBox(
             width: 400,
             child: Card(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.defaultRadius),
               ),
@@ -126,9 +125,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           : ElevatedButton(
                               onPressed: _login,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHigh,
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 40, vertical: 16),
                                 shape: RoundedRectangleBorder(

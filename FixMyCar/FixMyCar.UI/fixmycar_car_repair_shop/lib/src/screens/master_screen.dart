@@ -31,7 +31,7 @@ class MasterScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: showBackButton,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+        backgroundColor: Theme.of(context).hoverColor,
         flexibleSpace: Row(
           children: [
             Padding(

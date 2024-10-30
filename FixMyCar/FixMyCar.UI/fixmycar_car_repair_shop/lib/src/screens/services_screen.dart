@@ -255,15 +255,13 @@ class _ServicesScreenState extends State<ServicesScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return Dialog(
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerLow,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
               child: Form(
                 key: _formKey,
                 child: Container(
-                  width: 400,
+                  width: 650,
                   padding: const EdgeInsets.all(16.0),
                   child: SingleChildScrollView(
                     child: Column(

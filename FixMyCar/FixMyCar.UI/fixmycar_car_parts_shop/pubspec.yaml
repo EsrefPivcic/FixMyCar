@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.4.1 <4.0.0'
+  sdk: '>=3.3.2 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -44,9 +44,9 @@ dependencies:
   csv: ^6.0.0
   fl_chart: ^0.69.0
   pdf: ^3.11.1
-  printing: ^5.13.3
+  printing: ^5.12.0
   path_provider: ^2.1.4
-  signalr_netcore: ^1.4.0
+  signalr_netcore: ^1.3.7
 
 dev_dependencies:
   flutter_test:
@@ -59,7 +59,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
   json_serializable: ^6.8.0
-  build_runner: ^2.4.11
+  build_runner: ^2.4.9
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

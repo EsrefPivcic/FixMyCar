@@ -20,7 +20,7 @@ class MasterScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+        backgroundColor: Theme.of(context).hoverColor,
         title: Stack(
           children: [
             Center(

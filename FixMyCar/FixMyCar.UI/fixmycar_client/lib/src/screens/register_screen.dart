@@ -130,7 +130,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
             child: Card(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.defaultRadius),
               ),
@@ -285,9 +284,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             : ElevatedButton(
                                 onPressed: _register,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHigh,
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 40, vertical: 16),
                                   shape: RoundedRectangleBorder(
