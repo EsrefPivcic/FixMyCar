@@ -917,88 +917,95 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, setState) {
             return AlertDialog(
               title: const Text('Generate Report'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Optional filters:'),
-                  const SizedBox(height: 5),
-                  DropdownButtonFormField<String>(
-                    value: _selectedReservationType,
-                    decoration: const InputDecoration(
-                        labelText: "Select Reservation Type"),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text("All")),
-                      DropdownMenuItem(
-                          value: "Repairs", child: Text("Repairs")),
-                      DropdownMenuItem(
-                          value: "Diagnostics", child: Text("Diagnostics")),
-                      DropdownMenuItem(
-                          value: "Repairs and Diagnostics",
-                          child: Text("Repairs and Diagnostics")),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedReservationType = value;
-                      });
-                    },
-                  ),
-                  TextFormField(
-                    decoration:
-                        const InputDecoration(labelText: "Customer username"),
-                    onChanged: (value) {
-                      setState(() {
-                        _username = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
+              content: SizedBox(
+                  width: 450,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: _startDate ?? DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: _endDate ?? DateTime.now(),
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                _startDate = picked;
-                              });
-                            }
-                          },
-                          child: Text(_startDate != null
-                              ? "Start: ${_startDate!.toLocal().toIso8601String().split('T')[0]}"
-                              : "Select Start Date"),
-                        ),
+                      const Text('Optional filters:'),
+                      const SizedBox(height: 5),
+                      DropdownButtonFormField<String>(
+                        value: _selectedReservationType,
+                        decoration: const InputDecoration(
+                            labelText: "Select Reservation Type"),
+                        items: const [
+                          DropdownMenuItem(value: null, child: Text("All")),
+                          DropdownMenuItem(
+                              value: "Repairs", child: Text("Repairs")),
+                          DropdownMenuItem(
+                              value: "Diagnostics", child: Text("Diagnostics")),
+                          DropdownMenuItem(
+                              value: "Repairs and Diagnostics",
+                              child: Text("Repairs and Diagnostics")),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedReservationType = value;
+                          });
+                        },
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: _endDate ?? DateTime.now(),
-                              firstDate: _startDate ?? DateTime(2000),
-                              lastDate: DateTime.now(),
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                _endDate = picked;
-                              });
-                            }
-                          },
-                          child: Text(_endDate != null
-                              ? "End: ${_endDate!.toLocal().toIso8601String().split('T')[0]}"
-                              : "Select End Date"),
-                        ),
+                      TextFormField(
+                        decoration: const InputDecoration(
+                            labelText: "Customer username"),
+                        onChanged: (value) {
+                          setState(() {
+                            _username = value;
+                          });
+                        },
                       ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: _startDate ?? DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: _endDate ?? DateTime.now(),
+                                );
+                                if (picked != null) {
+                                  setState(() {
+                                    _startDate = picked;
+                                  });
+                                }
+                              },
+                              child: Text(_startDate != null
+                                  ? "Start: ${_startDate!.toLocal().toIso8601String().split('T')[0]}"
+                                  : "Select Start Date"),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: _endDate ?? DateTime.now(),
+                                  firstDate: _startDate ?? DateTime(2000),
+                                  lastDate: DateTime.now(),
+                                );
+                                if (picked != null) {
+                                  setState(() {
+                                    _endDate = picked;
+                                  });
+                                }
+                              },
+                              child: Text(_endDate != null
+                                  ? "End: ${_endDate!.toLocal().toIso8601String().split('T')[0]}"
+                                  : "Select End Date"),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 24,
+                      ),
+                      const Text(
+                          'Note: This will start a report generating process. Once done, you will be notified and new report will be ready to Save to CSV.'),
                     ],
-                  ),
-                ],
-              ),
+                  )),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -1049,9 +1056,49 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> _chartTypes = [
     'Revenue per reservation type',
     'Daily revenue',
-    'Top 10 customers',
+    'Revenue per top 10 customers',
     'Top 10 reservations'
   ];
+
+  void _updateMonthlyDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Update Monthly Statistics'),
+              content: const SizedBox(
+                width: 450,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                        'Note: This will start a report generating process for monthly statistics. Once done, you will be notified and new monthly statistics will be displayed.'),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _updateMonthlyStatistics();
+                  },
+                  child: const Text('Generate'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1377,7 +1424,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 10.0),
                           Expanded(
-                              child: Column(
+                              child: SingleChildScrollView(
+                                  child: Column(
                             children: [
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1407,7 +1455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(width: 10),
                                   ElevatedButton(
-                                    onPressed: _updateMonthlyStatistics,
+                                    onPressed: _updateMonthlyDialog,
                                     child:
                                         const Text('Update Monthly Statistics'),
                                   ),
@@ -1424,8 +1472,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: CircularProgressIndicator());
                                   } else if (snapshot.hasError) {
                                     return Center(
-                                        child:
-                                            Text('Error: ${snapshot.error}'));
+                                        child: Text('${snapshot.error}'));
                                   } else if (snapshot.hasData) {
                                     return snapshot.data!;
                                   } else {
@@ -1435,7 +1482,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 },
                               ),
                             ],
-                          )),
+                          ))),
                         ],
                       ),
                     ),

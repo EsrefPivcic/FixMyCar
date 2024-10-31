@@ -81,11 +81,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _updateMonthlyStatistics() async {
-    await Provider.of<CarPartsShopProvider>(context, listen: false)
-        .updateMonthlyStatistics();
-  }
-
   void _toggleEdit(String field) {
     setState(() {
       _editingField = _editingField == field ? null : field;
@@ -925,87 +920,96 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context, setState) {
             return AlertDialog(
               title: const Text('Generate Report'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Optional filters:'),
-                  const SizedBox(height: 5),
-                  DropdownButtonFormField<String>(
-                    value: _selectedRole,
-                    decoration: const InputDecoration(
-                        labelText: "Select Customer Role"),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text("All")),
-                      DropdownMenuItem(value: "client", child: Text("Client")),
-                      DropdownMenuItem(
-                          value: "carrepairshop",
-                          child: Text("Car Repair Shop")),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedRole = value;
-                        _username = null;
-                      });
-                    },
-                  ),
-                  if (_selectedRole != null) ...[
-                    TextFormField(
-                      decoration:
-                          const InputDecoration(labelText: "Customer Username"),
+              content: SizedBox(
+                width: 450,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Optional filters:'),
+                    const SizedBox(height: 5),
+                    DropdownButtonFormField<String>(
+                      value: _selectedRole,
+                      decoration: const InputDecoration(
+                          labelText: "Select Customer Role"),
+                      items: const [
+                        DropdownMenuItem(value: null, child: Text("All")),
+                        DropdownMenuItem(
+                            value: "client", child: Text("Client")),
+                        DropdownMenuItem(
+                            value: "carrepairshop",
+                            child: Text("Car Repair Shop")),
+                      ],
                       onChanged: (value) {
                         setState(() {
-                          _username = value;
+                          _selectedRole = value;
+                          _username = null;
                         });
                       },
                     ),
-                  ],
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: _startDate ?? DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: _endDate ?? DateTime.now(),
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                _startDate = picked;
-                              });
-                            }
-                          },
-                          child: Text(_startDate != null
-                              ? "Start: ${_startDate!.toLocal().toIso8601String().split('T')[0]}"
-                              : "Select Start Date"),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: _endDate ?? DateTime.now(),
-                              firstDate: _startDate ?? DateTime(2000),
-                              lastDate: DateTime.now(),
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                _endDate = picked;
-                              });
-                            }
-                          },
-                          child: Text(_endDate != null
-                              ? "End: ${_endDate!.toLocal().toIso8601String().split('T')[0]}"
-                              : "Select End Date"),
-                        ),
+                    if (_selectedRole != null) ...[
+                      TextFormField(
+                        decoration: const InputDecoration(
+                            labelText: "Customer Username"),
+                        onChanged: (value) {
+                          setState(() {
+                            _username = value;
+                          });
+                        },
                       ),
                     ],
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: _startDate ?? DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: _endDate ?? DateTime.now(),
+                              );
+                              if (picked != null) {
+                                setState(() {
+                                  _startDate = picked;
+                                });
+                              }
+                            },
+                            child: Text(_startDate != null
+                                ? "Start: ${_startDate!.toLocal().toIso8601String().split('T')[0]}"
+                                : "Select Start Date"),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: _endDate ?? DateTime.now(),
+                                firstDate: _startDate ?? DateTime(2000),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                setState(() {
+                                  _endDate = picked;
+                                });
+                              }
+                            },
+                            child: Text(_endDate != null
+                                ? "End: ${_endDate!.toLocal().toIso8601String().split('T')[0]}"
+                                : "Select End Date"),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 24,
+                    ),
+                    const Text(
+                        'Note: This will start a report generating process. Once done, you will be notified and new report will be ready to Save to CSV.'),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -1050,9 +1054,54 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> _chartTypes = [
     'Revenue per customer type',
     'Revenue over time',
-    'Revenue per customer',
+    'Revenue per top 10 customers',
     'Top 10 orders'
   ];
+
+  Future<void> _updateMonthlyStatistics() async {
+    await Provider.of<CarPartsShopProvider>(context, listen: false)
+        .updateMonthlyStatistics();
+  }
+
+  void _updateMonthlyDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Update Monthly Statistics'),
+              content: const SizedBox(
+                width: 450,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                        'Note: This will start a report generating process for monthly statistics. Once done, you will be notified and new monthly statistics will be displayed.'),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _updateMonthlyStatistics();
+                  },
+                  child: const Text('Generate'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1342,65 +1391,67 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 10.0),
                           Expanded(
+                            child: SingleChildScrollView(
                               child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    'Monthly Statistics:',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Monthly Statistics:',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineSmall,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      DropdownButton<String>(
+                                        value: _selectedChartType,
+                                        items: _chartTypes.map((String type) {
+                                          return DropdownMenuItem<String>(
+                                            value: type,
+                                            child: Text(type),
+                                          );
+                                        }).toList(),
+                                        onChanged: (String? newChartType) {
+                                          setState(() {
+                                            _selectedChartType = newChartType!;
+                                            _chartFuture = buildChart(
+                                                _selectedChartType, context);
+                                          });
+                                        },
+                                      ),
+                                      const SizedBox(width: 10),
+                                      ElevatedButton(
+                                        onPressed: _updateMonthlyDialog,
+                                        child: const Text(
+                                            'Update Monthly Statistics'),
+                                      ),
+                                    ],
                                   ),
                                   const SizedBox(width: 10),
-                                  DropdownButton<String>(
-                                    value: _selectedChartType,
-                                    items: _chartTypes.map((String type) {
-                                      return DropdownMenuItem<String>(
-                                        value: type,
-                                        child: Text(type),
-                                      );
-                                    }).toList(),
-                                    onChanged: (String? newChartType) {
-                                      setState(() {
-                                        _selectedChartType = newChartType!;
-                                        _chartFuture = buildChart(
-                                            _selectedChartType, context);
-                                      });
+                                  FutureBuilder<Widget>(
+                                    future: _chartFuture,
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<Widget> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const Center(
+                                            child: CircularProgressIndicator());
+                                      } else if (snapshot.hasError) {
+                                        return Center(
+                                            child: Text('${snapshot.error}'));
+                                      } else if (snapshot.hasData) {
+                                        return snapshot.data!;
+                                      } else {
+                                        return const Center(
+                                            child: Text('No data available'));
+                                      }
                                     },
-                                  ),
-                                  const SizedBox(width: 10),
-                                  ElevatedButton(
-                                    onPressed: _updateMonthlyStatistics,
-                                    child:
-                                        const Text('Update Monthly Statistics'),
                                   ),
                                 ],
                               ),
-                              const SizedBox(width: 10),
-                              FutureBuilder<Widget>(
-                                future: _chartFuture,
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<Widget> snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  } else if (snapshot.hasError) {
-                                    return Center(
-                                        child:
-                                            Text('Error: ${snapshot.error}'));
-                                  } else if (snapshot.hasData) {
-                                    return snapshot.data!;
-                                  } else {
-                                    return const Center(
-                                        child: Text('No data available'));
-                                  }
-                                },
-                              ),
-                            ],
-                          )),
+                            ),
+                          ),
                         ],
                       ),
                     ),

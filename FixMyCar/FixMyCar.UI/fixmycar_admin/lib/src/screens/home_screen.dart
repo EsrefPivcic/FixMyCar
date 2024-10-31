@@ -25,6 +25,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _pageNumber = 1;
+  final int _pageSize = 10;
+  int _totalPages = 1;
+  int _countOfUsers = 0;
+
   @override
   void initState() {
     super.initState();
@@ -49,12 +54,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     try {
       final provider = Provider.of<UserProvider>(context, listen: false);
-      await provider.getUsers(search: _searchObject);
+      await provider.getUsers(
+          pageNumber: _pageNumber, pageSize: _pageSize, search: _searchObject);
       if (provider.isLoading == false) {
         final users = provider.users;
+        final count = provider.countOfItems;
         if (mounted) {
           setState(() {
             _users = users;
+            _countOfUsers = count;
+            _totalPages = (count / _pageSize).ceil();
           });
         }
       }
@@ -713,6 +722,41 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ? const Center(
                                       child: CircularProgressIndicator())
                                   : _buildUserTable(),
+                              if (_countOfUsers != 0) ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      onPressed: _pageNumber > 1
+                                          ? () {
+                                              setState(() {
+                                                _pageNumber = _pageNumber - 1;
+                                                _fetchUsers();
+                                              });
+                                            }
+                                          : null,
+                                      icon: const Icon(
+                                          Icons.arrow_back_ios_new_rounded),
+                                    ),
+                                    Text('$_pageNumber',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge),
+                                    IconButton(
+                                      onPressed: _pageNumber < _totalPages
+                                          ? () {
+                                              setState(() {
+                                                _pageNumber = _pageNumber + 1;
+                                              });
+                                              _fetchUsers();
+                                            }
+                                          : null,
+                                      icon: const Icon(
+                                          Icons.arrow_forward_ios_rounded),
+                                    ),
+                                  ],
+                                ),
+                              ]
                             ],
                           ),
                         ),
@@ -737,7 +781,6 @@ class _HomeScreenState extends State<HomeScreen> {
             columns: const [
               DataColumn(label: Text('Username')),
               DataColumn(label: Text('Mail')),
-              DataColumn(label: Text('Created On')),
               DataColumn(label: Text('Role')),
               DataColumn(label: Text('Active')),
               DataColumn(label: Text('Manage')),
@@ -748,7 +791,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 DataCell(
                     Text('${user.username} (${user.name} ${user.surname})')),
                 DataCell(Text(user.email)),
-                DataCell(Text(_formatDate(user.created))),
                 DataCell(Text(user.role == "carrepairshop"
                     ? "Car Repair Shop"
                     : user.role == "carpartsshop"

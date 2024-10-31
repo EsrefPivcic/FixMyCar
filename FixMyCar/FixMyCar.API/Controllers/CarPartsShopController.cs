@@ -27,18 +27,18 @@ namespace FixMyCar.API.Controllers
         }
 
         [HttpPost("GenerateReport")]
-        public IActionResult GenerateReport(ReportRequestDTO request)
+        public async Task<IActionResult> GenerateReport(ReportRequestDTO request)
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            (_service as ICarPartsShopService).GenerateReport(username, request);
+            await (_service as ICarPartsShopService).GenerateReport(username, request);
             return Ok();
         }
 
         [HttpPost("GenerateMonthlyReport")]
-        public IActionResult GenerateMonthlyReport()
+        public async Task<IActionResult> GenerateMonthlyReport()
         {
             string? username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            (_service as ICarPartsShopService).GenerateMonthlyReports(username);
+            await (_service as ICarPartsShopService).GenerateMonthlyReports(username);
             return Ok();
         }
 

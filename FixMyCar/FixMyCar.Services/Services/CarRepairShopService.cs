@@ -58,7 +58,7 @@ namespace FixMyCar.Services.Services
             return base.AddFilter(query, search);
         }
 
-        public async void GenerateReport(string username, ReportRequestDTO request)
+        public async Task GenerateReport(string username, ReportRequestDTO request)
         {
             var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
             request.ShopId = shop!.Id;
@@ -67,7 +67,7 @@ namespace FixMyCar.Services.Services
             _rabbitMQService.SendReportGenerationRequest(request);
         }
 
-        public async void GenerateMonthlyReports(string username)
+        public async Task GenerateMonthlyReports(string username)
         {
             MonthlyReportRequestDTO request = new MonthlyReportRequestDTO();
             var shop = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
@@ -90,7 +90,7 @@ namespace FixMyCar.Services.Services
                 return await File.ReadAllBytesAsync(reportFilePath);
             }
 
-            throw new UserException($"Report for {username} not found.");
+            return Array.Empty<byte>();
         }
 
         public async Task<byte[]> GetMonthlyRevenuePerReservationTypeReport(string username)
@@ -106,7 +106,7 @@ namespace FixMyCar.Services.Services
                 return await File.ReadAllBytesAsync(reportFilePath);
             }
 
-            throw new UserException($"Monthly revenue per reservation type report for {username} not found.");
+            return Array.Empty<byte>();
         }
 
         public async Task<byte[]> GetMonthlyRevenuePerDayReport(string username)
@@ -122,7 +122,7 @@ namespace FixMyCar.Services.Services
                 return await File.ReadAllBytesAsync(reportFilePath);
             }
 
-            throw new UserException($"Monthly revenue per day report for {username} not found.");
+            return Array.Empty<byte>();
         }
 
         public async Task<byte[]> GetTop10CustomersMonthlyReport(string username)
@@ -138,7 +138,7 @@ namespace FixMyCar.Services.Services
                 return await File.ReadAllBytesAsync(reportFilePath);
             }
 
-            throw new UserException($"Top 10 monthly customers report for {username} not found.");
+            return Array.Empty<byte>();
         }
 
         public async Task<byte[]> GetTop10ReservationsMonthlyReport(string username)
@@ -154,7 +154,7 @@ namespace FixMyCar.Services.Services
                 return await File.ReadAllBytesAsync(reportFilePath);
             }
 
-            throw new UserException($"Top 10 monthly reservations report for {username} not found.");
+            return Array.Empty<byte>();
         }
 
         public async Task UpdateWorkDetails(CarRepairShopWorkDetailsUpdateDTO request)

@@ -1,11 +1,8 @@
 ReservationCreatedDate,ReservationDate,Customer,TotalAmount,Type,Discount
-2024-10-11,2024-10-25,Esref Pivcic (client),74.40,Repairs,7.00%
-2024-10-06,2024-10-28,Esref Pivcic (client),69.28,Repairs and Diagnostics,7.00%
-2024-10-06,2024-10-25,Esref Pivcic (client),60.45,Repairs,7.00%
-2024-10-02,2024-10-14,Esref Pivcic (client),24.50,Repairs and Diagnostics,No discount
-2024-10-02,2024-10-25,Esref Pivcic (client),24.50,Repairs and Diagnostics,No discount
-2024-10-02,2024-10-19,Esref Pivcic (client),24.50,Repairs and Diagnostics,No discount
-2024-10-02,2024-10-17,Esref Pivcic (client),24.50,Repairs and Diagnostics,No discount
-2024-10-03,2024-10-20,Esref Pivcic (client),22.79,Repairs and Diagnostics,7.00%
-2024-10-06,2024-10-22,Esref Pivcic (client),22.79,Repairs and Diagnostics,7.00%
-2024-10-06,2024-10-21,Esref Pivcic (client),18.60,Repairs and Diagnostics,7.00%
+2024-10-28,2024-10-30,Esref Pivcic (client),74.60,Repairs and Diagnostics,No discount
+2024-10-29,2024-10-30,Esref Pivcic (client),47.85,Repairs,13.00%
+2024-10-29,2024-12-24,Esref Pivcic (client),78.82,Repairs and Diagnostics,13.00%
+2024-10-29,2024-11-19,Esref Pivcic (client),78.82,Repairs and Diagnostics,13.00%
+2024-10-29,2024-11-26,Esref Pivcic (client),78.82,Repairs and Diagnostics,13.00%
+2024-10-29,2024-11-04,Esref Pivcic (client),64.90,Repairs and Diagnostics,13.00%
+2024-10-29,2024-10-30,Esref Pivcic (client),64.90,Repairs and Diagnostics,13.00%

@@ -46,11 +46,17 @@ class UserProvider extends BaseProvider<User, User> {
     }
   }
 
-  Future<void> getUsers({UserSearchObject? search}) async {
+  Future<void> getUsers(
+      {required int pageNumber,
+      required int pageSize,
+      UserSearchObject? search}) async {
     isLoading = true;
     notifyListeners();
 
     Map<String, dynamic> queryParams = {};
+
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
 
     if (search != null) {
       if (search.containsUsername != null) {

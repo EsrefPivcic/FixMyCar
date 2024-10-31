@@ -168,7 +168,7 @@ namespace FixMyCar.HelperAPI.Services
                 try
                 {
                     await MonthlyRevenuePerCustomerType(request.ShopId, orders);
-                    await MonthlyRevenuePerDay(request.ShopId, orders, oneMonthOlder);
+                    await MonthlyRevenuePerDay(request.ShopId, orders, oneMonthOlder.Date);
                     await Top10CustomersMonthly(request.ShopId, orders);
                     await Top10OrdersMonthly(request.ShopId, orders);
                     ReportNotificationDTO notification = new ReportNotificationDTO
@@ -240,7 +240,7 @@ namespace FixMyCar.HelperAPI.Services
             for (DateTime date = oneMonthOlder; date <= DateTime.Now.Date; date = date.AddDays(1))
             {
                 var dailyOrders = orders
-                    .Where(o => o.OrderDate.Date == date)
+                    .Where(o => o.OrderDate.Date == date.Date)
                     .ToList();
 
                 double dailyRevenue = dailyOrders.Sum(o => o.TotalAmount);

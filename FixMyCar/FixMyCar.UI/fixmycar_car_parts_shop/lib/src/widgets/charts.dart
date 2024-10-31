@@ -29,7 +29,7 @@ List<List<dynamic>> _parseCsvReport(String csvData) {
     (match) => '\r\n',
   );
 
-  return CsvToListConverter().convert(csvData);
+  return const CsvToListConverter().convert(csvData);
 }
 
 Future<void> _fetchMonthlyRevenuePerCustomerTypeReport(
@@ -202,6 +202,8 @@ Widget _buildTop10OrdersTable() {
 }
 
 FlTitlesData _buildLineChartTitles() {
+  final double interval = (roundedLineMaxY == 0) ? 1 : roundedLineMaxY / 8;
+
   return FlTitlesData(
     bottomTitles: const AxisTitles(
       sideTitles: SideTitles(
@@ -212,13 +214,13 @@ FlTitlesData _buildLineChartTitles() {
       sideTitles: SideTitles(
         showTitles: true,
         reservedSize: 40,
-        interval: roundedLineMaxY / 8,
+        interval: interval,
         getTitlesWidget: (double value, TitleMeta meta) {
           if (value == roundedLineMaxY) return Container();
           return Text(
             '${value.toInt()} €',
             style: const TextStyle(
-                fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+                fontSize: 11, fontFeatures: [FontFeature.tabularFigures()]),
           );
         },
       ),
@@ -226,14 +228,14 @@ FlTitlesData _buildLineChartTitles() {
     rightTitles: AxisTitles(
       sideTitles: SideTitles(
         showTitles: true,
-        interval: roundedLineMaxY / 8,
+        interval: interval,
         reservedSize: 40,
         getTitlesWidget: (double value, TitleMeta meta) {
           if (value == roundedLineMaxY) return Container();
           return Text(
             '${value.toInt()} €',
             style: const TextStyle(
-                fontSize: 10, fontFeatures: [FontFeature.tabularFigures()]),
+                fontSize: 11, fontFeatures: [FontFeature.tabularFigures()]),
           );
         },
       ),
@@ -444,7 +446,8 @@ Future<Widget> buildChart(
   await fetchAllStatistics(context);
   switch (selectedChartType) {
     case 'Revenue per customer type':
-      if (_monthlyRevenuePerCustomerTypeReportData != null) {
+      if (_monthlyRevenuePerCustomerTypeReportData != null &&
+          _monthlyRevenuePerCustomerTypeReportData!.length > 0) {
         return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           RepaintBoundary(
             key: _chartKey,
@@ -461,8 +464,8 @@ Future<Widget> buildChart(
                     ),
                   ),
                   SizedBox(
-                    width: 950,
-                    height: 600,
+                    width: MediaQuery.of(context).size.width * 0.60,
+                    height: MediaQuery.of(context).size.height * 0.60,
                     child: BarChart(
                       BarChartData(
                         barGroups: _createBarChartData(),
@@ -496,10 +499,16 @@ Future<Widget> buildChart(
           ),
         ]);
       } else {
-        return const Center(child: Text("No report available!"));
+        return SizedBox(
+            width: MediaQuery.of(context).size.width * 0.60,
+            height: MediaQuery.of(context).size.height * 0.60,
+            child: const Center(
+                child: Text(
+                    "Revenue per customer type report not available! Please update monthly statistics.")));
       }
     case 'Revenue over time':
-      if (_monthlyRevenuePerDayReportData != null) {
+      if (_monthlyRevenuePerDayReportData != null &&
+          _monthlyRevenuePerDayReportData!.length > 0) {
         return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           RepaintBoundary(
             key: _chartKey,
@@ -518,8 +527,8 @@ Future<Widget> buildChart(
                   Padding(
                       padding: const EdgeInsets.all(20),
                       child: SizedBox(
-                          width: 950,
-                          height: 600,
+                          width: MediaQuery.of(context).size.width * 0.60,
+                          height: MediaQuery.of(context).size.height * 0.60,
                           child: LineChart(LineChartData(
                             lineBarsData: _createLineChartData(),
                             titlesData: _buildLineChartTitles(),
@@ -547,10 +556,16 @@ Future<Widget> buildChart(
           ),
         ]);
       } else {
-        return const Center(child: Text("No report available!"));
+        return SizedBox(
+            width: MediaQuery.of(context).size.width * 0.60,
+            height: MediaQuery.of(context).size.height * 0.60,
+            child: const Center(
+                child: Text(
+                    "Revenue over time report not available! Please update monthly statistics.")));
       }
-    case 'Revenue per customer':
-      if (_monthlyRevenuePerCustomerReportData != null) {
+    case 'Revenue per top 10 customers':
+      if (_monthlyRevenuePerCustomerReportData != null &&
+          _monthlyRevenuePerCustomerReportData!.length > 0) {
         return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           RepaintBoundary(
             key: _chartKey,
@@ -561,12 +576,12 @@ Future<Widget> buildChart(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    'Revenue per customer',
+                    'Revenue per top 10 customers',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(
-                    width: 950,
-                    height: 600,
+                    width: MediaQuery.of(context).size.width * 0.60,
+                    height: MediaQuery.of(context).size.height * 0.60,
                     child: PieChart(
                       PieChartData(
                         sections: _createPieChartData(),
@@ -597,10 +612,16 @@ Future<Widget> buildChart(
           ),
         ]);
       } else {
-        return const Center(child: Text("No report available."));
+        return SizedBox(
+            width: MediaQuery.of(context).size.width * 0.60,
+            height: MediaQuery.of(context).size.height * 0.60,
+            child: const Center(
+                child: Text(
+                    "Revenue per top 10 customers report not available! Please update monthly statistics.")));
       }
     case 'Top 10 orders':
-      if (_top10MonthlyOrdersReportData != null) {
+      if (_top10MonthlyOrdersReportData != null &&
+          _top10MonthlyOrdersReportData!.length > 0) {
         return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           RepaintBoundary(
             key: _chartKey,
@@ -616,8 +637,11 @@ Future<Widget> buildChart(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(
-                        width: 900,
-                        child: _buildTop10OrdersTable(),
+                        width: MediaQuery.of(context).size.width * 0.60,
+                        height: MediaQuery.of(context).size.height * 0.60,
+                        child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: _buildTop10OrdersTable()),
                       ),
                     ],
                   )),
@@ -641,7 +665,12 @@ Future<Widget> buildChart(
           ),
         ]);
       } else {
-        return const Center(child: Text("No report available."));
+        return SizedBox(
+            width: MediaQuery.of(context).size.width * 0.60,
+            height: MediaQuery.of(context).size.height * 0.60,
+            child: const Center(
+                child: Text(
+                    "Top 10 orders report not available! Please update monthly statistics.")));
       }
     default:
       return const Text('Select a chart type');
