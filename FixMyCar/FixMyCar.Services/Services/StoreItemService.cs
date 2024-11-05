@@ -76,7 +76,16 @@ namespace FixMyCar.Services.Services
                 {
                     query = query.Where(x => x.CarModels.Any(cm => search.CarModelIds.Contains(cm.Id)));
                 }
+                else
+                {
+                    if (search?.CarManufacturerId != null)
+                    {
+                        query = query.Where(x => x.CarModels.Any(cm => cm.CarManufacturerId == search.CarManufacturerId));
+                    }
+                }
             }
+
+            query = query.OrderBy(x => x.Name);
 
             return base.AddFilter(query, search);
         }

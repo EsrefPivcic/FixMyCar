@@ -40,7 +40,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
         {
             var list = await base.AllowedActions();
 
-            list.Add("Update");
+            list.Add("UpdateEstimatedDate");
             list.Add("Complete");
 
             return list;

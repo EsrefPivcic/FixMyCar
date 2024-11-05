@@ -89,7 +89,7 @@ namespace FixMyCar.Services.Services
 
             CarPartsShopClientDiscount entity = _mapper.Map<CarPartsShopClientDiscount>(request);
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username) ?? throw new UserException("User not found");
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.Username && u.Active) ?? throw new UserException("User not found");
 
             var carpartsshop = await _context.Users.FirstOrDefaultAsync(u => u.Username == request.CarPartsShopUsername) ?? throw new UserException("Car Parts Shop not found");
 

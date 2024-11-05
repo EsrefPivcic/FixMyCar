@@ -61,6 +61,9 @@ namespace FixMyCar.Services.Services
                     query = query.Where(x => x.ServiceType.Name == search.ServiceType);
                 }
             }
+
+            query = query.OrderBy(x => x.Name);
+
             return base.AddFilter(query, search);
         }
         public override async Task<CarRepairShopServiceGetDTO> Insert(CarRepairShopServiceInsertDTO request)

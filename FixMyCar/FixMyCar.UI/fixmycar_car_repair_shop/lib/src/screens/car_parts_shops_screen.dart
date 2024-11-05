@@ -359,6 +359,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
   @override
   void dispose() {
     _nameFilterController.dispose();
+    _pageNumber = 1;
     super.dispose();
   }
 }

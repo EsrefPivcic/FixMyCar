@@ -10,11 +10,14 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
   StoreItemProvider() : super('StoreItem');
 
   Future<void> getStoreItems({
+    required int pageNumber,
+    required int pageSize,
     required carPartsShopName,
     String? nameFilter,
     bool? withDiscount,
     String? state,
     int? categoryFilter,
+    int? carManufacturerId,
     List<int>? carModelsFilter,
   }) async {
     isLoading = true;
@@ -22,6 +25,8 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
 
     Map<String, dynamic> queryParams = {};
 
+    queryParams['PageNumber'] = pageNumber.toString();
+    queryParams['PageSize'] = pageSize.toString();
     queryParams['CarPartsShopName'] = carPartsShopName;
     queryParams['State'] = "active";
 
@@ -33,6 +38,9 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
     }
     if (categoryFilter != null) {
       queryParams['StoreItemCategoryId'] = categoryFilter.toString();
+    }
+    if (carManufacturerId != null) {
+      queryParams['CarManufacturerId'] = carManufacturerId.toString();
     }
     if (carModelsFilter != null && carModelsFilter.isNotEmpty) {
       queryParams['CarModelIds'] =

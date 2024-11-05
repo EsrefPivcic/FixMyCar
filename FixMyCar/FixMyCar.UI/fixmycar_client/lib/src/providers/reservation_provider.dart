@@ -226,6 +226,7 @@ class ReservationProvider
 
     try {
       SearchResult<Reservation> searchResult = await get(
+        customEndpoint: 'GetByClientToken',
         filter: queryParams,
         fromJson: (json) => Reservation.fromJson(json),
       );

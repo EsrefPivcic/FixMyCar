@@ -27,6 +27,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   String _filterName = '';
   bool _isFilterApplied = false;
   int? _categoryIdFilter;
+  int? _selectedManufacturerId;
   List<CarModel> _selectedCarModelsFilter = [];
   List<StoreItemCategory> _categories = [];
   List<CarModelsByManufacturer> _carModelsByManufacturer = [];
@@ -121,7 +122,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               Expanded(
                                 child: Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
+                                    padding: const EdgeInsets.only(
+                                        bottom: 8.0, top: 5.0),
                                     child: item.imageData != ""
                                         ? Image.memory(
                                             base64Decode(item.imageData!),
@@ -132,7 +134,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                         : const SizedBox(
                                             width: 200,
                                             height: 200,
-                                            child: Icon(Icons.image, size: 150),
+                                            child: Icon(Icons.image, size: 120),
                                           ),
                                   ),
                                 ),
@@ -183,7 +185,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               ),
                               if (item.discount != 0)
                                 Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.only(bottom: 8.0),
                                   child: Text(
                                     'Discount: ${(item.discount * 100).toStringAsFixed(2)}%',
                                     style: Theme.of(context)
@@ -197,14 +199,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Category: ${item.category == "" ? "Unknown" : item.category}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
@@ -236,7 +230,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                             ? () {
                                 setState(() {
                                   _pageNumber = _pageNumber - 1;
-                                  _applyFilters();
+                                  _applyFiltersPaged();
                                 });
                               }
                             : null,
@@ -250,7 +244,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 setState(() {
                                   _pageNumber = _pageNumber + 1;
                                 });
-                                _applyFilters();
+                                _applyFiltersPaged();
                               }
                             : null,
                         icon: const Icon(Icons.arrow_forward_ios_rounded),
@@ -275,9 +269,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
 
   void _showFilterDialog(BuildContext context) {
     _nameFilterController.text = _filterName;
-    CarManufacturer? selectedManufacturer;
     CarModel? selectedModel;
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -285,182 +277,203 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
               title: const Text('Filters'),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Filter by Name'),
-                    TextField(
-                      decoration: const InputDecoration(hintText: 'Enter name'),
-                      controller: _nameFilterController,
-                      onChanged: (value) {
-                        setState(() {
-                          _filterName = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('StoreItem Status'),
-                    RadioListTile<String>(
-                      title: const Text('Active'),
-                      value: 'active',
-                      groupValue: _selectedStatusFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedStatusFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Hidden'),
-                      value: 'draft',
-                      groupValue: _selectedStatusFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedStatusFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('All'),
-                      value: 'all',
-                      groupValue: _selectedStatusFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedStatusFilter = value!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Discount Status'),
-                    RadioListTile<String>(
-                      title: const Text('Discounted'),
-                      value: 'discounted',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Non-Discounted'),
-                      value: 'non-discounted',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('All'),
-                      value: 'all',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    DropdownButton<int>(
-                      value: _categoryIdFilter,
-                      onChanged: (int? newValue) {
-                        setState(() {
-                          _categoryIdFilter = newValue;
-                        });
-                      },
-                      items: [
-                        const DropdownMenuItem<int>(
-                          value: null,
-                          child: Text('All'),
-                        ),
-                        ..._categories.map<DropdownMenuItem<int>>(
-                            (StoreItemCategory category) {
-                          return DropdownMenuItem<int>(
-                            value: category.id,
-                            child: Text(category.name),
-                          );
-                        }).toList(),
-                      ],
-                      isExpanded: true,
-                      hint: const Text('Select a category'),
-                    ),
-                    const SizedBox(height: 20),
-                    DropdownButton<CarManufacturer>(
-                      value: selectedManufacturer,
-                      onChanged: (CarManufacturer? newValue) {
-                        setState(() {
-                          selectedManufacturer = newValue;
-                          selectedModel = null;
-                        });
-                      },
-                      items: _carModelsByManufacturer
-                          .map<DropdownMenuItem<CarManufacturer>>(
-                              (CarModelsByManufacturer cm) {
-                        return DropdownMenuItem<CarManufacturer>(
-                          value: cm.manufacturer,
-                          child: Text(cm.manufacturer.name),
-                        );
-                      }).toList(),
-                      isExpanded: true,
-                      hint: const Text('Select a manufacturer'),
-                    ),
-                    if (selectedManufacturer != null)
-                      const SizedBox(height: 20),
-                    if (selectedManufacturer != null)
-                      DropdownButton<CarModel>(
-                        value: selectedModel,
-                        onChanged: (CarModel? newValue) {
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Filter by Name'),
+                      TextField(
+                        decoration:
+                            const InputDecoration(hintText: 'Enter name'),
+                        controller: _nameFilterController,
+                        onChanged: (value) {
                           setState(() {
-                            if (newValue != null) {
-                              bool alreadyExists = _selectedCarModelsFilter
-                                  .any((model) => model.id == newValue.id);
-                              if (!alreadyExists) {
-                                selectedModel = newValue;
-                                _selectedCarModelsFilter.add(newValue);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Model already selected'),
-                                  ),
-                                );
-                              }
-                            }
+                            _filterName = value;
                           });
                         },
-                        items: _carModelsByManufacturer
-                            .firstWhere((cm) =>
-                                cm.manufacturer == selectedManufacturer!)
-                            .models
-                            .map<DropdownMenuItem<CarModel>>((CarModel model) {
-                          return DropdownMenuItem<CarModel>(
-                            value: model,
-                            child: Text('${model.name} (${model.modelYear})'),
-                          );
-                        }).toList(),
-                        isExpanded: true,
-                        hint: const Text('Select a model'),
                       ),
-                    const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 4.0,
-                      children: _selectedCarModelsFilter.map((CarModel model) {
-                        return FilterChip(
-                          label: Text('${model.name} (${model.modelYear})'),
-                          onSelected: (bool selected) {
+                      const SizedBox(height: 20),
+                      const Text('StoreItem Status'),
+                      RadioListTile<String>(
+                        title: const Text('Active'),
+                        value: 'active',
+                        groupValue: _selectedStatusFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStatusFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('Hidden'),
+                        value: 'draft',
+                        groupValue: _selectedStatusFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStatusFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('All'),
+                        value: 'all',
+                        groupValue: _selectedStatusFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStatusFilter = value!;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Discount Status'),
+                      RadioListTile<String>(
+                        title: const Text('Discounted'),
+                        value: 'discounted',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('Non-Discounted'),
+                        value: 'non-discounted',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('All'),
+                        value: 'all',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Category'),
+                      DropdownButton<int>(
+                        value: _categoryIdFilter,
+                        onChanged: (int? newValue) {
+                          setState(() {
+                            _categoryIdFilter = newValue;
+                          });
+                        },
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('All'),
+                          ),
+                          ..._categories.map<DropdownMenuItem<int>>(
+                              (StoreItemCategory category) {
+                            return DropdownMenuItem<int>(
+                              value: category.id,
+                              child: Text(category.name),
+                            );
+                          }).toList(),
+                        ],
+                        isExpanded: true,
+                        hint: const Text('Select a category'),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Car Manufacturer'),
+                      DropdownButton<int>(
+                        value: _selectedCarModelsFilter.isEmpty
+                            ? _selectedManufacturerId
+                            : null,
+                        onChanged: (int? newValue) {
+                          setState(() {
+                            _selectedManufacturerId = newValue;
+                            selectedModel = null;
+                          });
+                        },
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('All'),
+                          ),
+                          ..._carModelsByManufacturer
+                              .map<DropdownMenuItem<int>>(
+                                  (CarModelsByManufacturer cm) {
+                            return DropdownMenuItem<int>(
+                              value: cm.manufacturer.id,
+                              child: Text(cm.manufacturer.name),
+                            );
+                          }).toList(),
+                        ],
+                        isExpanded: true,
+                        hint: const Text('Car Manufacturer'),
+                      ),
+                      if (_selectedManufacturerId != null) ...[
+                        const SizedBox(height: 20),
+                        const Text('Car Models'),
+                        DropdownButton<CarModel>(
+                          value: selectedModel,
+                          onChanged: (CarModel? newValue) {
                             setState(() {
-                              if (!selected) {
-                                _selectedCarModelsFilter.remove(model);
+                              if (newValue != null) {
+                                bool alreadyExists = _selectedCarModelsFilter
+                                    .any((model) => model.id == newValue.id);
+                                if (!alreadyExists) {
+                                  selectedModel = newValue;
+                                  _selectedCarModelsFilter.add(newValue);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Model already selected'),
+                                    ),
+                                  );
+                                }
                               }
                             });
                           },
-                          selected: true,
-                        );
-                      }).toList(),
-                    ),
-                  ],
+                          items: _carModelsByManufacturer
+                              .firstWhere((cm) =>
+                                  cm.manufacturer.id == _selectedManufacturerId)
+                              .models
+                              .map<DropdownMenuItem<CarModel>>(
+                                  (CarModel model) {
+                            return DropdownMenuItem<CarModel>(
+                              value: model,
+                              child: Text('${model.name} (${model.modelYear})'),
+                            );
+                          }).toList(),
+                          isExpanded: true,
+                          hint: const Text('Select a model'),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 4.0,
+                        children:
+                            _selectedCarModelsFilter.map((CarModel model) {
+                          return FilterChip(
+                            label: Text('${model.name} (${model.modelYear})'),
+                            onSelected: (bool selected) {
+                              setState(() {
+                                if (!selected) {
+                                  _selectedCarModelsFilter.remove(model);
+                                  if (_selectedCarModelsFilter.isEmpty) {
+                                    _selectedManufacturerId = null;
+                                  }
+                                }
+                              });
+                            },
+                            selected: true,
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -485,7 +498,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     );
   }
 
-  void _applyFilters() {
+  void _applyFiltersPaged() {
     final provider = Provider.of<StoreItemProvider>(context, listen: false);
     String? stateFilter;
     bool? discountFilter;
@@ -511,6 +524,42 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         state: stateFilter,
         categoryFilter: _categoryIdFilter,
         carModelsFilter: carModels,
+        carManufacturerId: _selectedManufacturerId,
+        pageNumber: _pageNumber,
+        pageSize: _pageSize);
+  }
+
+  void _applyFilters() {
+    final provider = Provider.of<StoreItemProvider>(context, listen: false);
+    String? stateFilter;
+    bool? discountFilter;
+    List<int> carModels;
+
+    if (_selectedStatusFilter != 'all') {
+      stateFilter = _selectedStatusFilter;
+    }
+    if (_selectedDiscountFilter == 'discounted') {
+      discountFilter = true;
+    } else if (_selectedDiscountFilter == 'non-discounted') {
+      discountFilter = false;
+    }
+    carModels = _selectedCarModelsFilter.map((model) => model.id).toList();
+
+    setState(() {
+      _isFilterApplied = true;
+    });
+
+    setState(() {
+      _pageNumber = 1;
+    });
+
+    provider.getStoreItems(
+        nameFilter: _filterName.isNotEmpty ? _filterName : null,
+        withDiscount: discountFilter,
+        state: stateFilter,
+        categoryFilter: _categoryIdFilter,
+        carModelsFilter: carModels,
+        carManufacturerId: _selectedManufacturerId,
         pageNumber: _pageNumber,
         pageSize: _pageSize);
   }
@@ -558,7 +607,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 await Provider.of<StoreItemProvider>(context, listen: false)
                     .deleteStoreItem(item.id)
                     .then((_) {
-                  _applyFilters();
+                  _applyFiltersPaged();
                 }).then((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -611,7 +660,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 await Provider.of<StoreItemProvider>(context, listen: false)
                     .activate(item.id)
                     .then((_) {
-                  _applyFilters();
+                  _applyFiltersPaged();
                 }).then((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -667,7 +716,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 await Provider.of<StoreItemProvider>(context, listen: false)
                     .hide(item.id)
                     .then((_) {
-                  _applyFilters();
+                  _applyFiltersPaged();
                 }).then((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -689,8 +738,59 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           ),
           child: const Text('Hide'),
         ),
+        ElevatedButton(
+          onPressed: () {
+            _showDetailsDialog(context, item);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).highlightColor,
+          ),
+          child: const Text('Details'),
+        ),
       ];
     }
+  }
+
+  Future<bool> _deleteImage() async {
+    bool delete = false;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Delete Image'),
+              content: const SizedBox(
+                width: 450,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Are you sure to delete the image?'),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    delete = false;
+                    Navigator.pop(context);
+                  },
+                  child: const Text('No'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    delete = true;
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Yes'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    return delete;
   }
 
   void _showEditForm(BuildContext context, StoreItem? item, bool edit) {
@@ -907,25 +1007,41 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         else
                           const Icon(Icons.image, size: 150),
                         const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () async {
-                            FilePickerResult? result =
-                                await FilePicker.platform.pickFiles(
-                              type: FileType.image,
-                            );
-                            if (result != null) {
-                              setState(() {
-                                imagePath = result.files.single.path;
-                                base64Image = base64Encode(
-                                    File(imagePath!).readAsBytesSync());
-                              });
-                            }
-                          },
-                          child: const Text('Select Image'),
-                        ),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () async {
+                                  bool delete = await _deleteImage();
+                                  if (delete) {
+                                    setState(() {
+                                      base64Image = "";
+                                    });
+                                  }
+                                },
+                                child: const Text('Delete Image'),
+                              ),
+                              const SizedBox(width: 20),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  FilePickerResult? result =
+                                      await FilePicker.platform.pickFiles(
+                                    type: FileType.image,
+                                  );
+                                  if (result != null) {
+                                    setState(() {
+                                      imagePath = result.files.single.path;
+                                      base64Image = base64Encode(
+                                          File(imagePath!).readAsBytesSync());
+                                    });
+                                  }
+                                },
+                                child: const Text('Select a New Image'),
+                              ),
+                            ]),
                         const SizedBox(height: 20),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             ElevatedButton(
                               onPressed: () {
@@ -933,11 +1049,13 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               },
                               child: const Text('Cancel'),
                             ),
+                            const SizedBox(width: 20),
                             ElevatedButton(
                               onPressed: () async {
                                 if (_formKey.currentState?.validate() ??
                                     false) {
-                                  newStoreItem.name = nameController.text;
+                                  newStoreItem.name =
+                                      nameController.text.trim();
                                   newStoreItem.price =
                                       double.tryParse(priceController.text);
                                   newStoreItem.discount = double.tryParse(
@@ -959,7 +1077,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                           .updateStoreItem(
                                               item!.id, newStoreItem)
                                           .then((_) {
-                                        _applyFilters();
+                                        _applyFiltersPaged();
                                       }).then((_) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
@@ -1025,9 +1143,124 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     );
   }
 
+  void _showDetailsDialog(BuildContext context, StoreItem item) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            item.name,
+            style: Theme.of(dialogContext).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          content: SingleChildScrollView(
+            child: Container(
+              constraints: const BoxConstraints(
+                maxWidth: 600,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (item.imageData != null) ...[
+                    if (item.imageData != "")
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.memory(
+                            base64Decode(item.imageData!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        child: const SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: Icon(Icons.image, size: 120),
+                        ),
+                      )
+                  ],
+                  _buildDetailRow('Price', '${item.price.toStringAsFixed(2)}€',
+                      dialogContext),
+                  if (item.discount != 0)
+                    _buildDetailRow(
+                        'Discount',
+                        '${(item.discount * 100).toStringAsFixed(2)}%',
+                        dialogContext),
+                  if (item.discount != 0)
+                    _buildDetailRow(
+                      'Discounted Price',
+                      '${item.discountedPrice.toStringAsFixed(2)}€',
+                      dialogContext,
+                    ),
+                  _buildDetailRow(
+                      'Category', item.category ?? "Unknown", dialogContext),
+                  _buildDetailRow(
+                    'Details',
+                    item.details ?? "No details available",
+                    dialogContext,
+                  ),
+                  _buildDetailRow(
+                    'Car Models',
+                    item.carModels != null && item.carModels!.isNotEmpty
+                        ? item.carModels!
+                            .map(
+                                (model) => '${model.name} (${model.modelYear})')
+                            .join(', ')
+                        : "Unknown",
+                    dialogContext,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String title, String value, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '$title:',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nameFilterController.dispose();
+    _pageNumber = 1;
     super.dispose();
   }
 }

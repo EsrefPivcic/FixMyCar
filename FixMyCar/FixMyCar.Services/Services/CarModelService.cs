@@ -23,20 +23,34 @@ namespace FixMyCar.Services.Services
 
         public async Task<PagedResult<CarModelGetByManufacturerDTO>> GetByManufacturerAll()
         {
-            var manufacturers = _mapper.Map<List<CarManufacturerGetDTO>>(await _context.CarManufacturers.ToListAsync());
+            var manufacturers = _mapper.Map<List<CarManufacturerGetDTO>>(
+                await _context.CarManufacturers
+                              .OrderBy(cm => cm.Name)
+                              .ToListAsync());
+
             var manufacturersmodels = new List<CarModelGetByManufacturerDTO>();
-            foreach (var manufacturer in manufacturers) 
+
+            foreach (var manufacturer in manufacturers)
             {
                 var manufacturermodels = new CarModelGetByManufacturerDTO()
                 {
                     Manufacturer = manufacturer,
-                    Models = _mapper.Map<List<CarModelGetDTO>>(await _context.CarModels.Where(cm => cm.CarManufacturerId == manufacturer.Id).ToListAsync())
+                    Models = _mapper.Map<List<CarModelGetDTO>>(
+                        await _context.CarModels
+                                      .Where(cm => cm.CarManufacturerId == manufacturer.Id)
+                                      .OrderBy(cm => cm.Name)
+                                      .ToListAsync())
                 };
+
                 manufacturersmodels.Add(manufacturermodels);
             }
-            PagedResult<CarModelGetByManufacturerDTO> pagedResult = new PagedResult<CarModelGetByManufacturerDTO>();
-            pagedResult.Result = manufacturersmodels;
-            pagedResult.Count = manufacturersmodels.Count;
+
+            PagedResult<CarModelGetByManufacturerDTO> pagedResult = new PagedResult<CarModelGetByManufacturerDTO>
+            {
+                Result = manufacturersmodels,
+                Count = manufacturersmodels.Count
+            };
+
             return pagedResult;
         }
     }

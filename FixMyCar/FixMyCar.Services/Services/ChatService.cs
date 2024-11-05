@@ -35,7 +35,7 @@ namespace FixMyCar.Services.Services
         public async Task<PagedResult<UserMinimalGetDTO>> GetChats(string username)
         {
             var participants = await _context.ChatMessages
-                .Where(cm => cm.SenderUserId == username || cm.RecipientUserId == username)
+                .Where(cm => (cm.SenderUserId == username || cm.RecipientUserId == username))
                 .Select(cm => cm.SenderUserId == username ? cm.RecipientUserId : cm.SenderUserId)
                 .Distinct()
                 .ToListAsync();

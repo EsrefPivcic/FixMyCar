@@ -68,8 +68,17 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
               ),
               actions: [
                 TextButton(
-                  child: const Text('Apply Filters'),
+                  child: const Text('Cancel'),
                   onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Apply'),
+                  onPressed: () {
+                    setState(() {
+                      _pageNumber = 1;
+                    });
                     _applyFilters();
                     Navigator.of(context).pop();
                   },

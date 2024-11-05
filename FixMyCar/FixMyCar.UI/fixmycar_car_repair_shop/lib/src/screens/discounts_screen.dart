@@ -335,6 +335,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
                             onChanged: (value) {
                               setState(() {
                                 _selectedStatus = value;
+                                _pageNumber = 1;
                                 _applyFilters();
                               });
                             },
@@ -497,14 +498,16 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
                                                           discount.id,
                                                           discount.value),
                                                 ),
-                                              ],
-                                              IconButton(
-                                                tooltip: "Delete from history",
-                                                icon: const Icon(Icons
-                                                    .delete_forever_rounded),
-                                                onPressed: () =>
-                                                    _confirmDelete(discount.id),
-                                              ),
+                                              ] else
+                                                IconButton(
+                                                  tooltip:
+                                                      "Delete from history",
+                                                  icon: const Icon(Icons
+                                                      .delete_forever_rounded),
+                                                  onPressed: () =>
+                                                      _confirmDelete(
+                                                          discount.id),
+                                                ),
                                             ],
                                           ),
                                         ),
@@ -565,6 +568,7 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
   @override
   void dispose() {
     _editDiscountController.dispose();
+    _pageNumber = 1;
     super.dispose();
   }
 }

@@ -3,6 +3,7 @@ import 'package:fixmycar_client/src/models/order/order_search_object.dart';
 import 'package:fixmycar_client/src/providers/order_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/order_provider.dart';
 import 'package:fixmycar_client/src/models/order/order.dart';
+import 'package:fixmycar_client/src/screens/car_parts_shops_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
@@ -164,7 +165,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Update Order'),
+          title: const Text('Update Address'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return Form(
@@ -457,7 +458,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                       backgroundColor: const Color.fromARGB(
                                           204, 18, 121, 211),
                                     ),
-                                    child: const Text('Update Order'),
+                                    child: const Text('Update Address'),
                                   ),
                                 ),
                               ],
@@ -830,6 +831,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             ListTile(
               title: ElevatedButton(
                 onPressed: () async {
+                  setState(() {
+                    _pageNumber = 1;
+                  });
                   await Provider.of<OrderProvider>(context, listen: false)
                       .getByClient(
                           orderSearch: filterCriteria,
@@ -854,187 +858,205 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     if (!isLoading) {
       _totalPages = (ordersProvider.countOfItems / _pageSize).ceil();
     }
-    return MasterScreen(
-      child: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.filter_list),
-                  onPressed: _showFilterDialog,
-                  label: const Text("Show Filters"),
-                ),
-                orders.isEmpty
-                    ? const Expanded(child: Text("No orders to show"))
-                    : Expanded(
-                        child: ListView.builder(
-                          itemCount: orders.length,
-                          itemBuilder: (context, index) {
-                            final order = orders[index];
-                            return ListTile(
-                              title: Text.rich(
-                                TextSpan(
+    return Scaffold(
+      body: MasterScreen(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.filter_list),
+                    onPressed: _showFilterDialog,
+                    label: const Text("Show Filters"),
+                  ),
+                  orders.isEmpty
+                      ? const Expanded(
+                          child: Center(child: Text('No orders to show.')))
+                      : Expanded(
+                          child: ListView.builder(
+                            itemCount: orders.length,
+                            itemBuilder: (context, index) {
+                              final order = orders[index];
+                              return ListTile(
+                                title: Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: 'Order #${order.id}',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    TextSpan(
-                                      text: 'Order #${order.id}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Car Parts Shop: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(text: order.carPartsShopName)
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Order Date: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text:
+                                                  _formatDate(order.orderDate))
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Shipping Date: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text: order.shippingDate == null
+                                                  ? "No shipping date"
+                                                  : _formatDate(
+                                                      order.shippingDate!))
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Total Amount: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text:
+                                                  '€${order.totalAmount.toStringAsFixed(2)}')
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Discount: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text:
+                                                  '${(order.clientDiscountValue * 100).toStringAsFixed(2)}%')
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'State: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text:
+                                                  _getDisplayState(order.state),
+                                              style: TextStyle(
+                                                  color: _getStateColor(
+                                                      order.state))),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Car Parts Shop: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(text: order.carPartsShopName)
-                                      ],
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: order.state == "onhold"
+                                          ? const Icon(Icons.settings)
+                                          : const Icon(Icons.info_outline),
+                                      onPressed: () {
+                                        _showOrderDetails(context, order);
+                                      },
                                     ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Order Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: _formatDate(order.orderDate))
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Shipping Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: order.shippingDate == null
-                                                ? "No shipping date"
-                                                : _formatDate(
-                                                    order.shippingDate!))
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Total Amount: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text:
-                                                '€${order.totalAmount.toStringAsFixed(2)}')
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Discount: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text:
-                                                '${(order.clientDiscountValue * 100).toStringAsFixed(2)}%')
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'State: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: _getDisplayState(order.state),
-                                            style: TextStyle(
-                                                color: _getStateColor(
-                                                    order.state))),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: order.state == "onhold"
-                                        ? const Icon(Icons.settings)
-                                        : const Icon(Icons.info_outline),
-                                    onPressed: () {
-                                      _showOrderDetails(context, order);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              onTap: () {
-                                _showOrderDetails(context, order);
-                              },
-                            );
-                          },
+                                  ],
+                                ),
+                                onTap: () {
+                                  _showOrderDetails(context, order);
+                                },
+                              );
+                            },
+                          ),
                         ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _pageNumber > 1
+                            ? () async {
+                                setState(() {
+                                  _pageNumber = _pageNumber - 1;
+                                });
+                                await Provider.of<OrderProvider>(context,
+                                        listen: false)
+                                    .getByClient(
+                                        orderSearch: filterCriteria,
+                                        pageNumber: _pageNumber,
+                                        pageSize: _pageSize);
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: _pageNumber > 1
-                          ? () async {
-                              setState(() {
-                                _pageNumber = _pageNumber - 1;
-                              });
-                              await Provider.of<OrderProvider>(context,
-                                      listen: false)
-                                  .getByClient(
-                                      orderSearch: filterCriteria,
-                                      pageNumber: _pageNumber,
-                                      pageSize: _pageSize);
-                            }
-                          : null,
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                    ),
-                    Text('$_pageNumber',
-                        style: Theme.of(context).textTheme.bodyLarge),
-                    IconButton(
-                      onPressed: _pageNumber < _totalPages
-                          ? () async {
-                              setState(() {
-                                _pageNumber = _pageNumber + 1;
-                              });
-                              await Provider.of<OrderProvider>(context,
-                                      listen: false)
-                                  .getByClient(
-                                      orderSearch: filterCriteria,
-                                      pageNumber: _pageNumber,
-                                      pageSize: _pageSize);
-                            }
-                          : null,
-                      icon: const Icon(Icons.arrow_forward_ios_rounded),
-                    ),
-                  ],
-                ),
-              ],
+                      Text('$_pageNumber',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      IconButton(
+                        onPressed: _pageNumber < _totalPages
+                            ? () async {
+                                setState(() {
+                                  _pageNumber = _pageNumber + 1;
+                                });
+                                await Provider.of<OrderProvider>(context,
+                                        listen: false)
+                                    .getByClient(
+                                        orderSearch: filterCriteria,
+                                        pageNumber: _pageNumber,
+                                        pageSize: _pageSize);
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'shopsButton',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CarPartsShopsScreen(),
             ),
+          );
+        },
+        backgroundColor: Theme.of(context).hoverColor,
+        child: const Icon(Icons.shop, color: Colors.white),
+      ),
     );
   }
 }

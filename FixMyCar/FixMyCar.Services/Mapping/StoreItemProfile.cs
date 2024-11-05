@@ -18,10 +18,8 @@ namespace FixMyCar.Services.Mapping
                 .ForMember(dest => dest.ImageData, opt => opt.MapFrom(src => src.ImageData != null ? Convert.FromBase64String(src.ImageData!) : null))
                 .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount != null ? src.Discount : 0));
             CreateMap<StoreItemUpdateDTO, StoreItem>()
-                .ForMember(dest => dest.ImageData, opt =>
-                {
-                    opt.MapFrom(src => Convert.FromBase64String(src.ImageData!));
-                }).ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                .ForMember(dest => dest.ImageData, opt => opt.MapFrom(src => src.ImageData != null && src.ImageData != "" ? Convert.FromBase64String(src.ImageData!) : null))
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<StoreItemGetDTO, StoreItem>();
             CreateMap<StoreItem, StoreItemInsertDTO>();
             CreateMap<StoreItem, StoreItemUpdateDTO>();

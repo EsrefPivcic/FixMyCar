@@ -22,15 +22,41 @@ namespace FixMyCar.Services.StateMachineServices.CarRepairShopServiceStateMachin
 
         public async override Task<CarRepairShopServiceGetDTO> Update(Model.Entities.CarRepairShopService entity, CarRepairShopServiceUpdateDTO request)
         {
-            _mapper.Map(request, entity);
-
-            entity.DiscountedPrice = entity.Price - (entity.Price * entity.Discount);
-
             if (request.ImageData != null)
             {
-                byte[] newImage = Convert.FromBase64String(request.ImageData);
-                entity.ImageData = ImageHelper.Resize(newImage, 150);
+                if (request.ImageData != "")
+                {
+                    byte[] newImage = Convert.FromBase64String(request.ImageData);
+                    entity.ImageData = ImageHelper.Resize(newImage, 150);
+                }
+                else
+                {
+                    entity.ImageData = null;
+                }
             }
+
+            if (request.ServiceTypeId != null && request.ServiceTypeId != entity.ServiceTypeId)
+            {
+                ServiceType? serviceType = await _context.ServiceTypes.FindAsync(request.ServiceTypeId);
+
+                if (serviceType?.Name == "Repairs")
+                {
+                    entity.ImageData = serviceType.Image;
+                }
+                else if (serviceType?.Name == "Diagnostics")
+                {
+                    entity.ImageData = serviceType.Image;
+                }
+                else
+                {
+                    entity.ImageData = null;
+                }
+
+                entity.ServiceTypeId = (int)request.ServiceTypeId;
+            }
+
+            _mapper.Map(request, entity);
+            entity.DiscountedPrice = entity.Price - (entity.Price * entity.Discount);
 
             await _context.SaveChangesAsync();
 

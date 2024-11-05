@@ -17,6 +17,7 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
     bool? withDiscount,
     String? state,
     int? categoryFilter,
+    int? carManufacturerId,
     List<int>? carModelsFilter,
   }) async {
     isLoading = true;
@@ -37,6 +38,9 @@ class StoreItemProvider extends BaseProvider<StoreItem, StoreItem> {
     }
     if (categoryFilter != null) {
       queryParams['StoreItemCategoryId'] = categoryFilter.toString();
+    }
+    if (carManufacturerId != null) {
+      queryParams['CarManufacturerId'] = carManufacturerId.toString();
     }
     if (carModelsFilter != null && carModelsFilter.isNotEmpty) {
       queryParams['CarModelIds'] =

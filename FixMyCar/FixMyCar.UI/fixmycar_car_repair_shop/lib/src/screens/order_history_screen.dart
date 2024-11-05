@@ -165,7 +165,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Update Order'),
+          title: const Text('Update Address'),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return Form(
@@ -316,221 +316,225 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Order Details',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8.0),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Car Parts Shop: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: order.carPartsShopName),
-                          ],
+          child: SizedBox(
+            width: 600,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Order Details',
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Order Date: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: _formatDate(order.orderDate)),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Shipping Date: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                              text: order.shippingDate == null
-                                  ? "No shipping date"
-                                  : _formatDate(order.shippingDate!),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Total: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                                text:
-                                    '€${order.totalAmount.toStringAsFixed(2)}'),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Discount: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(
-                                text:
-                                    '${(order.clientDiscountValue * 100).toStringAsFixed(2)}%'),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'State: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: _getDisplayState(order.state)),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Shipping City: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: order.shippingCity),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Shipping Address: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: order.shippingAddress),
-                          ],
-                        ),
-                      ),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(
-                              text: 'Postal Code: ',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            TextSpan(text: order.shippingPostalCode),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      Text(
-                        'Order Items',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8.0),
-                      Expanded(
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: orderDetails.length,
-                          itemBuilder: (context, index) {
-                            final orderDetail = orderDetails[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: ExpansionTile(
-                                title: Text(orderDetail.storeItemName),
-                                subtitle: Text(
-                                    'Quantity: ${orderDetail.quantity}, Total: €${orderDetail.totalItemsPrice.toStringAsFixed(2)}'),
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0, vertical: 8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                            'Unit Price: €${orderDetail.unitPrice.toStringAsFixed(2)}'),
-                                        Text(
-                                            'Total Items Price: €${orderDetail.totalItemsPrice.toStringAsFixed(2)}'),
-                                        Text(
-                                            'Discounted Price: €${orderDetail.totalItemsPriceDiscounted.toStringAsFixed(2)}'),
-                                        Text(
-                                            'Discount: ${orderDetail.discount * 100}%'),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                        const SizedBox(height: 8.0),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Car Parts Shop: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).hoverColor,
-                            ),
-                            child: const Text("Close"),
+                              TextSpan(text: order.carPartsShopName),
+                            ],
                           ),
-                          if (order.state == "onhold") ...[
-                            const SizedBox(width: 8.0),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Order Date: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: _formatDate(order.orderDate)),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Shipping Date: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                text: order.shippingDate == null
+                                    ? "No shipping date"
+                                    : _formatDate(order.shippingDate!),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Total: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                  text:
+                                      '€${order.totalAmount.toStringAsFixed(2)}'),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Discount: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(
+                                  text:
+                                      '${(order.clientDiscountValue * 100).toStringAsFixed(2)}%'),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'State: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: _getDisplayState(order.state)),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Shipping City: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: order.shippingCity),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Shipping Address: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: order.shippingAddress),
+                            ],
+                          ),
+                        ),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'Postal Code: ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: order.shippingPostalCode),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        Text(
+                          'Order Items',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 8.0),
+                        Expanded(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: orderDetails.length,
+                            itemBuilder: (context, index) {
+                              final orderDetail = orderDetails[index];
+                              return Card(
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 4.0),
+                                child: ExpansionTile(
+                                  title: Text(orderDetail.storeItemName),
+                                  subtitle: Text(
+                                      'Quantity: ${orderDetail.quantity}, Total: €${orderDetail.totalItemsPrice.toStringAsFixed(2)}'),
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0, vertical: 8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                              'Unit Price: €${orderDetail.unitPrice.toStringAsFixed(2)}'),
+                                          Text(
+                                              'Total Items Price: €${orderDetail.totalItemsPrice.toStringAsFixed(2)}'),
+                                          Text(
+                                              'Discounted Price: €${orderDetail.totalItemsPriceDiscounted.toStringAsFixed(2)}'),
+                                          Text(
+                                              'Discount: ${orderDetail.discount * 100}%'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
                             ElevatedButton(
                               onPressed: () async {
-                                await _confirmCancel(order.id);
+                                Navigator.of(context).pop();
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
+                                backgroundColor: Theme.of(context).hoverColor,
                               ),
-                              child: const Text('Cancel Order'),
+                              child: const Text("Close"),
                             ),
-                            const SizedBox(width: 8.0),
-                            ElevatedButton(
-                              onPressed: () async {
-                                showUpdateForm(order);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(204, 18, 121, 211),
+                            if (order.state == "onhold") ...[
+                              const SizedBox(width: 8.0),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await _confirmCancel(order.id);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                ),
+                                child: const Text('Cancel Order'),
                               ),
-                              child: const Text('Update Order'),
-                            ),
+                              const SizedBox(width: 8.0),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  showUpdateForm(order);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      const Color.fromARGB(204, 18, 121, 211),
+                                ),
+                                child: const Text('Update Address'),
+                              ),
+                            ],
+                            if (order.state != "onhold") ...[
+                              const SizedBox(width: 8.0),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await _confirmDelete(order.id);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                ),
+                                child: const Text('Delete From History'),
+                              ),
+                            ],
                           ],
-                          if (order.state != "onhold") ...[
-                            const SizedBox(width: 8.0),
-                            ElevatedButton(
-                              onPressed: () async {
-                                await _confirmDelete(order.id);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              child: const Text('Delete From History'),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+            ),
           ),
         );
       },
@@ -866,6 +870,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           ListTile(
             title: ElevatedButton(
               onPressed: () async {
+                setState(() {
+                  _pageNumber = 1;
+                });
                 await Provider.of<OrderProvider>(context, listen: false)
                     .getByCarRepairShop(
                         orderSearch: filterCriteria,
@@ -1090,5 +1097,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               ],
             ),
     );
+  }
+
+  @override
+  void dispose() {
+    _pageNumber = 1;
+    super.dispose();
   }
 }

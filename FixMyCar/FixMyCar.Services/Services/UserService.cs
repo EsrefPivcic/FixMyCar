@@ -37,7 +37,7 @@ namespace FixMyCar.Services.Services
             }
             else
             {
-                var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == username);
+                var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == username && x.Active);
 
                 if (user != null)
                 {
@@ -99,8 +99,11 @@ namespace FixMyCar.Services.Services
 
                 foreach (var token in tokens)
                 {
-                    token.Revoked = DateTime.Now;
-                    await _context.SaveChangesAsync();
+                    if (token.Revoked == null)
+                    {
+                        token.Revoked = DateTime.Now;
+                        await _context.SaveChangesAsync();
+                    }
                 }
             }
             else
@@ -116,8 +119,15 @@ namespace FixMyCar.Services.Services
 
             if (entity != null)
             {
-                byte[] newImage = Convert.FromBase64String(request.Image);
-                entity.Image = ImageHelper.Resize(newImage, 150);
+                if (request.Image != "")
+                {
+                    byte[] newImage = Convert.FromBase64String(request.Image);
+                    entity.Image = ImageHelper.Resize(newImage, 150);
+                }
+                else
+                {
+                    entity.Image = null;
+                }
                 await _context.SaveChangesAsync();
             }
             else

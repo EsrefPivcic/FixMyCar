@@ -1,0 +1,9 @@
+ReservationCreatedDate,ReservationDate,Customer,TotalAmount,Type,Discount
+2024-11-04,2024-11-25,Nancy Cole (client),213.50,Repairs,No discount
+2024-11-04,2024-11-28,Adrian Parker (client2),190.00,Repairs,No discount
+2024-11-04,2024-11-21,Nancy Cole (client),182.80,Repairs and Diagnostics,No discount
+2024-11-04,2024-11-19,Nancy Cole (client),155.00,Repairs and Diagnostics,No discount
+2024-11-04,2024-11-21,Nancy Cole (client),129.30,Diagnostics,No discount
+2024-11-04,2024-11-19,Nancy Cole (client),127.80,Repairs and Diagnostics,No discount
+2024-11-04,2024-11-25,Adrian Parker (client2),95.00,Diagnostics,No discount
+2024-11-04,2024-11-22,Adrian Parker (client2),62.80,Repairs and Diagnostics,No discount

@@ -22,6 +22,7 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
 
     queryParams['PageNumber'] = pageNumber.toString();
     queryParams['PageSize'] = pageSize.toString();
+    queryParams['Active'] = true.toString();
 
     if (search != null) {
       if (search.containsUsername != null) {

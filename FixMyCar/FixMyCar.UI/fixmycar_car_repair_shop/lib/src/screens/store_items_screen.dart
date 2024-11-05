@@ -1,5 +1,4 @@
 import 'package:fixmycar_car_repair_shop/constants.dart';
-import 'package:fixmycar_car_repair_shop/src/models/car_manufacturer/car_manufacturer.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_model/car_model.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_model/car_models_by_manufacturer.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_parts_shop_discount/car_parts_shop_discount.dart';
@@ -38,6 +37,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late User carPartsShopDetails;
   List<String>? _cities;
   String? _selectedCity;
+  int _pageNumber = 1;
+  final int _pageSize = 10;
+  int _totalPages = 1;
 
   @override
   void initState() {
@@ -48,8 +50,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     carPartsShopDetails = widget.carPartsShop;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      Provider.of<StoreItemProvider>(context, listen: false)
-          .getStoreItems(carPartsShopName: carPartsShopFilter);
+      Provider.of<StoreItemProvider>(context, listen: false).getStoreItems(
+          pageNumber: _pageNumber,
+          pageSize: _pageSize,
+          carPartsShopName: carPartsShopFilter);
 
       await _fetchCarModelsAndCategories();
       await _fetchDiscounts();
@@ -61,6 +65,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   String _filterName = '';
   bool _isFilterApplied = false;
   int? _categoryIdFilter;
+  int? _selectedManufacturerId;
   List<CarModel> _selectedCarModelsFilter = [];
   List<StoreItemCategory> _categories = [];
   List<CarModelsByManufacturer> _carModelsByManufacturer = [];
@@ -69,6 +74,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late List<StoreItem> recommendedItems;
 
   List<StoreItemOrder> orderedItems = [];
+  List<StoreItem> orderedItemsDetails = [];
   bool useProfileAddress = true;
   TextEditingController cityController = TextEditingController();
   TextEditingController addressController = TextEditingController();
@@ -102,7 +108,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     if (orderedItems.isNotEmpty) {
       double totalAmount = 0;
       for (var item in orderedItems) {
-        StoreItem itemDetails = loadedItems
+        StoreItem itemDetails = orderedItemsDetails
             .firstWhere((loadedItem) => loadedItem.id == item.storeItemId);
         double itemAmount = itemDetails.discountedPrice * item.quantity;
         totalAmount = totalAmount + itemAmount;
@@ -155,15 +161,15 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                             itemBuilder: (context, index) {
                               final order = orderedItems[index];
                               final storeItemName =
-                                  'Item ${loadedItems.firstWhere((item) => item.id == order.storeItemId).name}';
+                                  'Item ${orderedItemsDetails.firstWhere((item) => item.id == order.storeItemId).name}';
                               return ListTile(
-                                leading: loadedItems
+                                leading: orderedItemsDetails
                                             .firstWhere((item) =>
                                                 item.id == order.storeItemId)
                                             .imageData !=
                                         ""
                                     ? Image.memory(
-                                        base64Decode(loadedItems
+                                        base64Decode(orderedItemsDetails
                                             .firstWhere((item) =>
                                                 item.id == order.storeItemId)
                                             .imageData!),
@@ -174,7 +180,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                     : const SizedBox(
                                         width: 200,
                                         height: 200,
-                                        child: Icon(Icons.image, size: 150),
+                                        child: Icon(Icons.image, size: 50),
                                       ),
                                 title: Text(storeItemName),
                                 subtitle: Text('Quantity: ${order.quantity}'),
@@ -367,6 +373,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               onPressed: () {
                 setState(() {
                   orderedItems.clear();
+                  orderedItemsDetails.clear();
                   cityController.clear();
                   addressController.clear();
                   postalCodeController.clear();
@@ -388,72 +395,95 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   }
 
   Future<void> _confirmPlaceOrder(BuildContext context, String card) async {
+    bool working = false;
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Place Order'),
-          content: const Text('Are you sure you want to place this order?'),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                OrderInsertUpdate newOrder;
-                if (useProfileAddress) {
-                  newOrder = OrderInsertUpdate(carPartsShopId,
-                      useProfileAddress, "", "", "", orderedItems);
-                } else {
-                  newOrder = OrderInsertUpdate(
-                      carPartsShopId,
-                      useProfileAddress,
-                      _selectedCity == 'Custom'
-                          ? cityController.text
-                          : _selectedCity!,
-                      addressController.text,
-                      postalCodeController.text,
-                      orderedItems);
-                }
-                try {
-                  await Provider.of<OrderProvider>(context, listen: false)
-                      .insertOrder(newOrder, card)
-                      .then((_) {
-                    setState(() {
-                      orderedItems.clear();
-                      cityController.clear();
-                      addressController.clear();
-                      postalCodeController.clear();
-                      _selectedCity = _cities![0];
-                    });
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Order successful!"),
-                      ),
-                    );
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const OrderHistoryScreen(),
-                      ),
-                    );
-                  });
-                } catch (e) {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(e.toString()),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              title: const Text('Place Order'),
+              content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Are you sure you want to place this order?'),
+                    const SizedBox(
+                      height: 10,
                     ),
-                  );
-                }
-              },
-              child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('No'),
-            ),
-          ],
+                    if (working)
+                      const SizedBox(
+                          height: 30,
+                          width: 30,
+                          child: CircularProgressIndicator()),
+                  ]),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    setDialogState(() {
+                      working = true;
+                    });
+                    OrderInsertUpdate newOrder;
+                    if (useProfileAddress) {
+                      newOrder = OrderInsertUpdate(carPartsShopId,
+                          useProfileAddress, "", "", "", orderedItems);
+                    } else {
+                      newOrder = OrderInsertUpdate(
+                          carPartsShopId,
+                          useProfileAddress,
+                          _selectedCity == 'Custom'
+                              ? cityController.text
+                              : _selectedCity!,
+                          addressController.text,
+                          postalCodeController.text,
+                          orderedItems);
+                    }
+                    try {
+                      await Provider.of<OrderProvider>(context, listen: false)
+                          .insertOrder(newOrder, card)
+                          .then((_) {
+                        setState(() {
+                          orderedItems = [];
+                          orderedItemsDetails = [];
+                          cityController.clear();
+                          addressController.clear();
+                          postalCodeController.clear();
+                          _selectedCity = _cities![0];
+                        });
+                      }).then((_) {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Order processed!"),
+                          ),
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrderHistoryScreen(),
+                          ),
+                        );
+                      });
+                    } catch (e) {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.toString()),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Yes'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('No'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -474,11 +504,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
             orElse: () => StoreItemOrder(storeItemId, 0));
         if (existingOrder.quantity == 0) {
           orderedItems.add(StoreItemOrder(storeItemId, quantity));
+          orderedItemsDetails
+              .add(loadedItems.firstWhere((item) => item.id == storeItemId));
         } else {
           existingOrder.quantity = quantity;
         }
       } else {
         orderedItems.removeWhere((order) => order.storeItemId == storeItemId);
+        orderedItemsDetails.removeWhere((item) => item.id == storeItemId);
       }
     });
   }
@@ -524,18 +557,30 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (item.imageData != null && item.imageData!.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      height: 150,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.memory(
-                          base64Decode(item.imageData!),
-                          fit: BoxFit.cover,
+                  if (item.imageData != null) ...[
+                    if (item.imageData != "")
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.memory(
+                            base64Decode(item.imageData!),
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ),
-                    ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        child: const SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: Icon(Icons.image, size: 120),
+                        ),
+                      )
+                  ],
                   _buildDetailRow('Price', '${item.price.toStringAsFixed(2)}€',
                       dialogContext),
                   if (item.discount != 0)
@@ -549,7 +594,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       '${item.discountedPrice.toStringAsFixed(2)}€',
                       dialogContext,
                     ),
-                  _buildDetailRow('State', item.state, dialogContext),
                   _buildDetailRow(
                       'Category', item.category ?? "Unknown", dialogContext),
                   _buildDetailRow(
@@ -648,7 +692,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         child: Consumer<StoreItemProvider>(
           builder: (context, provider, child) {
             loadedItems = provider.items;
-
+            if (!provider.isLoading) {
+              _totalPages = (provider.countOfItems / _pageSize).ceil();
+            }
             return Column(
               children: [
                 Padding(
@@ -718,7 +764,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               Expanded(
                                 child: Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
+                                    padding: const EdgeInsets.only(
+                                        bottom: 8.0, top: 5.0),
                                     child: item.imageData != ""
                                         ? Image.memory(
                                             base64Decode(item.imageData!),
@@ -729,7 +776,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                         : const SizedBox(
                                             width: 200,
                                             height: 200,
-                                            child: Icon(Icons.image, size: 150),
+                                            child: Icon(Icons.image, size: 120),
                                           ),
                                   ),
                                 ),
@@ -780,7 +827,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               ),
                               if (item.discount != 0)
                                 Padding(
-                                  padding: const EdgeInsets.all(5.0),
+                                  padding: const EdgeInsets.only(bottom: 5.0),
                                   child: Text(
                                     'Discount: ${(item.discount * 100).toStringAsFixed(2)}%',
                                     style: Theme.of(context)
@@ -794,14 +841,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Text(
-                                  'Category: ${item.category == "" ? "Unknown" : item.category}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
                               Padding(
                                 padding: const EdgeInsets.all(5.0),
                                 child: Text(
@@ -855,6 +894,37 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       },
                     ),
                   ),
+                if (provider.items.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _pageNumber > 1
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber - 1;
+                                  _applyFiltersPaged();
+                                });
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      ),
+                      Text('$_pageNumber',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      IconButton(
+                        onPressed: _pageNumber < _totalPages
+                            ? () {
+                                setState(() {
+                                  _pageNumber = _pageNumber + 1;
+                                });
+                                _applyFiltersPaged();
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             );
           },
@@ -870,9 +940,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
 
   void _showFilterDialog(BuildContext context) {
     _nameFilterController.text = _filterName;
-    CarManufacturer? selectedManufacturer;
     CarModel? selectedModel;
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -880,153 +948,180 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
               title: const Text('Filters'),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Filter by Name'),
-                    TextField(
-                      decoration: const InputDecoration(hintText: 'Enter name'),
-                      controller: _nameFilterController,
-                      onChanged: (value) {
-                        setState(() {
-                          _filterName = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Discount Status'),
-                    RadioListTile<String>(
-                      title: const Text('Discounted'),
-                      value: 'discounted',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Non-Discounted'),
-                      value: 'non-discounted',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('All'),
-                      value: 'all',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    DropdownButton<int>(
-                      value: _categoryIdFilter,
-                      onChanged: (int? newValue) {
-                        setState(() {
-                          _categoryIdFilter = newValue;
-                        });
-                      },
-                      items: [
-                        const DropdownMenuItem<int>(
-                          value: null,
-                          child: Text('All'),
-                        ),
-                        ..._categories.map<DropdownMenuItem<int>>(
-                            (StoreItemCategory category) {
-                          return DropdownMenuItem<int>(
-                            value: category.id,
-                            child: Text(category.name),
-                          );
-                        }).toList(),
-                      ],
-                      isExpanded: true,
-                      hint: const Text('Select a category'),
-                    ),
-                    const SizedBox(height: 20),
-                    DropdownButton<CarManufacturer>(
-                      value: selectedManufacturer,
-                      onChanged: (CarManufacturer? newValue) {
-                        setState(() {
-                          selectedManufacturer = newValue;
-                          selectedModel = null;
-                        });
-                      },
-                      items: _carModelsByManufacturer
-                          .map<DropdownMenuItem<CarManufacturer>>(
-                              (CarModelsByManufacturer cm) {
-                        return DropdownMenuItem<CarManufacturer>(
-                          value: cm.manufacturer,
-                          child: Text(cm.manufacturer.name),
-                        );
-                      }).toList(),
-                      isExpanded: true,
-                      hint: const Text('Select a manufacturer'),
-                    ),
-                    if (selectedManufacturer != null)
-                      const SizedBox(height: 20),
-                    if (selectedManufacturer != null)
-                      DropdownButton<CarModel>(
-                        value: selectedModel,
-                        onChanged: (CarModel? newValue) {
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Filter by Name'),
+                      TextField(
+                        decoration:
+                            const InputDecoration(hintText: 'Enter name'),
+                        controller: _nameFilterController,
+                        onChanged: (value) {
                           setState(() {
-                            if (newValue != null) {
-                              bool alreadyExists = _selectedCarModelsFilter
-                                  .any((model) => model.id == newValue.id);
-                              if (!alreadyExists) {
-                                selectedModel = newValue;
-                                _selectedCarModelsFilter.add(newValue);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Model already selected'),
-                                  ),
-                                );
-                              }
-                            }
+                            _filterName = value;
                           });
                         },
-                        items: _carModelsByManufacturer
-                            .firstWhere((cm) =>
-                                cm.manufacturer == selectedManufacturer!)
-                            .models
-                            .map<DropdownMenuItem<CarModel>>((CarModel model) {
-                          return DropdownMenuItem<CarModel>(
-                            value: model,
-                            child: Text('${model.name} (${model.modelYear})'),
-                          );
-                        }).toList(),
-                        isExpanded: true,
-                        hint: const Text('Select a model'),
                       ),
-                    const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 8.0,
-                      runSpacing: 4.0,
-                      children: _selectedCarModelsFilter.map((CarModel model) {
-                        return FilterChip(
-                          label: Text('${model.name} (${model.modelYear})'),
-                          onSelected: (bool selected) {
+                      const SizedBox(height: 20),
+                      const Text('Discount Status'),
+                      RadioListTile<String>(
+                        title: const Text('Discounted'),
+                        value: 'discounted',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('Non-Discounted'),
+                        value: 'non-discounted',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('All'),
+                        value: 'all',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Category'),
+                      DropdownButton<int>(
+                        value: _categoryIdFilter,
+                        onChanged: (int? newValue) {
+                          setState(() {
+                            _categoryIdFilter = newValue;
+                          });
+                        },
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('All'),
+                          ),
+                          ..._categories.map<DropdownMenuItem<int>>(
+                              (StoreItemCategory category) {
+                            return DropdownMenuItem<int>(
+                              value: category.id,
+                              child: Text(category.name),
+                            );
+                          }).toList(),
+                        ],
+                        isExpanded: true,
+                        hint: const Text('Select a category'),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Car Manufacturer'),
+                      DropdownButton<int>(
+                        value: _selectedCarModelsFilter.isEmpty
+                            ? _selectedManufacturerId
+                            : null,
+                        onChanged: (int? newValue) {
+                          setState(() {
+                            _selectedManufacturerId = newValue;
+                            selectedModel = null;
+                          });
+                        },
+                        items: [
+                          const DropdownMenuItem<int>(
+                            value: null,
+                            child: Text('All'),
+                          ),
+                          ..._carModelsByManufacturer
+                              .map<DropdownMenuItem<int>>(
+                                  (CarModelsByManufacturer cm) {
+                            return DropdownMenuItem<int>(
+                              value: cm.manufacturer.id,
+                              child: Text(cm.manufacturer.name),
+                            );
+                          }).toList(),
+                        ],
+                        isExpanded: true,
+                        hint: const Text('Car Manufacturer'),
+                      ),
+                      if (_selectedManufacturerId != null) ...[
+                        const SizedBox(height: 20),
+                        const Text('Car Models'),
+                        DropdownButton<CarModel>(
+                          value: selectedModel,
+                          onChanged: (CarModel? newValue) {
                             setState(() {
-                              if (!selected) {
-                                _selectedCarModelsFilter.remove(model);
+                              if (newValue != null) {
+                                bool alreadyExists = _selectedCarModelsFilter
+                                    .any((model) => model.id == newValue.id);
+                                if (!alreadyExists) {
+                                  selectedModel = newValue;
+                                  _selectedCarModelsFilter.add(newValue);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Model already selected'),
+                                    ),
+                                  );
+                                }
                               }
                             });
                           },
-                          selected: true,
-                        );
-                      }).toList(),
-                    ),
-                  ],
+                          items: _carModelsByManufacturer
+                              .firstWhere((cm) =>
+                                  cm.manufacturer.id == _selectedManufacturerId)
+                              .models
+                              .map<DropdownMenuItem<CarModel>>(
+                                  (CarModel model) {
+                            return DropdownMenuItem<CarModel>(
+                              value: model,
+                              child: Text('${model.name} (${model.modelYear})'),
+                            );
+                          }).toList(),
+                          isExpanded: true,
+                          hint: const Text('Select a model'),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      Wrap(
+                        spacing: 8.0,
+                        runSpacing: 4.0,
+                        children:
+                            _selectedCarModelsFilter.map((CarModel model) {
+                          return FilterChip(
+                            label: Text('${model.name} (${model.modelYear})'),
+                            onSelected: (bool selected) {
+                              setState(() {
+                                if (!selected) {
+                                  _selectedCarModelsFilter.remove(model);
+                                  if (_selectedCarModelsFilter.isEmpty) {
+                                    _selectedManufacturerId = null;
+                                  }
+                                }
+                              });
+                            },
+                            selected: true,
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
                 TextButton(
                   child: const Text('Apply Filters'),
                   onPressed: () {
@@ -1040,6 +1135,33 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         );
       },
     );
+  }
+
+  void _applyFiltersPaged() {
+    final provider = Provider.of<StoreItemProvider>(context, listen: false);
+    bool? discountFilter;
+    List<int> carModels;
+
+    if (_selectedDiscountFilter == 'discounted') {
+      discountFilter = true;
+    } else if (_selectedDiscountFilter == 'non-discounted') {
+      discountFilter = false;
+    }
+    carModels = _selectedCarModelsFilter.map((model) => model.id).toList();
+
+    setState(() {
+      _isFilterApplied = true;
+    });
+
+    provider.getStoreItems(
+        pageNumber: _pageNumber,
+        pageSize: _pageSize,
+        carPartsShopName: carPartsShopFilter,
+        nameFilter: _filterName.isNotEmpty ? _filterName : null,
+        withDiscount: discountFilter,
+        carManufacturerId: _selectedManufacturerId,
+        categoryFilter: _categoryIdFilter,
+        carModelsFilter: carModels);
   }
 
   void _applyFilters() {
@@ -1058,10 +1180,17 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
       _isFilterApplied = true;
     });
 
+    setState(() {
+      _pageNumber = 1;
+    });
+
     provider.getStoreItems(
+        pageNumber: _pageNumber,
+        pageSize: _pageSize,
         carPartsShopName: carPartsShopFilter,
         nameFilter: _filterName.isNotEmpty ? _filterName : null,
         withDiscount: discountFilter,
+        carManufacturerId: _selectedManufacturerId,
         categoryFilter: _categoryIdFilter,
         carModelsFilter: carModels);
   }
@@ -1069,6 +1198,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   @override
   void dispose() {
     _nameFilterController.dispose();
+    _pageNumber = 1;
     super.dispose();
   }
 

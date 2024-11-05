@@ -59,117 +59,121 @@ class _ServicesScreenState extends State<ServicesScreen> {
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
               title: const Text('Filters'),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Filter by Name'),
-                    TextField(
-                      decoration: const InputDecoration(hintText: 'Enter name'),
-                      controller: _nameFilterController,
-                      onChanged: (value) {
-                        setState(() {
-                          _filterName = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('StoreItem Status'),
-                    RadioListTile<String>(
-                      title: const Text('Active'),
-                      value: 'active',
-                      groupValue: _selectedStatusFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedStatusFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Hidden'),
-                      value: 'draft',
-                      groupValue: _selectedStatusFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedStatusFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('All'),
-                      value: 'all',
-                      groupValue: _selectedStatusFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedStatusFilter = value!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Discount Status'),
-                    RadioListTile<String>(
-                      title: const Text('Discounted'),
-                      value: 'discounted',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Non-Discounted'),
-                      value: 'non-discounted',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('All'),
-                      value: 'all',
-                      groupValue: _selectedDiscountFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDiscountFilter = value!;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    const Text('Service Type'),
-                    RadioListTile<String>(
-                      title: const Text('Diagnostics'),
-                      value: 'Diagnostics',
-                      groupValue: _selectedTypeFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedTypeFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Repairs'),
-                      value: 'Repairs',
-                      groupValue: _selectedTypeFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedTypeFilter = value!;
-                        });
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('All'),
-                      value: 'all',
-                      groupValue: _selectedTypeFilter,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedTypeFilter = value!;
-                        });
-                      },
-                    ),
-                  ],
+              content: SizedBox(
+                width: 450,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Filter by Name'),
+                      TextField(
+                        decoration:
+                            const InputDecoration(hintText: 'Enter name'),
+                        controller: _nameFilterController,
+                        onChanged: (value) {
+                          setState(() {
+                            _filterName = value;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Service Status'),
+                      RadioListTile<String>(
+                        title: const Text('Active'),
+                        value: 'active',
+                        groupValue: _selectedStatusFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStatusFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('Hidden'),
+                        value: 'draft',
+                        groupValue: _selectedStatusFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStatusFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('All'),
+                        value: 'all',
+                        groupValue: _selectedStatusFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedStatusFilter = value!;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Discount Status'),
+                      RadioListTile<String>(
+                        title: const Text('Discounted'),
+                        value: 'discounted',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('Non-Discounted'),
+                        value: 'non-discounted',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('All'),
+                        value: 'all',
+                        groupValue: _selectedDiscountFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedDiscountFilter = value!;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      const Text('Service Type'),
+                      RadioListTile<String>(
+                        title: const Text('Diagnostics'),
+                        value: 'Diagnostics',
+                        groupValue: _selectedTypeFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedTypeFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('Repairs'),
+                        value: 'Repairs',
+                        groupValue: _selectedTypeFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedTypeFilter = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('All'),
+                        value: 'all',
+                        groupValue: _selectedTypeFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedTypeFilter = value!;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -186,6 +190,39 @@ class _ServicesScreenState extends State<ServicesScreen> {
         );
       },
     );
+  }
+
+  void _applyFiltersPaged() {
+    final provider =
+        Provider.of<CarRepairShopServiceProvider>(context, listen: false);
+    String? stateFilter;
+    String? typeFilter;
+    bool? discountFilter;
+
+    if (_selectedStatusFilter != 'all') {
+      stateFilter = _selectedStatusFilter;
+    }
+    if (_selectedTypeFilter != 'all') {
+      typeFilter = _selectedTypeFilter;
+    }
+    if (_selectedDiscountFilter == 'discounted') {
+      discountFilter = true;
+    } else if (_selectedDiscountFilter == 'non-discounted') {
+      discountFilter = false;
+    }
+
+    setState(() {
+      _isFilterApplied = true;
+    });
+
+    CarRepairShopServiceSearchObject search = CarRepairShopServiceSearchObject(
+        typeFilter,
+        _filterName.isNotEmpty ? _filterName : null,
+        discountFilter,
+        stateFilter);
+
+    provider.getByCarRepairShop(
+        serviceSearch: search, pageNumber: _pageNumber, pageSize: _pageSize);
   }
 
   void _applyFilters() {
@@ -217,8 +254,54 @@ class _ServicesScreenState extends State<ServicesScreen> {
         discountFilter,
         stateFilter);
 
+    setState(() {
+      _pageNumber = 1;
+    });
+
     provider.getByCarRepairShop(
         serviceSearch: search, pageNumber: _pageNumber, pageSize: _pageSize);
+  }
+
+  Future<bool> _deleteImage() async {
+    bool delete = false;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Delete Image'),
+              content: const SizedBox(
+                width: 450,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Are you sure to delete the image?'),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    delete = false;
+                    Navigator.pop(context);
+                  },
+                  child: const Text('No'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    delete = true;
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Yes'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    return delete;
   }
 
   void _showEditForm(
@@ -409,25 +492,41 @@ class _ServicesScreenState extends State<ServicesScreen> {
                         else
                           const Icon(Icons.image, size: 150),
                         const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () async {
-                            FilePickerResult? result =
-                                await FilePicker.platform.pickFiles(
-                              type: FileType.image,
-                            );
-                            if (result != null) {
-                              setState(() {
-                                imagePath = result.files.single.path;
-                                base64Image = base64Encode(
-                                    File(imagePath!).readAsBytesSync());
-                              });
-                            }
-                          },
-                          child: const Text('Select Image'),
-                        ),
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () async {
+                                  bool delete = await _deleteImage();
+                                  if (delete) {
+                                    setState(() {
+                                      base64Image = "";
+                                    });
+                                  }
+                                },
+                                child: const Text('Delete Image'),
+                              ),
+                              const SizedBox(width: 20),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  FilePickerResult? result =
+                                      await FilePicker.platform.pickFiles(
+                                    type: FileType.image,
+                                  );
+                                  if (result != null) {
+                                    setState(() {
+                                      imagePath = result.files.single.path;
+                                      base64Image = base64Encode(
+                                          File(imagePath!).readAsBytesSync());
+                                    });
+                                  }
+                                },
+                                child: const Text('Select a New Image'),
+                              ),
+                            ]),
                         const SizedBox(height: 20),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             ElevatedButton(
                               onPressed: () {
@@ -435,6 +534,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                               },
                               child: const Text('Cancel'),
                             ),
+                            const SizedBox(width: 20),
                             ElevatedButton(
                               onPressed: () async {
                                 if (_formKey.currentState?.validate() ??
@@ -461,7 +561,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                           .updateService(
                                               service!.id, newService)
                                           .then((_) {
-                                        _applyFilters();
+                                        _applyFiltersPaged();
                                       }).then((_) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
@@ -487,12 +587,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                               listen: false)
                                           .insertService(newService)
                                           .then((_) {
-                                        Provider.of<CarRepairShopServiceProvider>(
-                                                context,
-                                                listen: false)
-                                            .getByCarRepairShop(
-                                                pageNumber: _pageNumber,
-                                                pageSize: _pageSize);
+                                        _applyFiltersPaged();
                                       }).then((_) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
@@ -604,7 +699,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
                               Expanded(
                                 child: Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
+                                    padding: const EdgeInsets.only(
+                                        bottom: 8.0, top: 5.0),
                                     child: service.imageData != ""
                                         ? Image.memory(
                                             base64Decode(service.imageData!),
@@ -615,7 +711,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                         : const SizedBox(
                                             width: 200,
                                             height: 200,
-                                            child: Icon(Icons.image, size: 150),
+                                            child: Icon(Icons.image, size: 120),
                                           ),
                                   ),
                                 ),
@@ -666,7 +762,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                               ),
                               if (service.discount != 0)
                                 Padding(
-                                  padding: const EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.only(bottom: 8.0),
                                   child: Text(
                                     'Discount: ${(service.discount * 100).toInt().toStringAsFixed(2)}%',
                                     style: Theme.of(context)
@@ -684,14 +780,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
                                   'Service Type: ${service.serviceTypeName}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Duration: ${service.duration}',
                                   style: Theme.of(context).textTheme.bodySmall,
                                   textAlign: TextAlign.center,
                                 ),
@@ -719,7 +807,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                             ? () {
                                 setState(() {
                                   _pageNumber = _pageNumber - 1;
-                                  _applyFilters();
+                                  _applyFiltersPaged();
                                 });
                               }
                             : null,
@@ -733,7 +821,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                                 setState(() {
                                   _pageNumber = _pageNumber + 1;
                                 });
-                                _applyFilters();
+                                _applyFiltersPaged();
                               }
                             : null,
                         icon: const Icon(Icons.arrow_forward_ios_rounded),
@@ -800,7 +888,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                         listen: false)
                     .deleteService(service.id)
                     .then((_) {
-                  _applyFilters();
+                  _applyFiltersPaged();
                 }).then((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -854,7 +942,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                         listen: false)
                     .activate(service.id)
                     .then((_) {
-                  _applyFilters();
+                  _applyFiltersPaged();
                 }).then((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -911,7 +999,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                         listen: false)
                     .hide(service.id)
                     .then((_) {
-                  _applyFilters();
+                  _applyFiltersPaged();
                 }).then((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -933,12 +1021,130 @@ class _ServicesScreenState extends State<ServicesScreen> {
           ),
           child: const Text('Hide'),
         ),
+        ElevatedButton(
+          onPressed: () {
+            _showDetailsDialog(context, service);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).highlightColor,
+          ),
+          child: const Text('Details'),
+        ),
       ];
     }
   }
 
+  void _showDetailsDialog(
+      BuildContext context, CarRepairShopService service) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text(
+            service.name,
+            style: Theme.of(dialogContext).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          content: SizedBox(
+            width: 450,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (service.imageData != null) ...[
+                    if (service.imageData != "")
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.memory(
+                            base64Decode(service.imageData!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        child: const SizedBox(
+                          width: 200,
+                          height: 200,
+                          child: Icon(Icons.image, size: 120),
+                        ),
+                      )
+                  ],
+                  _buildDetailRow('Price',
+                      '${service.price.toStringAsFixed(2)}€', dialogContext),
+                  if (service.discount != 0)
+                    _buildDetailRow(
+                        'Discount',
+                        '${(service.discount * 100).toStringAsFixed(2)}%',
+                        dialogContext),
+                  if (service.discount != 0)
+                    _buildDetailRow(
+                      'Discounted Price',
+                      '${service.discountedPrice.toStringAsFixed(2)}€',
+                      dialogContext,
+                    ),
+                  _buildDetailRow(
+                      'Type', service.serviceTypeName, dialogContext),
+                  _buildDetailRow(
+                    'Details',
+                    service.details ?? "No details available",
+                    dialogContext,
+                  ),
+                  _buildDetailRow(
+                    'Estimated Duration',
+                    service.duration,
+                    dialogContext,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Close'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String title, String value, BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '$title:',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
+    _pageNumber = 1;
     super.dispose();
   }
 }

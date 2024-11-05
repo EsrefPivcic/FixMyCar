@@ -3,7 +3,6 @@ import 'package:fixmycar_admin/src/models/user/user.dart';
 import 'package:fixmycar_admin/src/models/user/user_minimal.dart';
 import 'package:fixmycar_admin/src/models/user/user_search_object.dart';
 import 'package:fixmycar_admin/src/models/user/user_update.dart';
-import 'package:fixmycar_admin/src/models/user/user_update_image.dart';
 import 'package:fixmycar_admin/src/providers/base_provider.dart';
 import 'package:fixmycar_admin/src/utilities/custom_exception.dart';
 import 'package:http/http.dart' as http;
@@ -121,27 +120,6 @@ class UserProvider extends BaseProvider<User, User> {
         Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdateByToken'),
         headers: await createHeaders(),
         body: jsonEncode(toJson(user)),
-      );
-      if (response.statusCode == 200) {
-        notifyListeners();
-      } else {
-        handleHttpError(response);
-      }
-    } on CustomException {
-      rethrow;
-    } catch (e) {
-      throw CustomException(
-          "Can't reach the server. Please check your internet connection.");
-    }
-  }
-
-  Future<void> updateImage({required UserUpdateImage updateImage}) async {
-    toJson(UserUpdateImage updateImage) => updateImage.toJson();
-    try {
-      final response = await http.put(
-        Uri.parse('${BaseProvider.baseUrl}/$endpoint/UpdateImageByToken'),
-        headers: await createHeaders(),
-        body: jsonEncode(toJson(updateImage)),
       );
       if (response.statusCode == 200) {
         notifyListeners();

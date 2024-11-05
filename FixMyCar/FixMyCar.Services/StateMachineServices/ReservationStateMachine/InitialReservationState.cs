@@ -82,7 +82,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 }
             }
 
-            List<Reservation>? reservations = _context.Reservations.Where(r => r.ReservationDate.Date == request.ReservationDate.Date && r.CarRepairShopId == request.CarRepairShopId).ToList();
+            List<Reservation>? reservations = _context.Reservations.Where(r => r.ReservationDate.Date == request.ReservationDate.Date && r.CarRepairShopId == request.CarRepairShopId && r.State == "accepted").ToList();
 
             if (reservations != null)
             {

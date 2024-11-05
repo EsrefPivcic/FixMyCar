@@ -856,20 +856,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchReport() async {
     if (mounted) {
-      final report =
-          await Provider.of<CarRepairShopProvider>(context, listen: false)
-              .getReport();
+      try {
+        final report =
+            await Provider.of<CarRepairShopProvider>(context, listen: false)
+                .getReport();
 
-      if (report != null) {
-        if (mounted) {
-          setState(() {
-            _reportData = _parseCsvReport(report);
-            _csvReport = report;
-          });
+        if (report != null && report.isNotEmpty) {
+          if (mounted) {
+            setState(() {
+              _reportData = _parseCsvReport(report);
+              _csvReport = report;
+            });
+          }
         }
-      } else {
+      } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to load report.')),
+          SnackBar(content: Text(e.toString())),
         );
       }
     }
@@ -1003,7 +1005,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 24,
                       ),
                       const Text(
-                          'Note: This will start a report generating process. Once done, you will be notified and new report will be ready to Save to CSV.'),
+                          'Note: This will start a report generating process. Once done, you will be notified and new report will be ready to save to CSV.'),
                     ],
                   )),
               actions: [
@@ -1100,6 +1102,53 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _deleteImage() async {
+    bool delete = false;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Delete Image'),
+              content: const SizedBox(
+                width: 450,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Are you sure to delete the image?'),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    delete = false;
+                    Navigator.pop(context);
+                  },
+                  child: const Text('No'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    delete = true;
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Yes'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (delete) {
+      setState(() {
+        _updateImage = UserUpdateImage("");
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
@@ -1147,14 +1196,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Stack(
                                       alignment: Alignment.center,
                                       children: [
-                                        if (_updateImage != null)
-                                          CircleAvatar(
-                                            backgroundImage: MemoryImage(
-                                                base64Decode(
-                                                    _updateImage!.image)),
-                                            radius: 50,
-                                          )
-                                        else if (user.image != null &&
+                                        if (_updateImage != null) ...[
+                                          if (_updateImage!.image != "")
+                                            CircleAvatar(
+                                              backgroundImage: MemoryImage(
+                                                  base64Decode(
+                                                      _updateImage!.image)),
+                                              radius: 50,
+                                            )
+                                          else
+                                            const CircleAvatar(
+                                              radius: 50,
+                                              child:
+                                                  Icon(Icons.person, size: 50),
+                                            ),
+                                        ] else if (user.image != null &&
                                             user.image!.isNotEmpty)
                                           CircleAvatar(
                                             backgroundImage: MemoryImage(
@@ -1167,13 +1223,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                             child: Icon(Icons.person, size: 50),
                                           ),
                                         Positioned(
-                                          bottom: 0,
-                                          right: 0,
+                                          bottom: -10,
+                                          right: -10,
                                           child: IconButton(
                                             icon: const Icon(Icons.camera_alt),
                                             onPressed: _pickImage,
                                           ),
                                         ),
+                                        if (user.image != null &&
+                                            user.image!.isNotEmpty)
+                                          Positioned(
+                                            bottom: -10,
+                                            left: -10,
+                                            child: IconButton(
+                                              icon: const Icon(Icons.delete),
+                                              onPressed: _deleteImage,
+                                            ),
+                                          ),
                                       ],
                                     ),
                                     if (_updateImage != null) ...[

@@ -1,17 +1,24 @@
 ReservationId,ReservationCreatedDate,ReservationDate,Customer,TotalAmount,Type,PartsOrderedBy,ClientDiscount,ServiceName,ServicePrice,Discount,ServiceDiscountedPrice
-1,2024-10-28,2024-10-30,Esref Pivcic (client),74.60,Repairs and Diagnostics,Shop,No client discount,lapytopy,20.00,2.00%,19.60
-1,2024-10-28,2024-10-30,Esref Pivcic (client),74.60,Repairs and Diagnostics,Shop,No client discount,test,55.00,No service discount,55.00
-2,2024-10-29,2024-10-30,Esref Pivcic (client),47.85,Repairs,Shop,13.00%,test,55.00,No service discount,55.00
-3,2024-10-29,2024-12-24,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,lapytopy,20.00,2.00%,19.60
-3,2024-10-29,2024-12-24,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,test,55.00,No service discount,55.00
-3,2024-10-29,2024-12-24,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,test,20.00,20.00%,16.00
-4,2024-10-29,2024-11-19,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,test,20.00,20.00%,16.00
-4,2024-10-29,2024-11-19,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,lapytopy,20.00,2.00%,19.60
-4,2024-10-29,2024-11-19,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,test,55.00,No service discount,55.00
-5,2024-10-29,2024-11-26,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,lapytopy,20.00,2.00%,19.60
-5,2024-10-29,2024-11-26,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,test,55.00,No service discount,55.00
-5,2024-10-29,2024-11-26,Esref Pivcic (client),78.82,Repairs and Diagnostics,Shop,13.00%,test,20.00,20.00%,16.00
-6,2024-10-29,2024-11-04,Esref Pivcic (client),64.90,Repairs and Diagnostics,Client,13.00%,test,55.00,No service discount,55.00
-6,2024-10-29,2024-11-04,Esref Pivcic (client),64.90,Repairs and Diagnostics,Client,13.00%,lapytopy,20.00,2.00%,19.60
-7,2024-10-29,2024-10-30,Esref Pivcic (client),64.90,Repairs and Diagnostics,Client,13.00%,lapytopy,20.00,2.00%,19.60
-7,2024-10-29,2024-10-30,Esref Pivcic (client),64.90,Repairs and Diagnostics,Client,13.00%,test,55.00,No service discount,55.00
+1,2024-10-08,2024-11-06,Nancy Cole (client),95.00,Diagnostics,No order,No client discount,Battery Health Check,25.00,No service discount,25.00
+1,2024-10-08,2024-11-06,Nancy Cole (client),95.00,Diagnostics,No order,No client discount,Brake System Diagnostic,30.00,No service discount,30.00
+1,2024-10-08,2024-11-06,Nancy Cole (client),95.00,Diagnostics,No order,No client discount,Electrical System Diagnostic,40.00,No service discount,40.00
+2,2024-10-09,2024-11-28,Nancy Cole (client),55.00,Diagnostics,No order,No client discount,Battery Health Check,25.00,No service discount,25.00
+2,2024-10-09,2024-11-28,Nancy Cole (client),55.00,Diagnostics,No order,No client discount,Brake System Diagnostic,30.00,No service discount,30.00
+4,2024-10-11,2024-11-25,Nancy Cole (client),67.00,Diagnostics,No order,No client discount,Exhaust Emissions Test,30.00,10.00%,27.00
+4,2024-10-11,2024-11-25,Nancy Cole (client),67.00,Diagnostics,No order,No client discount,Fuel System Diagnostic,40.00,No service discount,40.00
+5,2024-10-12,2024-11-15,Nancy Cole (client),68.50,Diagnostics,No order,No client discount,Warning and Error Lights Diagnostic,30.00,5.00%,28.50
+5,2024-10-12,2024-11-15,Nancy Cole (client),68.50,Diagnostics,No order,No client discount,Electrical System Diagnostic,40.00,No service discount,40.00
+8,2024-10-15,2024-11-15,Nancy Cole (client),30.00,Repairs,Client,No client discount,Tire Replacement,30.00,No service discount,30.00
+9,2024-10-16,2024-11-13,Nancy Cole (client),140.00,Repairs and Diagnostics,Shop,No client discount,Air Conditioning System Diagnostic,30.00,No service discount,30.00
+9,2024-10-16,2024-11-13,Nancy Cole (client),140.00,Repairs and Diagnostics,Shop,No client discount,Battery Health Check,25.00,No service discount,25.00
+9,2024-10-16,2024-11-13,Nancy Cole (client),140.00,Repairs and Diagnostics,Shop,No client discount,Oil Change,45.00,No service discount,45.00
+9,2024-10-16,2024-11-13,Nancy Cole (client),140.00,Repairs and Diagnostics,Shop,No client discount,Rear Brakes Repair,40.00,No service discount,40.00
+10,2024-10-17,2024-11-19,Nancy Cole (client),19.00,Repairs,Shop,No client discount,Battery Replacement,20.00,5.00%,19.00
+21,2024-10-28,2024-11-19,Adrian Parker (client2),150.00,Repairs and Diagnostics,Shop,No client discount,Brake System Diagnostic,30.00,No service discount,30.00
+21,2024-10-28,2024-11-19,Adrian Parker (client2),150.00,Repairs and Diagnostics,Shop,No client discount,Clutch Replacement,120.00,No service discount,120.00
+30,2024-10-20,2024-11-27,Freddie Raymond (client3),300.00,Repairs,Shop,No client discount,Engine Overhaul,300.00,No service discount,300.00
+31,2024-10-21,2024-12-12,Freddie Raymond (client3),252.20,Repairs,Shop,No client discount,Transmission Repair,260.00,3.00%,252.20
+32,2024-11-02,2024-12-09,Freddie Raymond (client3),300.00,Repairs,Shop,No client discount,Engine Overhaul,300.00,No service discount,300.00
+33,2024-11-03,2024-12-13,Freddie Raymond (client3),132.50,Repairs,Shop,No client discount,Front Brakes Repair,50.00,5.00%,47.50
+33,2024-11-03,2024-12-13,Freddie Raymond (client3),132.50,Repairs,Shop,No client discount,Oil Change,45.00,No service discount,45.00
+33,2024-11-03,2024-12-13,Freddie Raymond (client3),132.50,Repairs,Shop,No client discount,Rear Brakes Repair,40.00,No service discount,40.00

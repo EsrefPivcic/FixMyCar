@@ -42,9 +42,15 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
         child: Center(
       child: Card(
         child: Form(
-            key: _formKey,
-            child: Padding(
-                padding: EdgeInsets.all(10),
+          key: _formKey,
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.90,
+                maxWidth: MediaQuery.of(context).size.width * 0.90,
+              ),
+              child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -156,7 +162,11 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                       child: const Text('Contact the admin'),
                     ),
                   ],
-                ))),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     ));
   }

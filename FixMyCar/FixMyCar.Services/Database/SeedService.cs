@@ -23,15 +23,11 @@ namespace FixMyCar.Services.Database
 
             if (!_context.StoreItems.Any())
             {
-                var ebcTurboPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "EBC-Turbo.png");
-                var monsterMotorsportPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "Monster-motorsport.png");
-                var oem_r32 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Utilities", "Images", "OEM-R32.png");
-
                 await _context.StoreItems.AddRangeAsync(
                     new StoreItem
                     {
                         Name = "EBC-Turbo",
-                        ImageData = ImageHelper.GetImageData(ebcTurboPath),
+                        ImageData = Array.Empty<byte>(),
                         State = "draft",
                         Price = 350,
                         Discount = 0,
@@ -50,7 +46,7 @@ namespace FixMyCar.Services.Database
                     new StoreItem
                     {
                         Name = "Monster-Motorsport",
-                        ImageData = ImageHelper.GetImageData(monsterMotorsportPath),
+                        ImageData = Array.Empty<byte>(),
                         State = "draft",
                         Price = 250,
                         Discount = 0.1,
@@ -65,7 +61,7 @@ namespace FixMyCar.Services.Database
                     new StoreItem
                     {
                         Name = "OEM-R32 Brembo",
-                        ImageData = ImageHelper.GetImageData(oem_r32),
+                        ImageData = Array.Empty<byte>(),
                         State = "draft",
                         Price = 400,
                         Discount = 0,

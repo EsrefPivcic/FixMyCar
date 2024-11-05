@@ -1,11 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:file_picker/file_picker.dart';
 import 'package:fixmycar_admin/constants.dart';
 import 'package:fixmycar_admin/src/models/user/user.dart';
 import 'package:fixmycar_admin/src/models/user/user_search_object.dart';
 import 'package:fixmycar_admin/src/models/user/user_update.dart';
-import 'package:fixmycar_admin/src/models/user/user_update_image.dart';
 import 'package:fixmycar_admin/src/providers/admin_provider.dart';
 import 'package:fixmycar_admin/src/providers/recommender_provider.dart';
 import 'package:fixmycar_admin/src/providers/user_provider.dart';
@@ -127,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           _searchObject.role = 'allexceptadmin';
         }
+        _pageNumber = 1;
       });
       _fetchUsers();
     }
@@ -136,6 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       setState(() {
         _searchObject.active = active;
+        _pageNumber = 1;
       });
       _fetchUsers();
     }
@@ -357,28 +355,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  UserUpdateImage? _updateImage;
-
-  Future<void> _pickImage() async {
-    final FilePickerResult? pickedFile = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-    );
-
-    if (pickedFile != null && pickedFile.files.single.path != null) {
-      setState(() {
-        String selectedImagePath = pickedFile.files.single.path!;
-        _updateImage =
-            UserUpdateImage(_convertImageToBase64(selectedImagePath)!);
-      });
-    }
-  }
-
-  String? _convertImageToBase64(String? imagePath) {
-    if (imagePath == null) return null;
-    final bytes = File(imagePath).readAsBytesSync();
-    return base64Encode(bytes);
-  }
-
   Future<void> _trainOrdersRecommender() async {
     showDialog(
       context: context,
@@ -499,87 +475,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                   )
                                 else ...[
                                   if (user != null) ...[
-                                    Stack(
+                                    const Stack(
                                       alignment: Alignment.center,
                                       children: [
-                                        if (_updateImage != null)
-                                          CircleAvatar(
-                                            backgroundImage: MemoryImage(
-                                                base64Decode(
-                                                    _updateImage!.image)),
-                                            radius: 50,
-                                          )
-                                        else if (user.image != null &&
-                                            user.image!.isNotEmpty)
-                                          CircleAvatar(
-                                            backgroundImage: MemoryImage(
-                                                base64Decode(user.image!)),
-                                            radius: 50,
-                                          )
-                                        else
-                                          const CircleAvatar(
-                                            radius: 50,
-                                            child: Icon(Icons.person, size: 50),
-                                          ),
-                                        Positioned(
-                                          bottom: 0,
-                                          right: 0,
-                                          child: IconButton(
-                                            icon: const Icon(Icons.camera_alt),
-                                            onPressed: _pickImage,
-                                          ),
+                                        CircleAvatar(
+                                          radius: 50,
+                                          child: Icon(Icons.person, size: 50),
                                         ),
                                       ],
                                     ),
-                                    if (_updateImage != null) ...[
-                                      const SizedBox(height: 8.0),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          TextButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                _updateImage = null;
-                                              });
-                                            },
-                                            child: const Text('Cancel'),
-                                          ),
-                                          ElevatedButton(
-                                            onPressed: () async {
-                                              if (_updateImage?.image != null) {
-                                                try {
-                                                  await Provider.of<
-                                                              UserProvider>(
-                                                          context,
-                                                          listen: false)
-                                                      .updateImage(
-                                                          updateImage:
-                                                              _updateImage!)
-                                                      .then((_) {
-                                                    setState(() {
-                                                      _updateImage = null;
-                                                    });
-                                                    Provider.of<AdminProvider>(
-                                                            context,
-                                                            listen: false)
-                                                        .getByToken();
-                                                  });
-                                                } catch (e) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                        content:
-                                                            Text(e.toString())),
-                                                  );
-                                                }
-                                              }
-                                            },
-                                            child: const Text('Save Changes'),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
                                     const SizedBox(height: 8.0),
                                     Text.rich(TextSpan(
                                       text: user.username,

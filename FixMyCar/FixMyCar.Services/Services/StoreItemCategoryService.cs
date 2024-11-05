@@ -4,6 +4,7 @@ using FixMyCar.Model.Entities;
 using FixMyCar.Model.SearchObjects;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,12 @@ namespace FixMyCar.Services.Services
     {
         public StoreItemCategoryService(FixMyCarContext context, IMapper mapper) : base(context, mapper)
         {
+        }
+
+        public override IQueryable<StoreItemCategory> AddFilter(IQueryable<StoreItemCategory> query, StoreItemCategorySearchObject? search = null)
+        {
+            query = query.OrderBy(sc => sc.Name);
+            return base.AddFilter(query, search);
         }
     }
 }

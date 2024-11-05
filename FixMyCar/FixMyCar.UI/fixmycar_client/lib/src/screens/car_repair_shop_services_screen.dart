@@ -10,6 +10,7 @@ import 'package:fixmycar_client/src/models/user/user.dart';
 import 'package:fixmycar_client/src/providers/car_models_by_manufacturer_provider.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_discount_provider.dart';
 import 'package:fixmycar_client/src/providers/services_recommender_provider.dart';
+import 'package:fixmycar_client/src/screens/car_repair_shops_screen.dart';
 import 'package:fixmycar_client/src/screens/reservation_history_screen.dart';
 import 'package:fixmycar_client/src/widgets/shop_details_widget.dart';
 import 'package:fixmycar_client/src/providers/car_repair_shop_services_provider.dart';
@@ -84,7 +85,7 @@ class _CarRepairShopServicesScreenState
       parseWorkDays(carRepairShopDetails.workDays!);
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  List<int> selectedServiceIds = [];
+  List<CarRepairShopService> selectedServices = [];
   Duration _totalServicesDuration = Duration();
   late final Duration _totalEffectiveWorkTime =
       _calculateTotalEffectiveWorkTime(
@@ -153,9 +154,8 @@ class _CarRepairShopServicesScreenState
     setState(() {
       isOrderWithRepairs = false;
     });
-    if (selectedServiceIds.isNotEmpty) {
-      for (var serviceId in selectedServiceIds) {
-        final service = loadedServices.firstWhere((s) => s.id == serviceId);
+    if (selectedServices.isNotEmpty) {
+      for (var service in selectedServices) {
         if (service.serviceTypeName == "Repairs") {
           setState(() {
             isOrderWithRepairs = true;
@@ -297,12 +297,10 @@ class _CarRepairShopServicesScreenState
   }
 
   String _loadTotalAmount() {
-    if (selectedServiceIds.isNotEmpty) {
+    if (selectedServices.isNotEmpty) {
       double totalAmount = 0;
-      for (var selectedServiceId in selectedServiceIds) {
-        CarRepairShopService serviceDetails = loadedServices.firstWhere(
-            (loadedService) => loadedService.id == selectedServiceId);
-        totalAmount = totalAmount + serviceDetails.discountedPrice;
+      for (var selectedService in selectedServices) {
+        totalAmount = totalAmount + selectedService.discountedPrice;
       }
       if (_discounts.isNotEmpty) {
         double discountValue = 0;
@@ -367,7 +365,7 @@ class _CarRepairShopServicesScreenState
                         const Text('Your Services',
                             style: TextStyle(fontSize: 24)),
                         const SizedBox(height: 16.0),
-                        if (selectedServiceIds.isEmpty) ...[
+                        if (selectedServices.isEmpty) ...[
                           const Text('No items in your cart.')
                         ] else ...[
                           SizedBox(
@@ -375,11 +373,9 @@ class _CarRepairShopServicesScreenState
                             child: ListView.builder(
                               shrinkWrap: true,
                               physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: selectedServiceIds.length,
+                              itemCount: selectedServices.length,
                               itemBuilder: (context, index) {
-                                final serviceId = selectedServiceIds[index];
-                                final service = loadedServices
-                                    .firstWhere((s) => s.id == serviceId);
+                                final service = selectedServices[index];
                                 return ListTile(
                                   leading: service.imageData != ""
                                       ? Image.memory(
@@ -594,7 +590,7 @@ class _CarRepairShopServicesScreenState
                                 backgroundColor:
                                     const Color.fromARGB(18, 255, 255, 255),
                               ),
-                              onPressed: selectedServiceIds.isNotEmpty &&
+                              onPressed: selectedServices.isNotEmpty &&
                                       _selectedDay != null
                                   ? () {
                                       if ((formKey.currentState?.validate() ??
@@ -639,7 +635,7 @@ class _CarRepairShopServicesScreenState
                 setState(() {
                   clientOrder = false;
                   _selectedDay = null;
-                  selectedServiceIds.clear();
+                  selectedServices.clear();
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -669,87 +665,108 @@ class _CarRepairShopServicesScreenState
   }
 
   Future<void> _confirmPlaceReservation(BuildContext context) async {
+    bool working = false;
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Place Reservation'),
-          content: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Are you sure you want to place this reservation?'),
-                const SizedBox(
-                  height: 10,
-                ),
-                Text(
-                    'Note: Please make sure to bring your vehicle for an appointment on ${_formatDate(_selectedDay.toString())}. at ${_formatTimeOfDayCustom(_parseTime(carRepairShopDetails.openingTime!))}.'),
-              ]),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                ReservationInsertUpdate newReservation;
-                if (clientOrder && isOrderWithRepairs) {
-                  int? orderId;
-                  orderId = int.tryParse(_orderIdContoller.text);
-                  newReservation = ReservationInsertUpdate(
-                      carRepairShopId,
-                      _selectedModel!.id,
-                      orderId,
-                      clientOrder,
-                      _selectedDay,
-                      selectedServiceIds);
-                } else {
-                  newReservation = ReservationInsertUpdate(
-                      carRepairShopId,
-                      _selectedModel!.id,
-                      null,
-                      clientOrder,
-                      _selectedDay,
-                      selectedServiceIds);
-                }
-                try {
-                  await Provider.of<ReservationProvider>(context, listen: false)
-                      .insertReservation(newReservation)
-                      .then((_) {
-                    setState(() {
-                      selectedServiceIds.clear();
-                      _orderIdContoller.clear();
-                      _selectedDay = null;
-                      _selectedManufacturer = null;
-                      _selectedModel = null;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Reservation successful!"),
-                      ),
-                    );
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ReservationHistoryScreen(),
-                      ),
-                    );
-                  });
-                } catch (e) {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(e.toString()),
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Place Reservation'),
+              content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                        'Are you sure you want to place this reservation?'),
+                    const SizedBox(
+                      height: 10,
                     ),
-                  );
-                }
-              },
-              child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('No'),
-            ),
-          ],
+                    Text(
+                        'Note: Please make sure to bring your vehicle for an appointment on ${_formatDate(_selectedDay.toString())}. at ${_formatTimeOfDayCustom(_parseTime(carRepairShopDetails.openingTime!))}.'),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    if (working)
+                      const SizedBox(
+                          height: 30,
+                          width: 30,
+                          child: CircularProgressIndicator()),
+                  ]),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    setState(() {
+                      working = true;
+                    });
+                    List<int> selectedServiceIds =
+                        selectedServices.map((service) => service.id).toList();
+                    ReservationInsertUpdate newReservation;
+                    if (clientOrder && isOrderWithRepairs) {
+                      int? orderId;
+                      orderId = int.tryParse(_orderIdContoller.text);
+                      newReservation = ReservationInsertUpdate(
+                          carRepairShopId,
+                          _selectedModel!.id,
+                          orderId,
+                          clientOrder,
+                          _selectedDay,
+                          selectedServiceIds);
+                    } else {
+                      newReservation = ReservationInsertUpdate(
+                          carRepairShopId,
+                          _selectedModel!.id,
+                          null,
+                          clientOrder,
+                          _selectedDay,
+                          selectedServiceIds);
+                    }
+                    try {
+                      await Provider.of<ReservationProvider>(context,
+                              listen: false)
+                          .insertReservation(newReservation)
+                          .then((_) {
+                        setState(() {
+                          selectedServices.clear();
+                          _orderIdContoller.clear();
+                          _selectedDay = DateTime.now();
+                          _selectedManufacturer = null;
+                          _selectedModel = null;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Reservation processed!"),
+                          ),
+                        );
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ReservationHistoryScreen(),
+                          ),
+                        );
+                      });
+                    } catch (e) {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.toString()),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Yes'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('No'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -897,252 +914,281 @@ class _CarRepairShopServicesScreenState
         MediaQuery.of(context).orientation == Orientation.portrait;
 
     return Scaffold(
-      body: MasterScreen(
-        child: Consumer<CarRepairShopServiceProvider>(
-          builder: (context, provider, child) {
-            if (!provider.isLoading) {
-              _totalPages = (provider.countOfItems / _pageSize).ceil();
-            }
-            loadedServices = provider.services;
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 8.0, right: 8.0, top: 8.0, bottom: 5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.filter_list),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(18, 255, 255, 255)),
-                        onPressed: () {
-                          _showFilterDialog(context);
-                        },
-                        label: const Text("Filters"),
-                      ),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.info_outline_rounded),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(18, 255, 255, 255)),
-                        onPressed: () {
-                          showShopDetailsDialog(
-                              context, carRepairShopDetails, _discounts, null);
-                        },
-                        label: const Text("Shop details"),
-                      ),
-                    ],
-                  ),
-                ),
-                if (provider.isLoading)
-                  const Expanded(
-                      child: Center(child: CircularProgressIndicator()))
-                else if (provider.services.isEmpty)
-                  Expanded(
-                    child: Center(
-                      child: Text(_isFilterApplied
-                          ? 'No results found for your search.'
-                          : 'No services available.'),
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: GridView.builder(
+      body: Stack(
+        children: [
+          MasterScreen(
+            child: Consumer<CarRepairShopServiceProvider>(
+              builder: (context, provider, child) {
+                if (!provider.isLoading) {
+                  _totalPages = (provider.countOfItems / _pageSize).ceil();
+                }
+                loadedServices = provider.services;
+                return Column(
+                  children: [
+                    Padding(
                       padding: const EdgeInsets.only(
-                          left: 8.0, right: 8.0, bottom: 8.0),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: isPortrait ? 2 : 3,
-                        crossAxisSpacing: 8.0,
-                        mainAxisSpacing: 8.0,
-                        childAspectRatio: 0.65,
-                      ),
-                      itemCount: provider.services.length,
-                      itemBuilder: (context, index) {
-                        final CarRepairShopService service =
-                            provider.services[index];
-                        final bool isSelected =
-                            selectedServiceIds.contains(service.id);
-                        return Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          left: 8.0, right: 8.0, top: 8.0, bottom: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.filter_list),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255)),
+                            onPressed: () {
+                              _showFilterDialog(context);
+                            },
+                            label: const Text("Filters"),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: service.imageData != ""
-                                        ? Image.memory(
-                                            base64Decode(service.imageData!),
-                                            fit: BoxFit.contain,
-                                            width: 125,
-                                            height: 125,
-                                          )
-                                        : const SizedBox(
-                                            width: 150,
-                                            height: 150,
-                                            child: Icon(Icons.image, size: 100),
-                                          ),
-                                  ),
-                                ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.info_outline_rounded),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255)),
+                            onPressed: () {
+                              showShopDetailsDialog(context,
+                                  carRepairShopDetails, _discounts, null);
+                            },
+                            label: const Text("Shop details"),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (provider.isLoading)
+                      const Expanded(
+                          child: Center(child: CircularProgressIndicator()))
+                    else if (provider.services.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Text(_isFilterApplied
+                              ? 'No results found for your search.'
+                              : 'No services available.'),
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: GridView.builder(
+                          padding: const EdgeInsets.only(
+                              left: 8.0, right: 8.0, bottom: 8.0),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: isPortrait ? 2 : 3,
+                            crossAxisSpacing: 8.0,
+                            mainAxisSpacing: 8.0,
+                            childAspectRatio: 0.65,
+                          ),
+                          itemCount: provider.services.length,
+                          itemBuilder: (context, index) {
+                            final CarRepairShopService service =
+                                provider.services[index];
+                            final bool isSelected =
+                                selectedServices.contains(service);
+                            return Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Text(
-                                  service.name,
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Text.rich(
-                                  TextSpan(
-                                    children: [
-                                      if (service.discount != 0) ...[
-                                        TextSpan(
-                                          text:
-                                              '€${service.price.toStringAsFixed(2)} ',
-                                          style: const TextStyle(
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text:
-                                              ' €${service.discountedPrice.toStringAsFixed(2)}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge,
-                                        ),
-                                      ] else ...[
-                                        TextSpan(
-                                          text:
-                                              '${service.price.toStringAsFixed(2)}€',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Text(
-                                  service.serviceTypeName == ""
-                                      ? "Unknown"
-                                      : service.serviceTypeName,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            Theme.of(context).highlightColor,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: service.imageData != ""
+                                            ? Image.memory(
+                                                base64Decode(
+                                                    service.imageData!),
+                                                fit: BoxFit.contain,
+                                                width: 125,
+                                                height: 125,
+                                              )
+                                            : const SizedBox(
+                                                width: 150,
+                                                height: 150,
+                                                child: Icon(Icons.image,
+                                                    size: 100),
+                                              ),
                                       ),
-                                      onPressed: () {
-                                        _showDetailsDialog(context, service);
-                                      },
-                                      child: const Text('Details'),
                                     ),
-                                    Checkbox(
-                                      value: isSelected,
-                                      onChanged: (bool? value) {
-                                        setState(() {
-                                          if (value == true) {
-                                            Duration tempTotalServicesDuration =
-                                                _totalServicesDuration +
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: Text(
+                                      service.name,
+                                      style:
+                                          Theme.of(context).textTheme.bodyLarge,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          if (service.discount != 0) ...[
+                                            TextSpan(
+                                              text:
+                                                  '€${service.price.toStringAsFixed(2)} ',
+                                              style: const TextStyle(
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' €${service.discountedPrice.toStringAsFixed(2)}',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge,
+                                            ),
+                                          ] else ...[
+                                            TextSpan(
+                                              text:
+                                                  '${service.price.toStringAsFixed(2)}€',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: Text(
+                                      service.serviceTypeName == ""
+                                          ? "Unknown"
+                                          : service.serviceTypeName,
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0, vertical: 8),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Theme.of(context)
+                                                .highlightColor,
+                                          ),
+                                          onPressed: () {
+                                            _showDetailsDialog(
+                                                context, service);
+                                          },
+                                          child: const Text('Details'),
+                                        ),
+                                        Checkbox(
+                                          value: isSelected,
+                                          onChanged: (bool? value) {
+                                            setState(() {
+                                              if (value == true) {
+                                                Duration
+                                                    tempTotalServicesDuration =
+                                                    _totalServicesDuration +
+                                                        _parseDuration(
+                                                            service.duration);
+                                                if (tempTotalServicesDuration >
+                                                    _totalEffectiveWorkTime) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                          "Adding this service exceeds shop working time!"),
+                                                    ),
+                                                  );
+                                                } else {
+                                                  selectedServices.add(service);
+                                                  _totalServicesDuration +=
+                                                      _parseDuration(
+                                                          service.duration);
+                                                }
+                                              } else {
+                                                selectedServices
+                                                    .remove(service);
+                                                _totalServicesDuration -=
                                                     _parseDuration(
                                                         service.duration);
-                                            if (tempTotalServicesDuration >
-                                                _totalEffectiveWorkTime) {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                      "Adding this service exceeds shop working time!"),
-                                                ),
-                                              );
-                                            } else {
-                                              selectedServiceIds
-                                                  .add(service.id);
-                                              _totalServicesDuration +=
-                                                  _parseDuration(
-                                                      service.duration);
-                                            }
-                                          } else {
-                                            selectedServiceIds
-                                                .remove(service.id);
-                                            _totalServicesDuration -=
-                                                _parseDuration(
-                                                    service.duration);
-                                          }
-                                        });
-                                        _checkForTypes();
-                                      },
+                                              }
+                                            });
+                                            _checkForTypes();
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                if (provider.services.isNotEmpty) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: _pageNumber > 1
-                            ? () {
-                                setState(() {
-                                  _pageNumber = _pageNumber - 1;
-                                  _applyFilters();
-                                });
-                              }
-                            : null,
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                            );
+                          },
+                        ),
                       ),
-                      Text('$_pageNumber',
-                          style: Theme.of(context).textTheme.bodyLarge),
-                      IconButton(
-                        onPressed: _pageNumber < _totalPages
-                            ? () {
-                                setState(() {
-                                  _pageNumber = _pageNumber + 1;
-                                });
-                                _applyFilters();
-                              }
-                            : null,
-                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                    if (provider.services.isNotEmpty) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: _pageNumber > 1
+                                ? () {
+                                    setState(() {
+                                      _pageNumber = _pageNumber - 1;
+                                      _applyFilters();
+                                    });
+                                  }
+                                : null,
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                          ),
+                          Text('$_pageNumber',
+                              style: Theme.of(context).textTheme.bodyLarge),
+                          IconButton(
+                            onPressed: _pageNumber < _totalPages
+                                ? () {
+                                    setState(() {
+                                      _pageNumber = _pageNumber + 1;
+                                    });
+                                    _applyFilters();
+                                  }
+                                : null,
+                            icon: const Icon(Icons.arrow_forward_ios_rounded),
+                          ),
+                        ],
                       ),
                     ],
+                  ],
+                );
+              },
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            left: 16,
+            child: FloatingActionButton(
+              heroTag: 'shopButton',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CarRepairShopsScreen(),
                   ),
-                ],
-              ],
-            );
-          },
-        ),
+                );
+              },
+              backgroundColor: Theme.of(context).hoverColor,
+              child: const Icon(Icons.arrow_back_rounded),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'cartButton',
         onPressed: () {
           _openShoppingCartForm(context);
         },
@@ -1247,6 +1293,9 @@ class _CarRepairShopServicesScreenState
                 TextButton(
                   child: const Text('Apply Filters'),
                   onPressed: () {
+                    setState(() {
+                      _pageNumber = 1;
+                    });
                     _applyFilters();
                     Navigator.of(context).pop();
                   },

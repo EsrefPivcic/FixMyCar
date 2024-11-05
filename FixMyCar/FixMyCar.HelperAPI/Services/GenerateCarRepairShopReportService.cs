@@ -27,7 +27,7 @@ namespace FixMyCar.HelperAPI.Services
                 .Include(r => r.Client)
                 .Include(r => r.ReservationDetails)
                 .ThenInclude(rd => rd.CarRepairShopService)
-                .Where(r => r.CarRepairShopId == request.ShopId);
+                .Where(r => r.CarRepairShopId == request.ShopId && (r.State == "ongoing" || r.State == "completed" || r.State == "accepted"));
 
             if (request.StartDate != null)
             {
@@ -141,7 +141,8 @@ namespace FixMyCar.HelperAPI.Services
                 .Include(r => r.CarRepairShopDiscount)
                 .Where(r => r.CarRepairShopId == request.ShopId)
                 .Where(r => r.ReservationCreatedDate.Date >= oneMonthOlder.Date &&
-                r.ReservationCreatedDate.Date <= DateTime.Now.Date);
+                r.ReservationCreatedDate.Date <= DateTime.Now.Date)
+                .Where(r => r.State == "ongoing" || r.State == "completed" || r.State == "accepted");
 
             var reservations = await query.ToListAsync();
 
@@ -208,9 +209,9 @@ namespace FixMyCar.HelperAPI.Services
 
             var csvReport = new StringBuilder();
             csvReport.AppendLine("ReservationType,Revenue");
-            csvReport.AppendLine($"Diagnostics,{diagnosticsRevenue}");
-            csvReport.AppendLine($"Repairs,{repairsRevenue}");
-            csvReport.AppendLine($"Repairs and Diagnostics,{repairsDiagnosticsRevenue}");
+            csvReport.AppendLine($"Diagnostics,{diagnosticsRevenue:F2}");
+            csvReport.AppendLine($"Repairs,{repairsRevenue:F2}");
+            csvReport.AppendLine($"Repairs and Diagnostics,{repairsDiagnosticsRevenue:F2}");
 
             var fileName = $"monthly_revenue_per_reservation_type_{shopId}.csv";
             var filePath = Path.Combine("Reports", fileName);
@@ -278,6 +279,8 @@ namespace FixMyCar.HelperAPI.Services
         {
             var csvReport = new StringBuilder();
             csvReport.AppendLine("ReservationCreatedDate,ReservationDate,Customer,TotalAmount,Type,Discount");
+
+            reservations = reservations.OrderByDescending(r => r.TotalAmount).ToList();
 
             foreach (var reservation in reservations)
             {

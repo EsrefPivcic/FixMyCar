@@ -29,7 +29,7 @@ namespace FixMyCar.HelperAPI.Services
                 .Include(o => o.Client)
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.StoreItem)
-                .Where(o => o.CarPartsShopId == request.ShopId);
+                .Where(o => o.CarPartsShopId == request.ShopId && o.State == "accepted");
 
             if (request.StartDate != null)
             {
@@ -159,7 +159,8 @@ namespace FixMyCar.HelperAPI.Services
                 .Include(o => o.ClientDiscount)
                 .Where(o => o.CarPartsShopId == request.ShopId)
                 .Where(o => o.OrderDate.Date >= oneMonthOlder.Date &&
-                o.OrderDate.Date <= DateTime.Now.Date);
+                o.OrderDate.Date <= DateTime.Now.Date)
+                .Where(o => o.State == "accepted");
 
             var orders = await query.ToListAsync();
 
@@ -297,6 +298,8 @@ namespace FixMyCar.HelperAPI.Services
         {
             var csvReport = new StringBuilder();
             csvReport.AppendLine("OrderDate,Customer,CustomerType,TotalAmount,Discount");
+
+            orders = orders.OrderByDescending(o => o.TotalAmount).ToList();
 
             foreach (var order in orders)
             {

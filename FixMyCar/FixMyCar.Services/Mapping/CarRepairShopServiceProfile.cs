@@ -20,6 +20,7 @@ namespace FixMyCar.Services.Mapping
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration != null ? XmlConvert.ToTimeSpan(src.Duration) : TimeSpan.Zero));
             CreateMap<CarRepairShopServiceUpdateDTO, CarRepairShopService>()
                 .ForMember(dest => dest.ImageData, opt => opt.Ignore())
+                .ForMember(dest => dest.ServiceTypeId, opt => opt.Ignore())
                 .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount != null ? src.Discount : 0))
                 .ForMember(dest => dest.Duration, opt => opt.MapFrom(src => src.Duration != null ? XmlConvert.ToTimeSpan(src.Duration) : TimeSpan.Zero))
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));

@@ -8,6 +8,7 @@ import 'package:fixmycar_client/src/providers/car_repair_shop_provider.dart';
 import 'package:fixmycar_client/src/providers/order_essential_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/reservation_provider.dart';
+import 'package:fixmycar_client/src/screens/car_repair_shops_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -641,7 +642,24 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                 ListTile(
                                   title: const Text('Reservation Date'),
                                   subtitle: Text(
-                                      _formatDate(reservation.reservationDate)),
+                                      _formatDate(reservation.reservationDate),
+                                      style: TextStyle(
+                                          color:
+                                              reservation.state ==
+                                                          "overbooked" ||
+                                                      reservation.state ==
+                                                          "orderdateconflict" ||
+                                                      reservation.state ==
+                                                          "cancelled" ||
+                                                      reservation.state ==
+                                                          "rejected" ||
+                                                      reservation.state ==
+                                                          "paymentfailed" ||
+                                                      reservation.state ==
+                                                          "missingpayment"
+                                                  ? _getStateColor(
+                                                      reservation.state)
+                                                  : Colors.green.shade500)),
                                 ),
                                 ListTile(
                                   title:
@@ -760,7 +778,13 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                              'Order date: ${_formatDate(order.orderDate)}'),
+                                              'Order date: ${_formatDate(order.orderDate)}',
+                                              style: TextStyle(
+                                                  color: reservation.state ==
+                                                          "orderdateconflict"
+                                                      ? _getStateColor(
+                                                          reservation.state)
+                                                      : Colors.green.shade500)),
                                           Text(
                                               'Shipping date: ${order.shippingDate != null ? _formatDate(order.shippingDate!) : 'Not accepted'}'),
                                           Text(
@@ -1559,6 +1583,9 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
             ListTile(
               title: ElevatedButton(
                 onPressed: () async {
+                  setState(() {
+                    _pageNumber = 1;
+                  });
                   await Provider.of<ReservationProvider>(context, listen: false)
                       .getByClient(
                           reservationSearch: filterCriteria,
@@ -1582,175 +1609,191 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
     if (!isLoading) {
       _totalPages = (reservationProvider.countOfItems / _pageSize).ceil();
     }
-    return MasterScreen(
-      child: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.filter_list),
-                  onPressed: _showFilterDialog,
-                  label: const Text("Show Filters"),
-                ),
-                reservations.isEmpty
-                    ? const Expanded(
-                        child: Center(
-                            child: Text('Reservation history is empty.')))
-                    : Expanded(
-                        child: ListView.builder(
-                          itemCount: reservations.length,
-                          itemBuilder: (context, index) {
-                            final reservation = reservations[index];
-                            return ListTile(
-                              title: Text.rich(
-                                TextSpan(
+    return Scaffold(
+      body: MasterScreen(
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.filter_list),
+                    onPressed: _showFilterDialog,
+                    label: const Text("Show Filters"),
+                  ),
+                  reservations.isEmpty
+                      ? const Expanded(
+                          child:
+                              Center(child: Text('No reservations to show.')))
+                      : Expanded(
+                          child: ListView.builder(
+                            itemCount: reservations.length,
+                            itemBuilder: (context, index) {
+                              final reservation = reservations[index];
+                              return ListTile(
+                                title: Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: 'Reservation #${reservation.id}',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    TextSpan(
-                                      text: 'Reservation #${reservation.id}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Car Repair Shop: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text:
+                                                  reservation.carRepairShopName)
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Reservation Date: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text: _formatDate(
+                                                  reservation.reservationDate))
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Total Amount: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text:
+                                                  '€${reservation.totalAmount.toStringAsFixed(2)}')
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'Personal Discount: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text:
+                                                  '${(reservation.carRepairShopDiscountValue * 100).toStringAsFixed(2)}%')
+                                        ],
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          const TextSpan(
+                                            text: 'State: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text: _getDisplayState(
+                                                  reservation.state),
+                                              style: TextStyle(
+                                                  color: _getStateColor(
+                                                      reservation.state))),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Car Repair Shop: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: reservation.carRepairShopName)
-                                      ],
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.info_outline),
+                                      onPressed: () {
+                                        _showReservationDetails(
+                                            context, reservation);
+                                      },
                                     ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Reservation Date: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: _formatDate(
-                                                reservation.reservationDate))
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Total Amount: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text:
-                                                '€${reservation.totalAmount.toStringAsFixed(2)}')
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'Personal Discount: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text:
-                                                '${(reservation.carRepairShopDiscountValue * 100).toStringAsFixed(2)}%')
-                                      ],
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        const TextSpan(
-                                          text: 'State: ',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        TextSpan(
-                                            text: _getDisplayState(
-                                                reservation.state),
-                                            style: TextStyle(
-                                                color: _getStateColor(
-                                                    reservation.state))),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.info_outline),
-                                    onPressed: () {
-                                      _showReservationDetails(
-                                          context, reservation);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              onTap: () {
-                                _showReservationDetails(context, reservation);
-                              },
-                            );
-                          },
+                                  ],
+                                ),
+                                onTap: () {
+                                  _showReservationDetails(context, reservation);
+                                },
+                              );
+                            },
+                          ),
                         ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _pageNumber > 1
+                            ? () async {
+                                setState(() {
+                                  _pageNumber = _pageNumber - 1;
+                                });
+                                await Provider.of<ReservationProvider>(context,
+                                        listen: false)
+                                    .getByClient(
+                                        reservationSearch: filterCriteria,
+                                        pageNumber: _pageNumber,
+                                        pageSize: _pageSize);
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
                       ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: _pageNumber > 1
-                          ? () async {
-                              setState(() {
-                                _pageNumber = _pageNumber - 1;
-                              });
-                              await Provider.of<ReservationProvider>(context,
-                                      listen: false)
-                                  .getByClient(
-                                      reservationSearch: filterCriteria,
-                                      pageNumber: _pageNumber,
-                                      pageSize: _pageSize);
-                            }
-                          : null,
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                    ),
-                    Text('$_pageNumber',
-                        style: Theme.of(context).textTheme.bodyLarge),
-                    IconButton(
-                      onPressed: _pageNumber < _totalPages
-                          ? () async {
-                              setState(() {
-                                _pageNumber = _pageNumber + 1;
-                              });
-                              await Provider.of<ReservationProvider>(context,
-                                      listen: false)
-                                  .getByClient(
-                                      reservationSearch: filterCriteria,
-                                      pageNumber: _pageNumber,
-                                      pageSize: _pageSize);
-                            }
-                          : null,
-                      icon: const Icon(Icons.arrow_forward_ios_rounded),
-                    ),
-                  ],
-                ),
-              ],
+                      Text('$_pageNumber',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      IconButton(
+                        onPressed: _pageNumber < _totalPages
+                            ? () async {
+                                setState(() {
+                                  _pageNumber = _pageNumber + 1;
+                                });
+                                await Provider.of<ReservationProvider>(context,
+                                        listen: false)
+                                    .getByClient(
+                                        reservationSearch: filterCriteria,
+                                        pageNumber: _pageNumber,
+                                        pageSize: _pageSize);
+                              }
+                            : null,
+                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'shopsButton',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CarRepairShopsScreen(),
             ),
+          );
+        },
+        backgroundColor: Theme.of(context).hoverColor,
+        child: const Icon(Icons.shop, color: Colors.white),
+      ),
     );
   }
 }

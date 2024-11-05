@@ -13,6 +13,7 @@ namespace FixMyCar.Model.SearchObjects
         public bool? WithDiscount { get; set; }
         public string? State { get; set; }
         public int? StoreItemCategoryId { get; set; }
+        public int? CarManufacturerId { get; set; }
         public List<int>? CarModelIds { get; set; }
         public string? CarPartsShopName { get; set; }
     }

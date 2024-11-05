@@ -1,5 +1,4 @@
 import 'package:fixmycar_client/constants.dart';
-import 'package:fixmycar_client/src/models/car_manufacturer/car_manufacturer.dart';
 import 'package:fixmycar_client/src/models/car_model/car_model.dart';
 import 'package:fixmycar_client/src/models/car_model/car_models_by_manufacturer.dart';
 import 'package:fixmycar_client/src/models/car_parts_shop_discount/car_parts_shop_discount.dart';
@@ -15,6 +14,7 @@ import 'package:fixmycar_client/src/providers/order_provider.dart';
 import 'package:fixmycar_client/src/providers/items_recommender_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_client/src/providers/store_item_provider.dart';
+import 'package:fixmycar_client/src/screens/car_parts_shops_screen.dart';
 import 'package:fixmycar_client/src/screens/order_history_screen.dart';
 import 'package:fixmycar_client/src/widgets/shop_details_widget.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +38,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late List<StoreItem> loadedItems;
   late User carPartsShopDetails;
   List<String>? _cities;
+  int? _selectedManufacturerId;
   String? _selectedCity;
   int _pageNumber = 1;
   final int _pageSize = 10;
@@ -75,6 +76,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late List<StoreItem> recommendedItems;
 
   List<StoreItemOrder> orderedItems = [];
+  List<StoreItem> orderedItemsDetails = [];
   bool useProfileAddress = true;
   TextEditingController cityController = TextEditingController();
   TextEditingController addressController = TextEditingController();
@@ -113,7 +115,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     if (orderedItems.isNotEmpty) {
       double totalAmount = 0;
       for (var item in orderedItems) {
-        StoreItem itemDetails = loadedItems
+        StoreItem itemDetails = orderedItemsDetails
             .firstWhere((loadedItem) => loadedItem.id == item.storeItemId);
         double itemAmount = itemDetails.discountedPrice * item.quantity;
         totalAmount = totalAmount + itemAmount;
@@ -178,15 +180,15 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               itemBuilder: (context, index) {
                                 final order = orderedItems[index];
                                 final storeItemName =
-                                    'Item ${loadedItems.firstWhere((item) => item.id == order.storeItemId).name}';
+                                    'Item ${orderedItemsDetails.firstWhere((item) => item.id == order.storeItemId).name}';
                                 return ListTile(
-                                  leading: loadedItems
+                                  leading: orderedItemsDetails
                                               .firstWhere((item) =>
                                                   item.id == order.storeItemId)
                                               .imageData !=
                                           ""
                                       ? Image.memory(
-                                          base64Decode(loadedItems
+                                          base64Decode(orderedItemsDetails
                                               .firstWhere((item) =>
                                                   item.id == order.storeItemId)
                                               .imageData!),
@@ -297,7 +299,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                               controller: addressController,
                               decoration: const InputDecoration(
                                   labelText: 'Shipping Address'),
-                              keyboardType: TextInputType.number,
+                              keyboardType: TextInputType.text,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return "Please enter a shipping address";
@@ -405,6 +407,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               onPressed: () {
                 setState(() {
                   orderedItems.clear();
+                  orderedItemsDetails.clear();
                   cityController.clear();
                   addressController.clear();
                   postalCodeController.clear();
@@ -431,94 +434,116 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   }
 
   Future<void> _confirmPlaceOrder(BuildContext context) async {
+    bool working = false;
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Place Order'),
-          content: const Text('Are you sure you want to place this order?'),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                OrderInsertUpdate newOrder;
-                if (useProfileAddress) {
-                  newOrder = OrderInsertUpdate(carPartsShopId,
-                      useProfileAddress, "", "", "", orderedItems);
-                } else {
-                  newOrder = OrderInsertUpdate(
-                      carPartsShopId,
-                      useProfileAddress,
-                      useProfileAddress
-                          ? ""
-                          : _selectedCity == 'Custom'
-                              ? cityController.text
-                              : _selectedCity!,
-                      addressController.text,
-                      postalCodeController.text,
-                      orderedItems);
-                }
-                bool validateCityInput =
-                    (cityController.text.trim().isNotEmpty &&
-                            _selectedCity == "Custom") ||
-                        (_selectedCity != null &&
-                            _selectedCity!.isNotEmpty &&
-                            _selectedCity != "Custom");
-                bool validateInputs = validateCityInput &&
-                    addressController.text.trim().isNotEmpty &&
-                    postalCodeController.text.trim().isNotEmpty;
-                if (useProfileAddress ||
-                    (!useProfileAddress && validateInputs)) {
-                  try {
-                    await Provider.of<OrderProvider>(context, listen: false)
-                        .insertOrder(newOrder)
-                        .then((_) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              title: const Text('Place Order'),
+              content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Are you sure you want to place this order?'),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    if (working)
+                      const SizedBox(
+                          height: 30,
+                          width: 30,
+                          child: CircularProgressIndicator()),
+                  ]),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    setState(() {
+                      working = true;
+                    });
+                    OrderInsertUpdate newOrder;
+                    if (useProfileAddress) {
+                      newOrder = OrderInsertUpdate(carPartsShopId,
+                          useProfileAddress, "", "", "", orderedItems);
+                    } else {
+                      newOrder = OrderInsertUpdate(
+                          carPartsShopId,
+                          useProfileAddress,
+                          useProfileAddress
+                              ? ""
+                              : _selectedCity == 'Custom'
+                                  ? cityController.text
+                                  : _selectedCity!,
+                          addressController.text,
+                          postalCodeController.text,
+                          orderedItems);
+                    }
+                    bool validateCityInput =
+                        (cityController.text.trim().isNotEmpty &&
+                                _selectedCity == "Custom") ||
+                            (_selectedCity != null &&
+                                _selectedCity!.isNotEmpty &&
+                                _selectedCity != "Custom");
+                    bool validateInputs = validateCityInput &&
+                        addressController.text.trim().isNotEmpty &&
+                        postalCodeController.text.trim().isNotEmpty;
+                    if (useProfileAddress ||
+                        (!useProfileAddress && validateInputs)) {
+                      try {
+                        await Provider.of<OrderProvider>(context, listen: false)
+                            .insertOrder(newOrder)
+                            .then((_) {
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                          setState(() {
+                            orderedItems.clear();
+                            orderedItemsDetails.clear();
+                            cityController.clear();
+                            addressController.clear();
+                            postalCodeController.clear();
+                            _selectedCity = _cities![0];
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Order processed!"),
+                            ),
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const OrderHistoryScreen(),
+                            ),
+                          );
+                        });
+                      } catch (e) {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString()),
+                          ),
+                        );
+                      }
+                    } else {
                       Navigator.pop(context);
                       Navigator.pop(context);
-                      setState(() {
-                        orderedItems.clear();
-                        cityController.clear();
-                        addressController.clear();
-                        postalCodeController.clear();
-                        _selectedCity = _cities![0];
-                      });
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("Order successful!"),
+                          content: Text("Please provide shipping details!"),
                         ),
                       );
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const OrderHistoryScreen(),
-                        ),
-                      );
-                    });
-                  } catch (e) {
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(e.toString()),
-                      ),
-                    );
-                  }
-                } else {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Please provide shipping details!"),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('No'),
-            ),
-          ],
+                    }
+                  },
+                  child: const Text('Yes'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('No'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -539,11 +564,14 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
             orElse: () => StoreItemOrder(storeItemId, 0));
         if (existingOrder.quantity == 0) {
           orderedItems.add(StoreItemOrder(storeItemId, quantity));
+          orderedItemsDetails
+              .add(loadedItems.firstWhere((item) => item.id == storeItemId));
         } else {
           existingOrder.quantity = quantity;
         }
       } else {
         orderedItems.removeWhere((order) => order.storeItemId == storeItemId);
+        orderedItemsDetails.removeWhere((item) => item.id == storeItemId);
       }
     });
   }
@@ -587,18 +615,30 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (item.imageData != null && item.imageData!.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      height: 150,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.memory(
-                          base64Decode(item.imageData!),
-                          fit: BoxFit.cover,
+                  if (item.imageData != null) ...[
+                    if (item.imageData != "")
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.memory(
+                            base64Decode(item.imageData!),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        height: 150,
+                        child: const SizedBox(
+                          width: 150,
+                          height: 150,
+                          child: Icon(Icons.image, size: 90),
                         ),
                       ),
-                    ),
+                  ],
                   _buildDetailRow('Price', '${item.price.toStringAsFixed(2)}€',
                       dialogContext),
                   if (item.discount != 0)
@@ -708,249 +748,278 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         MediaQuery.of(context).orientation == Orientation.portrait;
 
     return Scaffold(
-      body: MasterScreen(
-        child: Consumer<StoreItemProvider>(
-          builder: (context, provider, child) {
-            if (!provider.isLoading) {
-              _totalPages = (provider.countOfItems / _pageSize).ceil();
-            }
-            loadedItems = provider.items;
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 8.0, right: 8.0, top: 8.0, bottom: 5),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.filter_list),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(18, 255, 255, 255)),
-                        onPressed: () {
-                          _showFilterDialog(context);
-                        },
-                        label: const Text("Filters"),
-                      ),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.info_outline_rounded),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color.fromARGB(18, 255, 255, 255)),
-                        onPressed: () {
-                          showShopDetailsDialog(
-                              context, carPartsShopDetails, null, _discounts);
-                        },
-                        label: const Text("Shop details"),
-                      ),
-                    ],
-                  ),
-                ),
-                if (provider.isLoading)
-                  const Expanded(
-                      child: Center(child: CircularProgressIndicator()))
-                else if (provider.items.isEmpty)
-                  Expanded(
-                    child: Center(
-                      child: Text(_isFilterApplied
-                          ? 'No results found for your search.'
-                          : 'No items available.'),
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: GridView.builder(
+      body: Stack(
+        children: [
+          MasterScreen(
+            child: Consumer<StoreItemProvider>(
+              builder: (context, provider, child) {
+                if (!provider.isLoading) {
+                  _totalPages = (provider.countOfItems / _pageSize).ceil();
+                }
+                loadedItems = provider.items;
+                return Column(
+                  children: [
+                    Padding(
                       padding: const EdgeInsets.only(
-                          left: 8.0, right: 8.0, bottom: 8.0),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: isPortrait ? 2 : 3,
-                        crossAxisSpacing: 8.0,
-                        mainAxisSpacing: 8.0,
-                        childAspectRatio: 0.55,
-                      ),
-                      itemCount: provider.items.length,
-                      itemBuilder: (context, index) {
-                        final StoreItem item = provider.items[index];
-                        int quantity = getItemQuantity(item.id);
-
-                        return Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          left: 8.0, right: 8.0, top: 8.0, bottom: 5),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.filter_list),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255)),
+                            onPressed: () {
+                              _showFilterDialog(context);
+                            },
+                            label: const Text("Filters"),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: item.imageData != ""
-                                        ? Image.memory(
-                                            base64Decode(item.imageData!),
-                                            fit: BoxFit.contain,
-                                            width: 400,
-                                            height: 400,
-                                          )
-                                        : const SizedBox(
-                                            width: 150,
-                                            height: 150,
-                                            child: Icon(Icons.image, size: 100),
-                                          ),
-                                  ),
-                                ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.info_outline_rounded),
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromARGB(18, 255, 255, 255)),
+                            onPressed: () {
+                              showShopDetailsDialog(context,
+                                  carPartsShopDetails, null, _discounts);
+                            },
+                            label: const Text("Shop details"),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (provider.isLoading)
+                      const Expanded(
+                          child: Center(child: CircularProgressIndicator()))
+                    else if (provider.items.isEmpty)
+                      Expanded(
+                        child: Center(
+                          child: Text(_isFilterApplied
+                              ? 'No results found for your search.'
+                              : 'No items available.'),
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: GridView.builder(
+                          padding: const EdgeInsets.only(
+                              left: 8.0, right: 8.0, bottom: 8.0),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: isPortrait ? 2 : 3,
+                            crossAxisSpacing: 8.0,
+                            mainAxisSpacing: 8.0,
+                            childAspectRatio: 0.55,
+                          ),
+                          itemCount: provider.items.length,
+                          itemBuilder: (context, index) {
+                            final StoreItem item = provider.items[index];
+                            int quantity = getItemQuantity(item.id);
+
+                            return Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Text(
-                                  item.name,
-                                  style: Theme.of(context).textTheme.bodyLarge,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Text.rich(
-                                  TextSpan(
-                                    children: [
-                                      if (item.discount != 0) ...[
-                                        TextSpan(
-                                          text:
-                                              '${item.price.toStringAsFixed(2)}€ ',
-                                          style: const TextStyle(
-                                            decoration:
-                                                TextDecoration.lineThrough,
-                                            color: Colors.red,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text:
-                                              ' ${item.discountedPrice.toStringAsFixed(2)}€',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge,
-                                        ),
-                                      ] else ...[
-                                        TextSpan(
-                                          text:
-                                              '${item.price.toStringAsFixed(2)}€',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              if (item.discount != 0)
-                                Padding(
-                                  padding: const EdgeInsets.all(3.0),
-                                  child: Text(
-                                    'Discount: ${(item.discount * 100).toStringAsFixed(2)}%',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                          color: Theme.of(context)
-                                              .primaryColorLight,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Text(
-                                  'Car models: ${item.carModels?.isNotEmpty == true ? item.carModels!.map((model) => model.name).join(", ") : "Unknown"}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      onPressed: quantity > 0
-                                          ? () => updateItemQuantity(
-                                              item.id, quantity - 1)
-                                          : null,
-                                      icon: const Icon(Icons.remove),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(5.0),
+                                        child: item.imageData != ""
+                                            ? Image.memory(
+                                                base64Decode(item.imageData!),
+                                                fit: BoxFit.contain,
+                                                width: 400,
+                                                height: 400,
+                                              )
+                                            : const SizedBox(
+                                                width: 150,
+                                                height: 150,
+                                                child:
+                                                    Icon(Icons.image, size: 90),
+                                              ),
+                                      ),
                                     ),
-                                    Text('$quantity',
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: Text(
+                                      item.name,
+                                      style:
+                                          Theme.of(context).textTheme.bodyLarge,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          if (item.discount != 0) ...[
+                                            TextSpan(
+                                              text:
+                                                  '${item.price.toStringAsFixed(2)}€ ',
+                                              style: const TextStyle(
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' ${item.discountedPrice.toStringAsFixed(2)}€',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge,
+                                            ),
+                                          ] else ...[
+                                            TextSpan(
+                                              text:
+                                                  '${item.price.toStringAsFixed(2)}€',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyLarge,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  if (item.discount != 0)
+                                    Padding(
+                                      padding: const EdgeInsets.all(3.0),
+                                      child: Text(
+                                        'Discount: ${(item.discount * 100).toStringAsFixed(2)}%',
                                         style: Theme.of(context)
                                             .textTheme
-                                            .bodyLarge),
-                                    IconButton(
-                                      onPressed: () => updateItemQuantity(
-                                          item.id, quantity + 1),
-                                      icon: const Icon(Icons.add),
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .primaryColorLight,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 8),
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Theme.of(context).highlightColor,
+                                  Padding(
+                                    padding: const EdgeInsets.all(3.0),
+                                    child: Text(
+                                      'Car models: ${item.carModels?.isNotEmpty == true ? item.carModels!.map((model) => model.name).join(", ") : "Unknown"}',
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    _showDetailsDialog(context, item);
-                                  },
-                                  child: const Text('Details'),
-                                ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          onPressed: quantity > 0
+                                              ? () => updateItemQuantity(
+                                                  item.id, quantity - 1)
+                                              : null,
+                                          icon: const Icon(Icons.remove),
+                                        ),
+                                        Text('$quantity',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge),
+                                        IconButton(
+                                          onPressed: () => updateItemQuantity(
+                                              item.id, quantity + 1),
+                                          icon: const Icon(Icons.add),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 8.0,
+                                        right: 8.0,
+                                        top: 3.0,
+                                        bottom: 3.0),
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            Theme.of(context).highlightColor,
+                                      ),
+                                      onPressed: () {
+                                        _showDetailsDialog(context, item);
+                                      },
+                                      child: const Text('Details'),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                if (provider.items.isNotEmpty) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: _pageNumber > 1
-                            ? () {
-                                setState(() {
-                                  _pageNumber = _pageNumber - 1;
-                                  _applyFilters();
-                                });
-                              }
-                            : null,
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                            );
+                          },
+                        ),
                       ),
-                      Text('$_pageNumber',
-                          style: Theme.of(context).textTheme.bodyLarge),
-                      IconButton(
-                        onPressed: _pageNumber < _totalPages
-                            ? () {
-                                setState(() {
-                                  _pageNumber = _pageNumber + 1;
-                                });
-                                _applyFilters();
-                              }
-                            : null,
-                        icon: const Icon(Icons.arrow_forward_ios_rounded),
+                    if (provider.items.isNotEmpty) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: _pageNumber > 1
+                                ? () {
+                                    setState(() {
+                                      _pageNumber = _pageNumber - 1;
+                                      _applyFilters();
+                                    });
+                                  }
+                                : null,
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                          ),
+                          Text('$_pageNumber',
+                              style: Theme.of(context).textTheme.bodyLarge),
+                          IconButton(
+                            onPressed: _pageNumber < _totalPages
+                                ? () {
+                                    setState(() {
+                                      _pageNumber = _pageNumber + 1;
+                                    });
+                                    _applyFilters();
+                                  }
+                                : null,
+                            icon: const Icon(Icons.arrow_forward_ios_rounded),
+                          ),
+                        ],
                       ),
                     ],
+                  ],
+                );
+              },
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            left: 16,
+            child: FloatingActionButton(
+              heroTag: 'shopButton',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CarPartsShopsScreen(),
                   ),
-                ],
-              ],
-            );
-          },
-        ),
+                );
+              },
+              backgroundColor: Theme.of(context).hoverColor,
+              child: const Icon(Icons.arrow_back_rounded),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'cartButton',
         onPressed: () => _openShoppingCartForm(context),
         backgroundColor: Theme.of(context).hoverColor,
         child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
@@ -960,7 +1029,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
 
   void _showFilterDialog(BuildContext context) {
     _nameFilterController.text = _filterName;
-    CarManufacturer? selectedManufacturer;
     CarModel? selectedModel;
 
     showDialog(
@@ -1016,6 +1084,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         });
                       },
                     ),
+                    const SizedBox(height: 20),
+                    const Text('Category'),
                     DropdownButton<int>(
                       value: _categoryIdFilter,
                       onChanged: (int? newValue) {
@@ -1040,28 +1110,36 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                       hint: const Text('Select a category'),
                     ),
                     const SizedBox(height: 20),
-                    DropdownButton<CarManufacturer>(
-                      value: selectedManufacturer,
-                      onChanged: (CarManufacturer? newValue) {
+                    const Text('Car Manufacturer'),
+                    DropdownButton<int>(
+                      value: _selectedCarModelsFilter.isEmpty
+                          ? _selectedManufacturerId
+                          : null,
+                      onChanged: (int? newValue) {
                         setState(() {
-                          selectedManufacturer = newValue;
+                          _selectedManufacturerId = newValue;
                           selectedModel = null;
                         });
                       },
-                      items: _carModelsByManufacturer
-                          .map<DropdownMenuItem<CarManufacturer>>(
-                              (CarModelsByManufacturer cm) {
-                        return DropdownMenuItem<CarManufacturer>(
-                          value: cm.manufacturer,
-                          child: Text(cm.manufacturer.name),
-                        );
-                      }).toList(),
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text('All'),
+                        ),
+                        ..._carModelsByManufacturer.map<DropdownMenuItem<int>>(
+                            (CarModelsByManufacturer cm) {
+                          return DropdownMenuItem<int>(
+                            value: cm.manufacturer.id,
+                            child: Text(cm.manufacturer.name),
+                          );
+                        }).toList(),
+                      ],
                       isExpanded: true,
-                      hint: const Text('Select a manufacturer'),
+                      hint: const Text('Car Manufacturer'),
                     ),
-                    if (selectedManufacturer != null)
+                    if (_selectedManufacturerId != null) ...[
                       const SizedBox(height: 20),
-                    if (selectedManufacturer != null)
+                      const Text('Car Models'),
                       DropdownButton<CarModel>(
                         value: selectedModel,
                         onChanged: (CarModel? newValue) {
@@ -1084,7 +1162,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         },
                         items: _carModelsByManufacturer
                             .firstWhere((cm) =>
-                                cm.manufacturer == selectedManufacturer!)
+                                cm.manufacturer.id == _selectedManufacturerId)
                             .models
                             .map<DropdownMenuItem<CarModel>>((CarModel model) {
                           return DropdownMenuItem<CarModel>(
@@ -1095,6 +1173,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         isExpanded: true,
                         hint: const Text('Select a model'),
                       ),
+                    ],
                     const SizedBox(height: 20),
                     Wrap(
                       spacing: 8.0,
@@ -1106,6 +1185,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                             setState(() {
                               if (!selected) {
                                 _selectedCarModelsFilter.remove(model);
+                                if (_selectedCarModelsFilter.isEmpty) {
+                                  _selectedManufacturerId = null;
+                                }
                               }
                             });
                           },
@@ -1121,6 +1203,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   child: TextButton(
                     child: const Text('Apply Filters'),
                     onPressed: () {
+                      setState(() {
+                        _pageNumber = 1;
+                      });
                       _applyFilters();
                       Navigator.of(context).pop();
                     },
@@ -1156,6 +1241,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
         withDiscount: discountFilter,
         categoryFilter: _categoryIdFilter,
         carModelsFilter: carModels,
+        carManufacturerId: _selectedManufacturerId,
         pageNumber: _pageNumber,
         pageSize: _pageSize);
   }

@@ -665,6 +665,53 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
+  Future<void> _deleteImage() async {
+    bool delete = false;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Delete Image'),
+              content: const SizedBox(
+                width: 450,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Are you sure to delete the image?'),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    delete = false;
+                    Navigator.pop(context);
+                  },
+                  child: const Text('No'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    delete = true;
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Yes'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (delete) {
+      setState(() {
+        _updateImage = UserUpdateImage("");
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
@@ -682,13 +729,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      if (_updateImage != null)
-                        CircleAvatar(
-                          backgroundImage:
-                              MemoryImage(base64Decode(_updateImage!.image)),
-                          radius: 50,
-                        )
-                      else if (user.image != null && user.image!.isNotEmpty)
+                      if (_updateImage != null) ...[
+                        if (_updateImage!.image != "")
+                          CircleAvatar(
+                            backgroundImage:
+                                MemoryImage(base64Decode(_updateImage!.image)),
+                            radius: 50,
+                          )
+                        else
+                          const CircleAvatar(
+                            radius: 50,
+                            child: Icon(Icons.person, size: 50),
+                          ),
+                      ] else if (user.image != null && user.image!.isNotEmpty)
                         CircleAvatar(
                           backgroundImage:
                               MemoryImage(base64Decode(user.image!)),
@@ -700,15 +753,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           child: Icon(Icons.person, size: 50),
                         ),
                       Positioned(
-                        bottom: 0,
-                        right: 0,
+                        bottom: -5,
+                        right: -5,
                         child: IconButton(
                           icon: const Icon(Icons.camera_alt),
                           onPressed: _pickImage,
                         ),
                       ),
+                      if (user.image != null && user.image!.isNotEmpty)
+                        Positioned(
+                          bottom: -5,
+                          left: -5,
+                          child: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: _deleteImage,
+                          ),
+                        ),
                     ],
                   ),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  Text(user.username),
                   if (_updateImage != null) ...[
                     const SizedBox(height: 8.0),
                     Row(

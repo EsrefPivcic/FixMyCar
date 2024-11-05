@@ -1,12 +1,26 @@
 OrderDate,Customer,CustomerType,TotalAmount,Discount
-2024-10-28,Esref Pivcic (carrepairshop),Car Repair Shop,804.75,13.00%
-2024-10-28,Esref Pivcic (carrepairshop),Car Repair Shop,1718.25,13.00%
-2024-10-28,Esref Pivcic (client),Client,1979.25,15.00%
-2024-10-28,Esref Pivcic (client),Client,1000.50,15.00%
-2024-10-28,Esref Pivcic (carrepairshop),Car Repair Shop,891.75,13.00%
-2024-10-28,Esref Pivcic (carrepairshop),Car Repair Shop,348.00,13.00%
-2024-10-28,Esref Pivcic (carrepairshop),Car Repair Shop,739.50,13.00%
-2024-10-28,client2 client2 (client2),Client,1025.00,No discount
-2024-10-28,client2 client2 (client2),Client,850.00,No discount
-2024-10-28,client2 client2 (client2),Client,800.00,No discount
-2024-10-29,Esref Pivcic (client),Client,722.50,15.00%
+2024-10-14,Adrian Parker (client2),Client,1800.00,No discount
+2024-10-05,Nicole Perkins (carrepairshop),Car Repair Shop,1718.25,13.00%
+2024-10-15,Freddie Raymond (client3),Client,1413.75,No discount
+2024-10-22,Josh Martinez (carrepairshop2),Car Repair Shop,1110.00,No discount
+2024-10-13,Nicole Perkins (carrepairshop),Car Repair Shop,1044.00,13.00%
+2024-10-13,Nicole Perkins (carrepairshop),Car Repair Shop,957.00,13.00%
+2024-11-03,Josh Martinez (carrepairshop2),Car Repair Shop,845.50,5.00%
+2024-10-05,Nicole Perkins (carrepairshop),Car Repair Shop,804.75,13.00%
+2024-10-21,Josh Martinez (carrepairshop2),Car Repair Shop,622.99,No discount
+2024-10-12,Nicole Perkins (carrepairshop),Car Repair Shop,609.00,13.00%
+2024-10-30,Nicole Perkins (carrepairshop),Car Repair Shop,556.80,13.00%
+2024-10-08,Nancy Cole (client),Client,533.00,No discount
+2024-10-07,Nancy Cole (client),Client,527.00,15.00%
+2024-10-11,Nicole Perkins (carrepairshop),Car Repair Shop,479.15,13.00%
+2024-10-10,Nicole Perkins (carrepairshop),Car Repair Shop,441.96,13.00%
+2024-10-10,Nicole Perkins (carrepairshop),Car Repair Shop,374.75,13.00%
+2024-10-25,Adrian Parker (client2),Client,345.00,No discount
+2024-11-03,Nicole Perkins (carrepairshop),Car Repair Shop,304.50,13.00%
+2024-10-15,Nicole Perkins (carrepairshop),Car Repair Shop,295.80,13.00%
+2024-10-08,Nancy Cole (client),Client,213.14,15.00%
+2024-10-23,Josh Martinez (carrepairshop2),Car Repair Shop,193.98,No discount
+2024-11-03,Nicole Perkins (carrepairshop),Car Repair Shop,115.71,13.00%
+2024-11-04,Nicole Perkins (carrepairshop),Car Repair Shop,92.44,13.00%
+2024-10-12,Nicole Perkins (carrepairshop),Car Repair Shop,40.00,13.00%
+2024-10-06,Nancy Cole (client),Client,38.25,15.00%

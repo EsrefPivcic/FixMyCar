@@ -102,7 +102,7 @@ namespace FixMyCar.Services.StateMachineServices.ReservationStateMachine
                 }
 
                 var reservations = await _context.Reservations
-                    .Where(r => r.ReservationDate.Date == reservationDate.Date && r.CarRepairShopId == entity.CarRepairShopId)
+                    .Where(r => r.ReservationDate.Date == reservationDate.Date && r.CarRepairShopId == entity.CarRepairShopId && r.State == "accepted")
                     .Where(r => r.Id != entity.Id)
                     .ToListAsync();
 
