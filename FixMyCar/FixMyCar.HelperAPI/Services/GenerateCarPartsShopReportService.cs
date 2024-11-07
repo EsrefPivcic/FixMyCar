@@ -108,7 +108,8 @@ namespace FixMyCar.HelperAPI.Services
                 }
 
                 var fileName = $"report_{request.ShopId}.csv";
-                var filePath = Path.Combine("Reports", fileName);
+                var sharedVolumePath = "/app/reports";
+                var filePath = Path.Combine(sharedVolumePath, fileName);
 
                 try
                 {
@@ -226,7 +227,8 @@ namespace FixMyCar.HelperAPI.Services
             csvReport.AppendLine($"CarRepairShop,{repairShopsRevenue:F2}");
 
             var fileName = $"monthly_revenue_per_customer_type_{shopId}.csv";
-            var filePath = Path.Combine("Reports", fileName);
+            var sharedVolumePath = "/app/reports";
+            var filePath = Path.Combine(sharedVolumePath, fileName);
 
             await File.WriteAllTextAsync(filePath, csvReport.ToString());
 
@@ -250,7 +252,8 @@ namespace FixMyCar.HelperAPI.Services
             }
 
             var fileName = $"monthly_revenue_per_day_{shopId}.csv";
-            var filePath = Path.Combine("Reports", fileName);
+            var sharedVolumePath = "/app/reports";
+            var filePath = Path.Combine(sharedVolumePath, fileName);
 
             await File.WriteAllTextAsync(filePath, csvReport.ToString());
 
@@ -287,7 +290,8 @@ namespace FixMyCar.HelperAPI.Services
             }
 
             var fileName = $"top_10_customers_monthly_{shopId}.csv";
-            var filePath = Path.Combine("Reports", fileName);
+            var sharedVolumePath = "/app/reports";
+            var filePath = Path.Combine(sharedVolumePath, fileName);
 
             await File.WriteAllTextAsync(filePath, csvReport.ToString());
 
@@ -313,7 +317,8 @@ namespace FixMyCar.HelperAPI.Services
             }
 
             var fileName = $"top_10_orders_monthly_{shopId}.csv";
-            var filePath = Path.Combine("Reports", fileName);
+            var sharedVolumePath = "/app/reports";
+            var filePath = Path.Combine(sharedVolumePath, fileName);
 
             await File.WriteAllTextAsync(filePath, csvReport.ToString());
 

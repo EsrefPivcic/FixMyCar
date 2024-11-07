@@ -78,7 +78,11 @@ namespace FixMyCar.Services.Services
 
                 try
                 {
-                    mlContext.Model.Save(model, trainData.Schema, "ordersmodel.zip");
+                    string modelsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RecommenderModels");
+                    Directory.CreateDirectory(modelsPath);
+                    string ordersModelPath = Path.Combine(modelsPath, "ordersmodel.zip");
+
+                    mlContext.Model.Save(model, trainData.Schema, ordersModelPath);
                 }
                 catch (Exception)
                 {
@@ -144,7 +148,11 @@ namespace FixMyCar.Services.Services
 
                 try
                 {
-                    mlContext.Model.Save(model, trainData.Schema, "reservationsmodel.zip");
+                    string modelsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RecommenderModels");
+                    Directory.CreateDirectory(modelsPath);
+                    string reservationsModelPath = Path.Combine(modelsPath, "reservationsmodel.zip");
+
+                    mlContext.Model.Save(model, trainData.Schema, reservationsModelPath);
                 }
                 catch (Exception)
                 {

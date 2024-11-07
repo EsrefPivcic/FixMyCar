@@ -9,10 +9,9 @@ namespace FixMyCar.HelperAPI.Services
     {
         private readonly IConnection _connection;
 
-        public RabbitMQService()
+        public RabbitMQService(IConnectionFactory connectionFactory)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            _connection = factory.CreateConnection();
+            _connection = connectionFactory.CreateConnection();
         }
 
         public void SendReportNotification(ReportNotificationDTO notification)

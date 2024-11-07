@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fixmycar_car_parts_shop/src/models/search_result.dart';
 
 abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
-  static const String baseUrl = 'https://localhost:7055';
+  static const String baseUrl = 'http://localhost:5148';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String endpoint;
 

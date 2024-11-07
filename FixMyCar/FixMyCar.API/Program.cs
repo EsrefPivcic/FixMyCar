@@ -1,4 +1,5 @@
 using AutoMapper;
+using DotNetEnv;
 using FixMyCar.API;
 using FixMyCar.API.SignalR;
 using FixMyCar.Filters;
@@ -13,13 +14,22 @@ using FixMyCar.Services.StateMachineServices.ReservationStateMachine;
 using FixMyCar.Services.StateMachineServices.StoreItemStateMachine;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using RabbitMQ.Client;
 using Stripe;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
+
+Env.Load(@"../.env");
+
 var builder = WebApplication.CreateBuilder(args);
+
+var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+var stripePublishableKey = Environment.GetEnvironmentVariable("STRIPE_PUBLISHABLE_KEY");
+var jwtSecretFromEnv = Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
 
 builder.Services.AddTransient<IStoreItemService, StoreItemService>();
 builder.Services.AddTransient<ICarRepairShopServiceService, CarRepairShopServiceService>();
@@ -82,14 +92,32 @@ builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<ReportNotificationService>();
 builder.Services.AddTransient<IChatService, ChatService>();
 
+builder.Services.AddSingleton<IConnectionFactory>(sp =>
+{
+    var hostName = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? builder.Configuration["RabbitMQ:HostName"];
+    var userName = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? builder.Configuration["RabbitMQ:UserName"];
+    var password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? builder.Configuration["RabbitMQ:Password"];
+
+    return new ConnectionFactory()
+    {
+        HostName = hostName,
+        UserName = userName,
+        Password = password,
+        RequestedHeartbeat = TimeSpan.FromSeconds(60),
+        AutomaticRecoveryEnabled = true
+    };
+});
+
+
 builder.Services.AddHostedService<RabbitMqListener>();
 builder.Services.AddSingleton<RabbitMQService>();
 
-builder.Services.AddTransient<SeedService>();
+builder.Services.AddAutoMapper(typeof(StoreItemProfile).Assembly);  
 
-builder.Services.AddAutoMapper(typeof(StoreItemProfile).Assembly);
 
-var key = builder.Configuration.GetValue<string>("JwtSettings:Secret");
+var key = !string.IsNullOrEmpty(jwtSecretFromEnv)
+    ? jwtSecretFromEnv
+    : builder.Configuration.GetValue<string>("JwtSettings:Secret");
 var keyBytes = Encoding.ASCII.GetBytes(key);
 
 builder.Services.AddTransient<IAuthService, AuthService>(provider =>
@@ -143,7 +171,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("FixMyCarConnection");
 builder.Services.AddDbContext<FixMyCarContext>(options =>
     options.UseSqlServer(connectionString));
 
@@ -153,7 +181,18 @@ builder.Services.AddControllers(x =>
     x.Filters.Add<ErrorFilter>();
 });
 
-builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+if (!string.IsNullOrEmpty(stripeSecretKey) && !string.IsNullOrEmpty(stripePublishableKey))
+{
+    builder.Services.Configure<StripeSettings>(options =>
+    {
+        options.SecretKey = stripeSecretKey;
+        options.PublishableKey = stripePublishableKey;
+    });
+}
+else
+{
+    builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+}
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -185,12 +224,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var seedService = scope.ServiceProvider.GetRequiredService<SeedService>();
-    await seedService.SeedData();
-}
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -207,10 +240,9 @@ app.MapHub<NotificationHub>("/notificationHub");
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<ReportNotificationHub>("/reportNotificationHub");
 
-app.Urls.Add("https://localhost:7055");
 app.Urls.Add("http://0.0.0.0:5148");
 
-var stripeSettings = builder.Configuration.GetSection("Stripe").Get<StripeSettings>();
+var stripeSettings = app.Services.GetRequiredService<IOptions<StripeSettings>>().Value;
 StripeConfiguration.ApiKey = stripeSettings.SecretKey;
 
 app.Run();

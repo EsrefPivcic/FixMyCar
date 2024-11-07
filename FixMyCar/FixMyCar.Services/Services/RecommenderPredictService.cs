@@ -33,7 +33,11 @@ namespace FixMyCar.Services.Services
             try
             {
                 DataViewSchema modelSchema;
-                ITransformer _model = mlContext.Model.Load("ordersmodel.zip", out modelSchema);
+
+                    string modelsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RecommenderModels");
+                    string ordersModelPath = Path.Combine(modelsPath, "ordersmodel.zip");
+
+                    ITransformer _model = mlContext.Model.Load(ordersModelPath, out modelSchema);
                 var storeItems = await _context.StoreItems.Where(x => x.Id != storeItemId).ToListAsync();
                 var predictionResult = new List<Tuple<StoreItem, float>>();
 
@@ -74,7 +78,11 @@ namespace FixMyCar.Services.Services
             try
             {
                 DataViewSchema modelSchema;
-                ITransformer _model = mlContext.Model.Load("reservationsmodel.zip", out modelSchema);
+
+                string modelsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "RecommenderModels");
+                string reservationsModelPath = Path.Combine(modelsPath, "reservationsmodel.zip");
+
+                ITransformer _model = mlContext.Model.Load(reservationsModelPath, out modelSchema);
                 var repairShopServices = await _context.CarRepairShopServices.Where(x => x.Id != repairShopServiceId).ToListAsync();
                 var predictionResult = new List<Tuple<Model.Entities.CarRepairShopService, float>>();
 

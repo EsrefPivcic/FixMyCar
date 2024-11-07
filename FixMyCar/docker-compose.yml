@@ -1,36 +1,109 @@
 version: '3'
 services:
-#mssql docker
   fixmycar-sql:
     image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
     restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=.
+      - SA_PASSWORD=QWElkj132!
       - MSSQL_PID=Developer
     ports:
       - 1401:1433
     expose:
       - 1433
+    volumes:
+      - ./FixMyCar.DB:/docker-entrypoint-initdb.d
+    command: bash -c "/opt/mssql/bin/sqlservr & sleep 30 && for f in /docker-entrypoint-initdb.d/*.sql; do echo \"Processing $$f\" && /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P QWElkj132! -i \"$$f\"; done & wait"
     networks:
-      - fixmycar2023
+      - fixmycarnet
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "QWElkj132!" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
   fixmycar-api:
     restart: unless-stopped
     build:
       context: .
     environment:
-      - ConnectionStrings:DefaultConnection=Server=fixmycar-sql,1433;Database=fixmycar;User=sa;Password=.;ConnectRetryCount=0; TrustServerCertificate=True
+      - ConnectionStrings__FixMyCarConnection=Server=fixmycar-sql,1433;Database=200106;User=sa;Password=QWElkj132!;ConnectRetryCount=0; TrustServerCertificate=True
       - ASPNETCORE_ENVIRONMENT=Development
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
     ports:
-      - 7114:7114
+      - 5148:5148
     networks:
-      - fixmycar2023
+      - fixmycarnet
     links:
       - fixmycar-sql
     depends_on:
+      fixmycar-sql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./FixMyCar.API/RecommenderModels:/app/RecommenderModels
+      - report-storage:/app/reports
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - fixmycarnet
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  fixmycar-helperapi:
+    build:
+      context: .
+      dockerfile: FixMyCar.HelperAPI/Dockerfile
+    environment:
+      - ConnectionStrings__FixMyCarConnection=Server=fixmycar-sql,1433;Database=200106;User=sa;Password=QWElkj132!;ConnectRetryCount=0; TrustServerCertificate=True
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+    ports:
+      - 7013:7013
+    networks:
+      - fixmycarnet
+    links:
       - fixmycar-sql
-      
+    depends_on:
+      fixmycar-sql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - report-storage:/app/reports
+
+  report-init:
+    image: busybox
+    command: /bin/sh -c "cp -r /pre-existing-reports/. /reports/"
+    volumes:
+      - ./FixMyCar.HelperAPI/Reports:/pre-existing-reports
+      - report-storage:/reports
+  
+volumes:
+  report-storage:
+
 networks:
-  fixmycar2023:
-    driver: bridge      
+  fixmycarnet:
+    driver: bridge

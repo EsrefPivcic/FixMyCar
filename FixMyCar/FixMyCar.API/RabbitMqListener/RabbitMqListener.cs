@@ -19,12 +19,11 @@ namespace FixMyCar.API
         private readonly IModel _channel;
         private readonly IServiceProvider _serviceProvider;
 
-        public RabbitMqListener(IServiceProvider serviceProvider)
+        public RabbitMqListener(IConnectionFactory connectionFactory, IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
 
-            var factory = new ConnectionFactory() { HostName = "localhost" };
-            _connection = factory.CreateConnection();
+            _connection = connectionFactory.CreateConnection();
             _channel = _connection.CreateModel();
 
             _channel.QueueDeclare(queue: "report_ready",

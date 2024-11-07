@@ -2,7 +2,7 @@ import 'package:signalr_netcore/signalr_client.dart';
 
 class ReportNotificationService {
   late HubConnection _connection;
-  final String _baseUrl = "https://localhost:7055/reportNotificationHub";
+  final String _baseUrl = "http://localhost:5148/reportNotificationHub";
   bool _initialized = false;
 
   Function(String notificationType, String message)? onNotificationReceived;

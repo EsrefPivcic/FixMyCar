@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
-  static const String baseUrl = 'https://localhost:7055';
+  static const String baseUrl = 'http://localhost:5148';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String endpoint;
 
