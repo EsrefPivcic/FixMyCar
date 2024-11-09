@@ -81,6 +81,12 @@ class _HomeScreenState extends State<HomeScreen> {
             'Are you sure that you want to change the activity status for $username?'),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
             onPressed: () async {
               try {
                 await Provider.of<UserProvider>(context, listen: false)
@@ -98,12 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.of(context).pop();
             },
             child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
           ),
         ],
       ),
@@ -364,6 +364,12 @@ class _HomeScreenState extends State<HomeScreen> {
             'Are you sure that you want to start training orders recommender system?'),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
             onPressed: () async {
               try {
                 await Provider.of<RecommenderProvider>(context, listen: false)
@@ -386,12 +392,6 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             child: const Text('Yes'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
         ],
       ),
     );
@@ -405,6 +405,12 @@ class _HomeScreenState extends State<HomeScreen> {
         content: const Text(
             'Are you sure that you want to start training reservations recommender system?'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -427,12 +433,6 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.of(context).pop();
             },
             child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
           ),
         ],
       ),

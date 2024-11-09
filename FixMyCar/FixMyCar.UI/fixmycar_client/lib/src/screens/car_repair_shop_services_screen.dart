@@ -311,12 +311,12 @@ class _CarRepairShopServicesScreenState
         }
         if (discountValue != 0) {
           double discountedTotal = totalAmount - (totalAmount * discountValue);
-          return "€${discountedTotal.toStringAsFixed(2)}";
+          return "${discountedTotal.toStringAsFixed(2)}€";
         } else {
-          return "€${totalAmount.toStringAsFixed(2)}";
+          return "${totalAmount.toStringAsFixed(2)}€";
         }
       } else {
-        return "€${totalAmount.toStringAsFixed(2)}";
+        return "${totalAmount.toStringAsFixed(2)}€";
       }
     } else {
       return "Unknown";
@@ -631,6 +631,10 @@ class _CarRepairShopServicesScreenState
           content: const Text('Are you sure you want to discard the order?'),
           actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('No'),
+            ),
+            TextButton(
               onPressed: () {
                 setState(() {
                   clientOrder = false;
@@ -646,10 +650,6 @@ class _CarRepairShopServicesScreenState
                 Navigator.pop(context);
               },
               child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('No'),
             ),
           ],
         );
@@ -694,6 +694,10 @@ class _CarRepairShopServicesScreenState
                           child: CircularProgressIndicator()),
                   ]),
               actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('No'),
+                ),
                 TextButton(
                   onPressed: () async {
                     setState(() {
@@ -760,10 +764,6 @@ class _CarRepairShopServicesScreenState
                   },
                   child: const Text('Yes'),
                 ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('No'),
-                ),
               ],
             );
           },
@@ -810,7 +810,7 @@ class _CarRepairShopServicesScreenState
                       ),
                     ),
                   _buildDetailRow('Price',
-                      '€${service.price.toStringAsFixed(2)}', dialogContext),
+                      '${service.price.toStringAsFixed(2)}€', dialogContext),
                   if (service.discount != 0)
                     _buildDetailRow(
                         'Discount',
@@ -819,7 +819,7 @@ class _CarRepairShopServicesScreenState
                   if (service.discount != 0)
                     _buildDetailRow(
                       'Discounted Price',
-                      '€${service.discountedPrice.toStringAsFixed(2)}',
+                      '${service.discountedPrice.toStringAsFixed(2)}€',
                       dialogContext,
                     ),
                   _buildDetailRow(
@@ -1030,7 +1030,7 @@ class _CarRepairShopServicesScreenState
                                           if (service.discount != 0) ...[
                                             TextSpan(
                                               text:
-                                                  '€${service.price.toStringAsFixed(2)} ',
+                                                  '${service.price.toStringAsFixed(2)}€ ',
                                               style: const TextStyle(
                                                 decoration:
                                                     TextDecoration.lineThrough,
@@ -1039,7 +1039,7 @@ class _CarRepairShopServicesScreenState
                                             ),
                                             TextSpan(
                                               text:
-                                                  ' €${service.discountedPrice.toStringAsFixed(2)}',
+                                                  ' ${service.discountedPrice.toStringAsFixed(2)}€',
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .bodyLarge,

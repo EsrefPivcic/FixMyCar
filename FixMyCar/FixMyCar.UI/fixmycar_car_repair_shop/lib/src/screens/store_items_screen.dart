@@ -15,7 +15,9 @@ import 'package:fixmycar_car_repair_shop/src/providers/recommender_provider.dart
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_category_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/store_item_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/order_history_screen.dart';
+import 'package:fixmycar_car_repair_shop/src/utilities/card_formatters.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
@@ -80,7 +82,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   TextEditingController addressController = TextEditingController();
   TextEditingController postalCodeController = TextEditingController();
 
-  String selectedCard = 'pm_card_visa';
+  String selectedCard = 'pm_card_visa_chargeDeclined';
+  String? cardNumber;
+  String? expirationDate;
+  String? cvv;
 
   Future _fetchCities() async {
     if (mounted) {
@@ -134,6 +139,18 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
     }
   }
 
+  void _getCard() {
+    if (cardNumber == '4242 4242 4242 4242') {
+      setState(() {
+        selectedCard = 'pm_card_visa';
+      });
+    } else {
+      setState(() {
+        selectedCard = 'pm_card_visa_chargeDeclined';
+      });
+    }
+  }
+
   void _openShoppingCartForm(BuildContext context) {
     final _formKey = GlobalKey<FormState>();
     showDialog(
@@ -147,212 +164,312 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   width: 500,
                   child: Form(
                     key: _formKey,
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      const Text('Your Cart', style: TextStyle(fontSize: 24)),
-                      const SizedBox(height: 16.0),
-                      if (orderedItems.isEmpty) ...[
-                        const Text('No items in your cart.')
-                      ] else ...[
-                        SizedBox(
-                          height: 300,
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: orderedItems.length,
-                            itemBuilder: (context, index) {
-                              final order = orderedItems[index];
-                              final storeItemName =
-                                  'Item ${orderedItemsDetails.firstWhere((item) => item.id == order.storeItemId).name}';
-                              return ListTile(
-                                leading: orderedItemsDetails
-                                            .firstWhere((item) =>
-                                                item.id == order.storeItemId)
-                                            .imageData !=
-                                        ""
-                                    ? Image.memory(
-                                        base64Decode(orderedItemsDetails
-                                            .firstWhere((item) =>
-                                                item.id == order.storeItemId)
-                                            .imageData!),
-                                        fit: BoxFit.contain,
-                                        width: 200,
-                                        height: 200,
-                                      )
-                                    : const SizedBox(
-                                        width: 200,
-                                        height: 200,
-                                        child: Icon(Icons.image, size: 50),
-                                      ),
-                                title: Text(storeItemName),
-                                subtitle: Text('Quantity: ${order.quantity}'),
-                              );
-                            },
-                          ),
-                        ),
-                        Text("Total amount: ${_loadTotalAmount()}"),
-                      ],
-                      const SizedBox(height: 16.0),
-                      Row(
-                        children: [
-                          const Text('Use profile address'),
-                          Switch(
-                            value: useProfileAddress,
-                            onChanged: (bool value) {
-                              setState(() {
-                                useProfileAddress = value;
-                              });
-                            },
-                          ),
-                        ],
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.90,
                       ),
-                      if (!useProfileAddress) ...[
-                        if (_cities != null && _cities!.isNotEmpty) ...[
-                          const SizedBox(height: 10.0),
-                          DropdownButtonFormField<String>(
-                            value: _selectedCity,
-                            items: _cities!.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                            onChanged: (newValue) {
-                              setState(() {
-                                _selectedCity = newValue!;
-                              });
-                            },
-                            decoration: InputDecoration(
-                              labelText: AppConstants.cityLabel,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                    AppRadius.textFieldRadius),
+                      child: SingleChildScrollView(
+                        child:
+                            Column(mainAxisSize: MainAxisSize.min, children: [
+                          const Text('Your Cart',
+                              style: TextStyle(fontSize: 24)),
+                          const SizedBox(height: 16.0),
+                          if (orderedItems.isEmpty) ...[
+                            const Text('No items in your cart.')
+                          ] else ...[
+                            SizedBox(
+                              height: 300,
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: orderedItems.length,
+                                itemBuilder: (context, index) {
+                                  final order = orderedItems[index];
+                                  final storeItemName = orderedItemsDetails
+                                      .firstWhere((item) =>
+                                          item.id == order.storeItemId)
+                                      .name;
+                                  return ListTile(
+                                    leading: orderedItemsDetails
+                                                .firstWhere((item) =>
+                                                    item.id ==
+                                                    order.storeItemId)
+                                                .imageData !=
+                                            ""
+                                        ? Image.memory(
+                                            base64Decode(orderedItemsDetails
+                                                .firstWhere((item) =>
+                                                    item.id ==
+                                                    order.storeItemId)
+                                                .imageData!),
+                                            fit: BoxFit.contain,
+                                            width: 200,
+                                            height: 200,
+                                          )
+                                        : const SizedBox(
+                                            width: 200,
+                                            height: 200,
+                                            child: Icon(Icons.image, size: 50),
+                                          ),
+                                    title: Text(storeItemName),
+                                    subtitle:
+                                        Text('Quantity: ${order.quantity}'),
+                                  );
+                                },
                               ),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return AppConstants.cityError;
-                              }
-                              return null;
-                            },
+                            Text("Total amount: ${_loadTotalAmount()}"),
+                          ],
+                          const SizedBox(height: 16.0),
+                          Row(
+                            children: [
+                              const Text('Use profile address'),
+                              Switch(
+                                value: useProfileAddress,
+                                onChanged: (bool value) {
+                                  setState(() {
+                                    useProfileAddress = value;
+                                  });
+                                },
+                              ),
+                            ],
                           ),
-                        ],
-                        if ((_cities == null || _cities!.isEmpty) ||
-                            _selectedCity == 'Custom') ...[
-                          TextFormField(
-                              controller: cityController,
-                              decoration: const InputDecoration(
-                                  labelText: 'Custom City'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Please enter a city name";
-                                }
-                                if (num.tryParse(value) is num) {
-                                  return "City names can't be numeric";
-                                }
-                                if (value.length > 25) {
-                                  return "City names can't be longer than 25 characters";
-                                }
-                                return null;
-                              }),
-                        ],
-                        TextFormField(
-                            controller: addressController,
-                            decoration: const InputDecoration(
-                                labelText: 'Shipping Address'),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Please enter a shipping address";
-                              }
-                              if (num.tryParse(value) is num) {
-                                return "Shipping address can't be numeric";
-                              }
-                              if (value.length > 30) {
-                                return "Shipping address can't be longer than 30 characters";
-                              }
-                              return null;
-                            }),
-                        TextFormField(
-                            controller: postalCodeController,
-                            decoration: const InputDecoration(
-                                labelText: 'Shipping Postal Code'),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return "Please enter a postal code";
-                              }
-                              if (value.length > 15) {
-                                return "Shipping address can't be longer than 15 characters";
-                              }
-                              return null;
-                            }),
-                      ],
-                      const SizedBox(height: 16.0),
-                      const Text('Choose a Card'),
-                      Column(
-                        children: [
-                          RadioListTile<String>(
-                            title: const Text('Visa Card 1'),
-                            value: 'pm_card_visa',
-                            groupValue: selectedCard,
-                            onChanged: (String? value) {
-                              setState(() {
-                                selectedCard = value!;
-                              });
-                            },
-                          ),
-                          RadioListTile<String>(
-                            title: const Text('Visa Card 2 (Declined)'),
-                            value: 'pm_card_visa_chargeDeclined',
-                            groupValue: selectedCard,
-                            onChanged: (String? value) {
-                              setState(() {
-                                selectedCard = value!;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16.0),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(18, 255, 255, 255)),
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(18, 255, 255, 255)),
-                            onPressed: () => _confirmDiscard(context),
-                            child: const Text('Discard Order'),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(18, 255, 255, 255)),
-                            onPressed: orderedItems.isNotEmpty &&
-                                    selectedCard.isNotEmpty
-                                ? () {
-                                    if (useProfileAddress) {
-                                      _confirmPlaceOrder(context, selectedCard);
-                                    } else {
-                                      if ((_formKey.currentState?.validate() ??
-                                          false)) {
-                                        _confirmPlaceOrder(
-                                            context, selectedCard);
-                                      }
+                          if (!useProfileAddress) ...[
+                            if (_cities != null && _cities!.isNotEmpty) ...[
+                              const SizedBox(height: 10.0),
+                              DropdownButtonFormField<String>(
+                                value: _selectedCity,
+                                items: _cities!.map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _selectedCity = newValue!;
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  labelText: AppConstants.cityLabel,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        AppRadius.textFieldRadius),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return AppConstants.cityError;
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                            if ((_cities == null || _cities!.isEmpty) ||
+                                _selectedCity == 'Custom') ...[
+                              TextFormField(
+                                  controller: cityController,
+                                  decoration: const InputDecoration(
+                                      labelText: 'Custom City'),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter a city name";
+                                    }
+                                    if (num.tryParse(value) is num) {
+                                      return "City names can't be numeric";
+                                    }
+                                    if (value.length > 25) {
+                                      return "City names can't be longer than 25 characters";
+                                    }
+                                    return null;
+                                  }),
+                            ],
+                            TextFormField(
+                                controller: addressController,
+                                decoration: const InputDecoration(
+                                    labelText: 'Shipping Address'),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Please enter a shipping address";
+                                  }
+                                  if (num.tryParse(value) is num) {
+                                    return "Shipping address can't be numeric";
+                                  }
+                                  if (value.length > 30) {
+                                    return "Shipping address can't be longer than 30 characters";
+                                  }
+                                  return null;
+                                }),
+                            TextFormField(
+                                controller: postalCodeController,
+                                decoration: const InputDecoration(
+                                    labelText: 'Shipping Postal Code'),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return "Please enter a postal code";
+                                  }
+                                  if (value.length > 15) {
+                                    return "Shipping address can't be longer than 15 characters";
+                                  }
+                                  return null;
+                                }),
+                          ],
+                          const SizedBox(height: 16.0),
+                          const Text('Choose a Card (Visa only)'),
+                          Column(
+                            children: [
+                              TextFormField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Card Number',
+                                  hintText: '1234 1234 1234 1234',
+                                ),
+                                inputFormatters: [
+                                  CardNumberFormatter(),
+                                  LengthLimitingTextInputFormatter(19),
+                                ],
+                                keyboardType: TextInputType.number,
+                                onSaved: (value) {
+                                  setState(() {
+                                    cardNumber = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null ||
+                                      value.isEmpty ||
+                                      value.length != 19) {
+                                    return 'Please enter a valid card number';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              TextFormField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Expiration Date',
+                                  hintText: 'MM/YY',
+                                ),
+                                inputFormatters: [
+                                  ExpirationDateFormatter(),
+                                  LengthLimitingTextInputFormatter(5),
+                                ],
+                                keyboardType: TextInputType.datetime,
+                                onSaved: (value) {
+                                  setState(() {
+                                    expirationDate = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null ||
+                                      value.isEmpty ||
+                                      value.length != 5) {
+                                    return 'Please enter a valid expiration date';
+                                  }
+
+                                  final regex = RegExp(r'^\d{2}/\d{2}$');
+                                  if (!regex.hasMatch(value)) {
+                                    return 'Please enter a valid expiration date in MM/YY format';
+                                  }
+
+                                  final month =
+                                      int.tryParse(value.substring(0, 2));
+                                  final year =
+                                      int.tryParse(value.substring(3, 5));
+
+                                  if (month == null || year == null) {
+                                    return 'Invalid month or year';
+                                  }
+
+                                  if (month < 1 || month > 12) {
+                                    return 'Please enter a valid month (01-12)';
+                                  }
+
+                                  final currentYear = DateTime.now().year;
+                                  final currentYearLastTwoDigits =
+                                      currentYear % 100;
+
+                                  if (year < currentYearLastTwoDigits) {
+                                    return 'Expiration date must be any future date';
+                                  }
+
+                                  if (year == currentYearLastTwoDigits) {
+                                    final currentMonth = DateTime.now().month;
+
+                                    if (month <= currentMonth) {
+                                      return 'Expiration date must be any future date';
                                     }
                                   }
-                                : null,
-                            child: const Text('Place Order'),
+
+                                  return null;
+                                },
+                              ),
+                              TextFormField(
+                                decoration: const InputDecoration(
+                                  labelText: 'CVV',
+                                  hintText: '***',
+                                ),
+                                inputFormatters: [
+                                  CVVFormatter(),
+                                  LengthLimitingTextInputFormatter(3),
+                                ],
+                                keyboardType: TextInputType.number,
+                                obscureText: true,
+                                onSaved: (value) {
+                                  setState(() {
+                                    cvv = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null ||
+                                      value.isEmpty ||
+                                      value.length != 3) {
+                                    return 'Please enter a valid CVV';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
                           ),
-                        ],
+                          const SizedBox(height: 16.0),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(
+                                        18, 255, 255, 255)),
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(
+                                        18, 255, 255, 255)),
+                                onPressed: () => _confirmDiscard(context),
+                                child: const Text('Discard Order'),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(
+                                        18, 255, 255, 255)),
+                                onPressed: orderedItems.isNotEmpty
+                                    ? () {
+                                        if ((_formKey.currentState
+                                                ?.validate() ??
+                                            false)) {
+                                          _formKey.currentState!.save();
+                                          _getCard();
+                                          _confirmPlaceOrder(
+                                              context, selectedCard);
+                                        }
+                                      }
+                                    : null,
+                                child: const Text('Place Order'),
+                              ),
+                            ],
+                          ),
+                        ]),
                       ),
-                    ]),
+                    ),
                   )),
             );
           },
@@ -370,6 +487,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           content: const Text('Are you sure you want to discard the order?'),
           actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('No'),
+            ),
+            TextButton(
               onPressed: () {
                 setState(() {
                   orderedItems.clear();
@@ -383,10 +504,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 Navigator.pop(context);
               },
               child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('No'),
             ),
           ],
         );
@@ -418,6 +535,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           child: CircularProgressIndicator()),
                   ]),
               actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('No'),
+                ),
                 TextButton(
                   onPressed: () async {
                     setDialogState(() {
@@ -476,10 +597,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     }
                   },
                   child: const Text('Yes'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('No'),
                 ),
               ],
             );

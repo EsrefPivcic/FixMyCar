@@ -408,6 +408,12 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
             const Text('Are you sure you want to delete this reservation?'),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
             onPressed: () async {
               try {
                 await Provider.of<ReservationProvider>(context, listen: false)
@@ -436,12 +442,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
             },
             child: const Text('Yes'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
         ],
       ),
     );
@@ -452,9 +452,15 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Cancel'),
-        content:
-            const Text('Are you sure you want to cancel this reservation?'),
+        content: const Text(
+            'Are you sure you want to cancel this reservation? Full refund will be issued.'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -483,12 +489,6 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
               Navigator.of(context).pop();
             },
             child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
           ),
         ],
       ),
@@ -689,7 +689,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                 ListTile(
                                   title: const Text('Total Price'),
                                   subtitle: Text(
-                                      '€${reservation.totalAmount.toStringAsFixed(2)}'),
+                                      '${reservation.totalAmount.toStringAsFixed(2)}€'),
                                 ),
                                 ListTile(
                                   title: const Text('Personal Discount'),
@@ -816,7 +816,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                   child: ExpansionTile(
                                     title: Text(reservationDetail.serviceName),
                                     subtitle: Text(
-                                        'Price (Discount Applied): €${reservationDetail.serviceDiscountedPrice.toStringAsFixed(2)}'),
+                                        'Price (Discount Applied): ${reservationDetail.serviceDiscountedPrice.toStringAsFixed(2)}€'),
                                     children: [
                                       Padding(
                                         padding: const EdgeInsets.symmetric(
@@ -826,7 +826,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                                'Non-Discounted Price: €${reservationDetail.servicePrice.toStringAsFixed(2)}'),
+                                                'Non-Discounted Price: ${reservationDetail.servicePrice.toStringAsFixed(2)}€'),
                                             Text(
                                                 'Discount: ${(reservationDetail.serviceDiscount * 100).toStringAsFixed(2)}%'),
                                           ],
@@ -1683,7 +1683,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                                           ),
                                           TextSpan(
                                               text:
-                                                  '€${reservation.totalAmount.toStringAsFixed(2)}')
+                                                  '${reservation.totalAmount.toStringAsFixed(2)}€')
                                         ],
                                       ),
                                     ),

@@ -85,6 +85,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
         content: const Text('Are you sure you want to reject this order?'),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
             onPressed: () async {
               try {
                 await Provider.of<OrderProvider>(context, listen: false)
@@ -115,12 +121,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
             },
             child: const Text('Yes'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
         ],
       ),
     );
@@ -134,6 +134,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
         content: const Text(
             'Are you sure you want to delete this order from history?'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -164,12 +170,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
               }
             },
             child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
           ),
         ],
       ),

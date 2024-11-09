@@ -404,6 +404,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
           content: const Text('Are you sure you want to discard the order?'),
           actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('No'),
+            ),
+            TextButton(
               onPressed: () {
                 setState(() {
                   orderedItems.clear();
@@ -422,10 +426,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 Navigator.pop(context);
               },
               child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('No'),
             ),
           ],
         );
@@ -457,6 +457,10 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           child: CircularProgressIndicator()),
                   ]),
               actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('No'),
+                ),
                 TextButton(
                   onPressed: () async {
                     setState(() {
@@ -536,10 +540,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     }
                   },
                   child: const Text('Yes'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('No'),
                 ),
               ],
             );

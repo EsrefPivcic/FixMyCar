@@ -28,37 +28,47 @@ class MasterScreen extends StatelessWidget {
         automaticallyImplyLeading: showBackButton,
         backgroundColor: Theme.of(context).hoverColor,
         flexibleSpace: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Padding(
-              padding: EdgeInsets.only(
-                  left: leftPadding, top: 8.0, right: 8.0, bottom: 8.0),
-              child: Image.asset('lib/src/assets/images/car-service-icon.png'),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text.rich(TextSpan(
-                text: "FixMyCar",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              )),
+            Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                      left: leftPadding, top: 8.0, right: 8.0, bottom: 8.0),
+                  child:
+                      Image.asset('lib/src/assets/images/car-service-icon.png'),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text.rich(TextSpan(
+                    text: "FixMyCar",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  )),
+                ),
+              ],
             ),
             if (isLoggedIn) ...[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: IconButton(
-                  icon: const Icon(Icons.chat, color: Colors.white),
-                  onPressed: () {
-                    _startChatDialog(context);
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: IconButton(
-                  icon: const Icon(Icons.logout, color: Colors.white),
-                  onPressed: () {
-                    _showLogoutDialog(context, authProvider);
-                  },
-                ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: IconButton(
+                      icon: const Icon(Icons.chat, color: Colors.white),
+                      onPressed: () {
+                        _startChatDialog(context);
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: IconButton(
+                      icon: const Icon(Icons.logout, color: Colors.white),
+                      onPressed: () {
+                        _showLogoutDialog(context, authProvider);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ]
           ],

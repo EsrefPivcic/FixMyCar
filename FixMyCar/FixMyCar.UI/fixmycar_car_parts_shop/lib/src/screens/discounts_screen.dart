@@ -87,6 +87,12 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
             const Text('Are you sure you want to deactivate this discount?'),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
             onPressed: () async {
               CarPartsShopClientDiscountInsertUpdate updatedDiscount =
                   CarPartsShopClientDiscountInsertUpdate(null, value, true);
@@ -113,12 +119,6 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
             },
             child: const Text('Yes'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
         ],
       ),
     );
@@ -131,6 +131,12 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
         title: const Text('Confirm Delete'),
         content: const Text('Are you sure you want to delete this discount?'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -155,12 +161,6 @@ class _DiscountsScreenState extends State<DiscountsScreen> {
               Navigator.of(context).pop();
             },
             child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
           ),
         ],
       ),

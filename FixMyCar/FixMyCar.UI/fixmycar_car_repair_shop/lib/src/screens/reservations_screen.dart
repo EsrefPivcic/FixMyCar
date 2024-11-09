@@ -151,6 +151,12 @@ class _ReservationsScreen extends State<ReservationsScreen> {
             const Text('Are you sure you want to delete this reservation?'),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
             onPressed: () async {
               try {
                 await Provider.of<ReservationProvider>(context, listen: false)
@@ -181,12 +187,6 @@ class _ReservationsScreen extends State<ReservationsScreen> {
             },
             child: const Text('Yes'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
         ],
       ),
     );
@@ -197,9 +197,15 @@ class _ReservationsScreen extends State<ReservationsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Reject'),
-        content:
-            const Text('Are you sure you want to reject this reservation?'),
+        content: const Text(
+            'Are you sure you want to reject this reservation? Full refund will be issued.'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -231,12 +237,6 @@ class _ReservationsScreen extends State<ReservationsScreen> {
             },
             child: const Text('Yes'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
         ],
       ),
     );
@@ -249,6 +249,12 @@ class _ReservationsScreen extends State<ReservationsScreen> {
         title: const Text('Confirm Start'),
         content: const Text('Are you sure you want to start this reservation?'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -280,12 +286,6 @@ class _ReservationsScreen extends State<ReservationsScreen> {
             },
             child: const Text('Yes'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
         ],
       ),
     );
@@ -299,6 +299,12 @@ class _ReservationsScreen extends State<ReservationsScreen> {
         content:
             const Text('Are you sure you want to complete this reservation?'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -329,12 +335,6 @@ class _ReservationsScreen extends State<ReservationsScreen> {
               }
             },
             child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
           ),
         ],
       ),
@@ -428,6 +428,12 @@ class _ReservationsScreen extends State<ReservationsScreen> {
             const Text('Are you sure you want to accept this reservation?'),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
             onPressed: () async {
               try {
                 await Provider.of<ReservationProvider>(context, listen: false)
@@ -457,12 +463,6 @@ class _ReservationsScreen extends State<ReservationsScreen> {
               }
             },
             child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
           ),
         ],
       ),

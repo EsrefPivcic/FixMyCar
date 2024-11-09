@@ -63,8 +63,15 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Cancel'),
-        content: const Text('Are you sure you want to cancel this order?'),
+        content: const Text(
+            'Are you sure you want to cancel this order? Full refund will be issued.'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -94,12 +101,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             },
             child: const Text('Yes'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
-          ),
         ],
       ),
     );
@@ -112,6 +113,12 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         title: const Text('Confirm Delete'),
         content: const Text('Are you sure you want to delete this order?'),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
           TextButton(
             onPressed: () async {
               try {
@@ -140,12 +147,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               Navigator.of(context).pop();
             },
             child: const Text('Yes'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('No'),
           ),
         ],
       ),
@@ -377,7 +378,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               ),
                               TextSpan(
                                   text:
-                                      '€${order.totalAmount.toStringAsFixed(2)}'),
+                                      '${order.totalAmount.toStringAsFixed(2)}€'),
                             ],
                           ),
                         ),
@@ -456,7 +457,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                 child: ExpansionTile(
                                   title: Text(orderDetail.storeItemName),
                                   subtitle: Text(
-                                      'Quantity: ${orderDetail.quantity}, Total: €${orderDetail.totalItemsPrice.toStringAsFixed(2)}'),
+                                      'Quantity: ${orderDetail.quantity}, Total: ${orderDetail.totalItemsPrice.toStringAsFixed(2)}€'),
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -466,11 +467,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                              'Unit Price: €${orderDetail.unitPrice.toStringAsFixed(2)}'),
+                                              'Unit Price: ${orderDetail.unitPrice.toStringAsFixed(2)}€'),
                                           Text(
-                                              'Total Items Price: €${orderDetail.totalItemsPrice.toStringAsFixed(2)}'),
+                                              'Total Items Price: ${orderDetail.totalItemsPrice.toStringAsFixed(2)}€'),
                                           Text(
-                                              'Discounted Price: €${orderDetail.totalItemsPriceDiscounted.toStringAsFixed(2)}'),
+                                              'Discounted Price: ${orderDetail.totalItemsPriceDiscounted.toStringAsFixed(2)}€'),
                                           Text(
                                               'Discount: ${orderDetail.discount * 100}%'),
                                         ],
@@ -988,7 +989,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                               ),
                                               TextSpan(
                                                   text:
-                                                      '€${order.totalAmount.toStringAsFixed(2)}')
+                                                      '${order.totalAmount.toStringAsFixed(2)}€')
                                             ],
                                           ),
                                         ),
