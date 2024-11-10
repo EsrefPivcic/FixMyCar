@@ -32,7 +32,7 @@ class HomeScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Image.asset(
-                          'lib/src/assets/images/repair-shop.png',
+                          'lib/src/assets/repair-shop.png',
                           height: 100,
                         ),
                         const SizedBox(height: 8),
@@ -66,7 +66,7 @@ class HomeScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Image.asset(
-                          'lib/src/assets/images/parts-shop.png',
+                          'lib/src/assets/parts-shop.png',
                           height: 100,
                         ),
                         const SizedBox(height: 8),

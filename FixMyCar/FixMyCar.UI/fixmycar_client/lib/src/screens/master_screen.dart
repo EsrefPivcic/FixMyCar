@@ -29,7 +29,7 @@ class MasterScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    'lib/src/assets/images/car-service-icon.png',
+                    'lib/src/assets/car-service-icon.png',
                     height: 24.0,
                   ),
                   const SizedBox(width: 8.0),

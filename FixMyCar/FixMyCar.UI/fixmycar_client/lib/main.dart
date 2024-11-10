@@ -21,12 +21,38 @@ import 'package:fixmycar_client/src/providers/store_item_provider.dart';
 import 'package:fixmycar_client/src/providers/user_provider.dart';
 import 'package:fixmycar_client/src/services/notification_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Stripe.publishableKey = '';
+
+  String? stripePublishableKey = const String.fromEnvironment(
+    'STRIPE_PUBLISHABLE_KEY',
+    defaultValue: '',
+  );
+
+  if (stripePublishableKey.isEmpty) {
+    try {
+      await dotenv.load(fileName: 'lib/src/assets/.env');
+      stripePublishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'];
+    } catch (e) {
+      if (e is FileNotFoundError) {
+        print('No .env file found');
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  if (stripePublishableKey == null || stripePublishableKey.isEmpty) {
+    throw Exception(
+        'Please provide a Stripe publishable key via .env file in lib/src/assets, or via dart-define');
+  }
+
+  Stripe.publishableKey = stripePublishableKey;
+
   await Stripe.instance.applySettings();
   NotificationService notificationService = NotificationService();
   await notificationService.init();

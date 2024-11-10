@@ -13,7 +13,7 @@ services:
       - 1433
     volumes:
       - ./FixMyCar.DB:/docker-entrypoint-initdb.d
-    command: bash -c "/opt/mssql/bin/sqlservr & sleep 30 && for f in /docker-entrypoint-initdb.d/*.sql; do echo \"Processing $$f\" && /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P QWElkj132! -i \"$$f\"; done & wait"
+    command: bash -c "/opt/mssql/bin/sqlservr & sleep 30 && if [ ! -f /var/opt/mssql/data/200106.mdf ]; then for f in /docker-entrypoint-initdb.d/*.sql; do echo \"Processing $$f\" && /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P QWElkj132! -i \"$$f\"; done; fi & wait"
     networks:
       - fixmycarnet
     healthcheck:
