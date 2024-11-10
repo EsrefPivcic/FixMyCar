@@ -209,7 +209,7 @@ namespace FixMyCar.Services.Services
                 if (request.Image != null)
                 {
                     byte[] newImage = Convert.FromBase64String(request.Image);
-                    entity.Image = ImageHelper.Resize(newImage, 150);
+                    entity.Image = newImage;
                 }
                 else
                 {

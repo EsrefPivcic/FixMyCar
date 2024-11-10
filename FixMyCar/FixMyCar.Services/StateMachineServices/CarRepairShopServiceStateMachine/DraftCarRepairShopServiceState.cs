@@ -27,7 +27,7 @@ namespace FixMyCar.Services.StateMachineServices.CarRepairShopServiceStateMachin
                 if (request.ImageData != "")
                 {
                     byte[] newImage = Convert.FromBase64String(request.ImageData);
-                    entity.ImageData = ImageHelper.Resize(newImage, 150);
+                    entity.ImageData = newImage;
                 }
                 else
                 {
