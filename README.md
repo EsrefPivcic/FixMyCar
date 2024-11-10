@@ -120,23 +120,23 @@ flutter run --dart-define=API_HOST=xxx.xxx.xxx.xxx
 
 #### Administrator App
 
-- Username: admin
-- Password: test
+- Username: ```admin```
+- Password: ```test```
 
 #### Car Parts Shop App
 
-- Username: carpartsshop
-- Password: test
+- Username: ```carpartsshop```
+- Password: ```test```
 
 #### Car Repair Shop App
 
-- Username: carrepairshop
-- Password: test
+- Username: ```carrepairshop```
+- Password: ```test```
 
 #### Client App
 
-- Username: client
-- Password: test
+- Username: ```client```
+- Password: ```test```
 
 Additionally, there are several test accounts available (e.g., carpartsshop2, carrepairshop2, client2), all using the password ```test```.
 
