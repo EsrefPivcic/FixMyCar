@@ -1,10 +1,11 @@
+import 'package:fixmycar_client/constants.dart';
 import 'package:fixmycar_client/src/models/notification/notification.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 import 'notification_service.dart';
 
 class SignalRNotificationsService {
   late HubConnection connection;
-  final String _baseUrl = "http://10.0.2.2:5148/notificationHub";
+  final String _baseUrl = "http://${ApiHost.address}:5148/notificationHub";
   final NotificationService notificationService = NotificationService();
 
   Future<void> startConnection(String token) async {

@@ -1291,6 +1291,12 @@ class _CarRepairShopServicesScreenState
               ),
               actions: [
                 TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
                   child: const Text('Apply Filters'),
                   onPressed: () {
                     setState(() {

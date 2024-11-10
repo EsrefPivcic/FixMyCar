@@ -1,8 +1,9 @@
 import 'package:signalr_netcore/signalr_client.dart';
+import 'package:fixmycar_client/constants.dart';
 
 class SignalRChatService {
   late HubConnection _connection;
-  final String _baseUrl = "http://10.0.2.2:5148/chatHub";
+  final String _baseUrl = "http://${ApiHost.address}:5148/chatHub";
 
   Function(String senderUserId, String message)? onMessageReceived;
 

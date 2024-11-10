@@ -1199,17 +1199,21 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 ),
               ),
               actions: [
-                Center(
-                  child: TextButton(
-                    child: const Text('Apply Filters'),
-                    onPressed: () {
-                      setState(() {
-                        _pageNumber = 1;
-                      });
-                      _applyFilters();
-                      Navigator.of(context).pop();
-                    },
-                  ),
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Apply Filters'),
+                  onPressed: () {
+                    setState(() {
+                      _pageNumber = 1;
+                    });
+                    _applyFilters();
+                    Navigator.of(context).pop();
+                  },
                 ),
               ],
             );

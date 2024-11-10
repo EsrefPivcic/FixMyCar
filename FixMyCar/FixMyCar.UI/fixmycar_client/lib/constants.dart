@@ -1,3 +1,8 @@
+class ApiHost {
+  static const address =
+      String.fromEnvironment("API_HOST", defaultValue: "10.0.2.2");
+}
+
 class AppConstants {
   static const String loginLabel = 'Login';
   static const String usernameLabel = 'Username';

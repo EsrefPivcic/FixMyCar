@@ -48,12 +48,11 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Text('Filters'),
+              title: const Text('Filter by name'),
               content: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Filter by Name'),
                     TextField(
                       decoration: const InputDecoration(hintText: 'Enter name'),
                       controller: _nameFilterController,
@@ -68,7 +67,13 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
               ),
               actions: [
                 TextButton(
-                  child: const Text('Apply Filters'),
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Apply'),
                   onPressed: () {
                     _applyFilters();
                     Navigator.of(context).pop();
@@ -121,7 +126,7 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
                         onPressed: () {
                           _showFilterDialog(context);
                         },
-                        label: const Text("Filters"),
+                        label: const Text("Filter by name"),
                       ),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.history),

@@ -48,12 +48,11 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Text('Filters'),
+              title: const Text('Filter by name'),
               content: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Filter by Name'),
                     TextField(
                       decoration: const InputDecoration(hintText: 'Enter name'),
                       controller: _nameFilterController,

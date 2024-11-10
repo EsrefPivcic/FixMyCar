@@ -4,9 +4,10 @@ import 'package:fixmycar_client/src/utilities/custom_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fixmycar_client/constants.dart';
 
 abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
-  static const String baseUrl = 'http://10.0.2.2:5148';
+  static const String baseUrl = 'http://${ApiHost.address}:5148';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String endpoint;
 

@@ -5,6 +5,7 @@ import 'package:fixmycar_client/src/providers/chat_history_provider.dart';
 import 'package:fixmycar_client/src/screens/chat_history_screen.dart';
 import 'package:fixmycar_client/src/services/signalr_chat_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
