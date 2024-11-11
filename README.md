@@ -30,7 +30,7 @@ Ensure you have the following tools installed:
 git clone https://github.com/EsrefPivcic/FixMyCar
 ```
 
-### Environment variables:
+### Environment variables
 
 The following environment variables are required:
 
@@ -62,7 +62,7 @@ set STRIPE_SECRET_KEY=stripeSecretKey
 $env:STRIPE_SECRET_KEY = "stripeSecretKey"
 ```
 
-### Running the Backend API:
+### Running the Backend API
 
 To start the API and other necessary services, navigate to the project's root folder (```FixMyCar/FixMyCar```) and run the following command:
 
@@ -70,7 +70,7 @@ To start the API and other necessary services, navigate to the project's root fo
 docker-compose up --build
 ```
 
-### Running the Desktop Apps:
+### Running the Desktop Apps
 
 The desktop applications are designed for the car parts shop, car repair shop, and system administrator roles. To run them:
 
@@ -92,7 +92,7 @@ flutter pub get
 flutter run -d windows
 ```
 
-### Running the Mobile App:
+### Running the Mobile App
 
 1. Navigate to the mobile app folder: ```FixMyCar.UI/fixmycar_client```.
 
