@@ -140,6 +140,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   }
 
   void _getCard() {
+    //flutter_stripe not supported for desktop
     if (cardNumber == '4242 4242 4242 4242') {
       setState(() {
         selectedCard = 'pm_card_visa';
@@ -319,6 +320,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           const Text('Choose a Card (Visa only)'),
                           Column(
                             children: [
+                              //flutter_stripe not supported for desktop
                               TextFormField(
                                 decoration: const InputDecoration(
                                   labelText: 'Card Number',
@@ -398,7 +400,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                       return 'Expiration date must be any future date';
                                     }
                                   }
-
                                   return null;
                                 },
                               ),
