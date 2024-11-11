@@ -37,6 +37,10 @@ The following environment variables are required:
 - **Backend:** ```JWT_SECRET_KEY```, ```STRIPE_PUBLISHABLE_KEY``` and ```STRIPE_SECRET_KEY```
 - **Frontend (mobile app):** ```STRIPE_PUBLISHABLE_KEY```
 
+#### JWT Key example:
+
+```GqT8M5xVO1yGRJXIyEUeDCkIfaHT13xb93zwjKZZ+5M=```
+
 You can define these variables by either:
 
 1. Creating a ```.env``` file in:
