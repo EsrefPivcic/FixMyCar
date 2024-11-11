@@ -45,7 +45,7 @@ You can define these variables by either:
 
 1. Creating a ```.env``` file in:
 
-- **Backend:** ```FixMyCar/FixMyCar.```
+- **Backend:** ```FixMyCar/FixMyCar```
 - **Mobile App:** ```FixMyCar/FixMyCar/FixMyCar.UI/fixmycar_client/lib/src/assets```
 
 2. Configuring them in the command prompt or PowerShell:
