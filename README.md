@@ -1,118 +1,152 @@
-# FixMyCar (In Development)
+# FixMyCar
 
-FixMyCar is a project developed as part of the seminar work for the Software Development II course. It aims to streamline communication and operations between car repair shops, car parts shops, and clients. The project utilizes ASP.NET Core Web API for the backend and Flutter for the frontend.
+**FixMyCar** is a comprehensive software solution developed as part of a seminar project for the Software Development II course. The platform enhances communication and operations between car repair shops, car parts shops, and clients by providing seamless interaction across all parties. The system is built with an **ASP.NET Core Web API** backend and a **Flutter** frontend.
 
 ## Features
 
-- **Desktop Applications:** Designed for car repair shops and car parts shops, providing functionalities tailored to their needs.
-- **Mobile Application:** Catered for clients, allowing them to interact with repair shops and parts shops conveniently.
-- **Connectivity:** Seamlessly connects all three groups of users, facilitating communication and transactions.
+- **Desktop Applications**: Tailored for car repair shops, car parts shops, and system administrators, offering essential tools to manage their services effectively.
+- **Mobile Application**: Designed for clients, enabling convenient interaction with both car repair and parts shops.
+- **Integrated Platform**: The system unifies all three user groups, streamlining communication, service requests, and transactions.
 
 ## Technologies Used
 
-- **Backend:** ASP.NET Core Web API
-- **Frontend:** Flutter
-- **Database:** SQL database - migrated using Entity Framework
+- **Backend**: ASP.NET Core Web API with Entity Framework, both the API and the SQL database are containerized using Docker.
+- **Frontend**: Flutter (for both desktop and mobile applications).
 
 ## Getting Started
 
-To get started with the project, follow the instructions below.
+Follow the steps below to set up and run the project.
+
+### Prerequisites
+
+Ensure you have the following tools installed:
+- **Docker**: For containerizing the backend.
+- **Visual Studio Code**: Recommended for editing and running the frontend (Flutter).
+- **Flutter**: To run the desktop and mobile applications.
 
 ### Clone the Repository
- 
-    git clone https://github.com/EsrefPivcic/FixMyCar.git
 
-### Set Up the Backend
+```bash
+git clone https://github.com/EsrefPivcic/FixMyCar
+```
 
-#### Navigate to the Solution Folder:
+### Environment variables:
 
-Go to the `FixMyCar` folder and open the `FixMyCar.sln` file (Visual Studio 2022 recommended).
+The following environment variables are required:
 
-#### Rebuild the Solution:
+- **Backend:** ```JWT_SECRET_KEY```, ```STRIPE_PUBLISHABLE_KEY``` and ```STRIPE_SECRET_KEY```
+- **Frontend (mobile app):** ```STRIPE_PUBLISHABLE_KEY```
 
-Right-click on the solution and select `Rebuild Solution` to restore all NuGet packages.
+You can define these variables by either:
 
-#### Configure JWT Settings:
+1. Creating a ```.env``` file in:
 
-In the Solution Explorer, under `FixMyCar.API`, open the `appsettings.json` file.
+- **Backend:** ```FixMyCar/FixMyCar.```
+- **Mobile App:** ```FixMyCar/FixMyCar/FixMyCar.UI/fixmycar_client/lib/src/assets```
 
-In the `"JwtSettings"` section, under the `"Secret"` field, insert a JWT secret key. You can use the following key for testing purposes:
+2. Configuring them in the command prompt or PowerShell:
 
-    XQ3Qk+htrTPgxNwAARlWNV7Bl5DHzuk5NcxQbWXuP1A=
+- **For command prompt:**
 
-Alternatively, generate your own key using this C# script:
+```bash
+set STRIPE_SECRET_KEY=stripeSecretKey
+```
 
-    using System.Security.Cryptography;
+- **For PowerShell:**
 
-    int size = 32;
-    var key = new byte[size];
-    using (var generator = RandomNumberGenerator.Create())
-    {
-        generator.GetBytes(key);
-    }
-    Console.WriteLine("Key: " + Convert.ToBase64String(key));
+```bash
+$env:STRIPE_SECRET_KEY = "stripeSecretKey"
+```
 
-#### Database Setup:
+### Running the Backend API:
 
-Open the Package Manager Console and ensure the default project is set to `FixMyCar.Services`. Run the following commands to create and seed the database:
+To start the API and other necessary services, navigate to the project's root folder (```FixMyCar/FixMyCar```) and run the following command:
 
-    add-migration initialMigration -o Database/Migrations
-    update-database
+```bash
+docker-compose up --build
+```
 
-#### Run the API:
+### Running the Desktop Apps:
 
-Start the API by running the solution.
+The desktop applications are designed for the car parts shop, car repair shop, and system administrator roles. To run them:
 
-### Set Up the Frontend
+1. Navigate to the appropriate folder based on role:
 
-#### Navigate to the UI Folder:
+- ```FixMyCar.UI/fixmycar_car_parts_shop``` for car parts shops.
+- ```FixMyCar.UI/fixmycar_car_repair_shop``` for car repair shops.
+- ```FixMyCar.UI/fixmycar_admin``` for the system administrator.
 
-In the solution folder (`FixMyCar`), navigate to `FixMyCar.UI/fixmycar_car_parts_shop`, `FixMyCar.UI/fixmycar_car_repair_shop`, `FixMyCar.UI/fixmycar_admin` or `FixMyCar.UI/fixmycar_client`. Those are the Windows apps for car parts shops, car repair shops, admins and clients.
+2. Install the necessary dependencies:
 
-#### Open the folder with Visual Studio Code:
+```bash
+flutter pub get
+```
 
-    code .
+3. Run the application:
 
-#### Install Dependencies:
+```bash
+flutter run -d windows
+```
 
-In the terminal, run the following command to get all dependencies:
+### Running the Mobile App:
 
-    flutter pub get
+1. Navigate to the mobile app folder: ```FixMyCar.UI/fixmycar_client```.
 
-#### Run the App:
+2. Install dependencies:
 
-To start desktop apps, run:
+```bash
+flutter pub get
+```
 
-    flutter run -d windows
+3. If you have the .env file set up, simply run:
 
+```bash
+flutter run
+```
 
-To start the mobile app, run (make sure you have an android device attached or emulated):
+4. If you don’t have an .env file, you can pass the Stripe key directly:
 
-    flutter run
+```bash
+flutter run --dart-define=STRIPE_PUBLISHABLE_KEY=yourStripePublishableKey
+```
 
-### Test the App
+5. To run the app on a physical device, ensure you provide the API host address:
 
-Use the following credentials to test the car parts shop app:
+```bash
+flutter run --dart-define=API_HOST=xxx.xxx.xxx.xxx
+```
 
-- Username: carpartsshop
-- Password: carpartsshop
+### Credentials For Testing
 
-Use the following credentials to test the car repair shop app:
+#### Administrator App
 
-- Username: carrepairshop
-- Password: carrepairshop
+- Username: ```admin```
+- Password: ```test```
 
-Use the following credentials to test the admin app:
+#### Car Parts Shop App
 
-- Username: admin
-- Password: admin
+- Username: ```carpartsshop```
+- Password: ```test```
 
-Use the following credentials to test the client app:
+#### Car Repair Shop App
 
-- Username: client
-- Password: client
+- Username: ```carrepairshop```
+- Password: ```test```
 
-Feel free to explore and test the current features of the app.
+#### Client App
+
+- Username: ```client```
+- Password: ```test```
+
+Additionally, there are several test accounts available (e.g., carpartsshop2, carrepairshop2, client2), all using the password ```test```.
+
+#### Testing Payments
+
+To test payment processing, use the following details:
+
+- Card Number: ```4242 4242 4242 4242```
+- Expiration Date: ```Any future date```
+- CVC: ```Any three-digit number```
 
 ## License
 
