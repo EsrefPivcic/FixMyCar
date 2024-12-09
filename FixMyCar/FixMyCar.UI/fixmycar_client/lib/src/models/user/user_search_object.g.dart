@@ -11,6 +11,7 @@ UserSearchObject _$UserSearchObjectFromJson(Map<String, dynamic> json) =>
       json['containsUsername'] as String?,
       json['active'] as bool?,
       json['role'] as String?,
+      (json['cityId'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$UserSearchObjectToJson(UserSearchObject instance) =>
@@ -18,4 +19,5 @@ Map<String, dynamic> _$UserSearchObjectToJson(UserSearchObject instance) =>
       'containsUsername': instance.containsUsername,
       'active': instance.active,
       'role': instance.role,
+      'cityId': instance.cityId,
     };

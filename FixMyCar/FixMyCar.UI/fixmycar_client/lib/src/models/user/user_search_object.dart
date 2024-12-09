@@ -7,11 +7,11 @@ class UserSearchObject {
   String? containsUsername;
   bool? active;
   String? role;
+  int? cityId;
 
   UserSearchObject.n();
 
-  UserSearchObject(
-      this.containsUsername, this.active, this.role);
+  UserSearchObject(this.containsUsername, this.active, this.role, this.cityId);
 
   factory UserSearchObject.fromJson(Map<String, dynamic> json) =>
       _$UserSearchObjectFromJson(json);

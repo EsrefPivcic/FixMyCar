@@ -56,6 +56,11 @@ namespace FixMyCar.Services.Services
                 {
                     query = query.Where(u => u.Active == search.Active);
                 }
+
+                if (search!.CityId != null)
+                {
+                    query = query.Where(u => u.CityId == search.CityId);
+                }
             }
 
             return base.AddFilter(query, search);

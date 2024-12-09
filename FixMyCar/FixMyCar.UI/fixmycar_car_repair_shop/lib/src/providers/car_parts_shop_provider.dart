@@ -30,6 +30,9 @@ class CarPartsShopProvider extends BaseProvider<User, UserRegister> {
           queryParams['ContainsUsername'] = search.containsUsername;
         }
       }
+      if (search.cityId != null) {
+        queryParams['CityId'] = search.cityId.toString();
+      }
     }
 
     try {

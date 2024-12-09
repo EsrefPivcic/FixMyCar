@@ -1,4 +1,7 @@
+import 'package:fixmycar_car_repair_shop/constants.dart';
+import 'package:fixmycar_car_repair_shop/src/models/city/city.dart';
 import 'package:fixmycar_car_repair_shop/src/models/user/user_search_object.dart';
+import 'package:fixmycar_car_repair_shop/src/providers/city_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/order_history_screen.dart';
 import 'package:fixmycar_car_repair_shop/src/screens/store_items_screen.dart';
 import 'package:flutter/material.dart';
@@ -23,13 +26,28 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
   final int _pageSize = 10;
   int _totalPages = 1;
 
+  List<City>? _cities;
+  int? _selectedCity = null;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarPartsShopProvider>(context, listen: false)
           .getPartsShops(pageNumber: _pageNumber, pageSize: _pageSize);
+      await _fetchCities();
     });
+  }
+
+  Future _fetchCities() async {
+    if (mounted) {
+      var cityProvider = Provider.of<CityProvider>(context, listen: false);
+      await cityProvider.getCities().then((_) {
+        setState(() {
+          _cities = cityProvider.cities;
+        });
+      });
+    }
   }
 
   TimeOfDay parseTimeOfDay(String timeString) {
@@ -53,7 +71,7 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Filter by Name'),
+                    const Text('Filter By Name'),
                     TextField(
                       decoration: const InputDecoration(hintText: 'Enter name'),
                       controller: _nameFilterController,
@@ -63,10 +81,46 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
                         });
                       },
                     ),
+                    const SizedBox(height: 10),
+                    const Text('Filter By City'),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<int>(
+                      value: _selectedCity,
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text('All'),
+                        ),
+                        ..._cities!.map((City city) {
+                          return DropdownMenuItem<int>(
+                            value: city.id,
+                            child: Text(city.name),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedCity = newValue;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.textFieldRadius),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
               actions: [
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () {
+                    ;
+                    Navigator.of(context).pop();
+                  },
+                ),
                 TextButton(
                   child: const Text('Apply Filters'),
                   onPressed: () {
@@ -90,7 +144,8 @@ class _CarPartsShopsScreenState extends State<CarPartsShopsScreen> {
     });
 
     provider.getPartsShops(
-        search: UserSearchObject(_filterName.isNotEmpty ? _filterName : null),
+        search: UserSearchObject(
+            _filterName.isNotEmpty ? _filterName : null, _selectedCity),
         pageNumber: _pageNumber,
         pageSize: _pageSize);
   }

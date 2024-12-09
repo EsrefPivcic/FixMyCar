@@ -1,4 +1,7 @@
+import 'package:fixmycar_client/constants.dart';
+import 'package:fixmycar_client/src/models/city/city.dart';
 import 'package:fixmycar_client/src/models/user/user_search_object.dart';
+import 'package:fixmycar_client/src/providers/city_provider.dart';
 import 'package:fixmycar_client/src/screens/car_repair_shop_services_screen.dart';
 import 'package:fixmycar_client/src/screens/reservation_history_screen.dart';
 import 'package:flutter/material.dart';
@@ -23,13 +26,28 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
   final int _pageSize = 10;
   int _totalPages = 1;
 
+  List<City>? _cities;
+  int? _selectedCity = null;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<CarRepairShopProvider>(context, listen: false)
           .getRepairShops(pageNumber: _pageNumber, pageSize: _pageSize);
+      await _fetchCities();
     });
+  }
+
+  Future _fetchCities() async {
+    if (mounted) {
+      var cityProvider = Provider.of<CityProvider>(context, listen: false);
+      await cityProvider.getCities().then((_) {
+        setState(() {
+          _cities = cityProvider.cities;
+        });
+      });
+    }
   }
 
   TimeOfDay parseTimeOfDay(String timeString) {
@@ -48,11 +66,12 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Text('Filter by name'),
+              title: const Text('Filters'),
               content: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text('Filter By Name'),
                     TextField(
                       decoration: const InputDecoration(hintText: 'Enter name'),
                       controller: _nameFilterController,
@@ -61,6 +80,35 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
                           _filterName = value;
                         });
                       },
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Filter By City'),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<int>(
+                      value: _selectedCity,
+                      items: [
+                        const DropdownMenuItem<int>(
+                          value: null,
+                          child: Text('All'),
+                        ),
+                        ..._cities!.map((City city) {
+                          return DropdownMenuItem<int>(
+                            value: city.id,
+                            child: Text(city.name),
+                          );
+                        }).toList(),
+                      ],
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedCity = newValue;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.textFieldRadius),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -95,8 +143,8 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
     });
 
     provider.getRepairShops(
-        search: UserSearchObject(
-            _filterName.isNotEmpty ? _filterName : null, true, null),
+        search: UserSearchObject(_filterName.isNotEmpty ? _filterName : null,
+            true, null, _selectedCity),
         pageNumber: _pageNumber,
         pageSize: _pageSize);
   }
@@ -126,7 +174,7 @@ class _CarRepairShopsScreenState extends State<CarRepairShopsScreen> {
                         onPressed: () {
                           _showFilterDialog(context);
                         },
-                        label: const Text("Filter by name"),
+                        label: const Text("Filters"),
                       ),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.history),
