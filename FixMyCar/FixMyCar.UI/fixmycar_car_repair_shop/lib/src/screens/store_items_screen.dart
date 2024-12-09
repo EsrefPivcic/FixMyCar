@@ -2,6 +2,7 @@ import 'package:fixmycar_car_repair_shop/constants.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_model/car_model.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_model/car_models_by_manufacturer.dart';
 import 'package:fixmycar_car_repair_shop/src/models/car_parts_shop_discount/car_parts_shop_discount.dart';
+import 'package:fixmycar_car_repair_shop/src/models/city/city.dart';
 import 'package:fixmycar_car_repair_shop/src/models/order/order_insert_update.dart';
 import 'package:fixmycar_car_repair_shop/src/models/store_item/store_item.dart';
 import 'package:fixmycar_car_repair_shop/src/models/store_item/store_item_order.dart';
@@ -37,8 +38,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late int carPartsShopId;
   late List<StoreItem> loadedItems;
   late User carPartsShopDetails;
-  List<String>? _cities;
-  String? _selectedCity;
+  List<City>? _cities;
+  int? _selectedCity;
   int _pageNumber = 1;
   final int _pageSize = 10;
   int _totalPages = 1;
@@ -92,9 +93,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
       var cityProvider = Provider.of<CityProvider>(context, listen: false);
       await cityProvider.getCities().then((_) {
         setState(() {
-          _cities = cityProvider.cities.map((city) => city.name).toList();
-          _cities!.add("Custom");
-          _selectedCity = _cities![0];
+          _cities = cityProvider.cities;
+          _selectedCity = _cities![0].id;
         });
       });
     }
@@ -237,17 +237,17 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           if (!useProfileAddress) ...[
                             if (_cities != null && _cities!.isNotEmpty) ...[
                               const SizedBox(height: 10.0),
-                              DropdownButtonFormField<String>(
+                              DropdownButtonFormField<int>(
                                 value: _selectedCity,
-                                items: _cities!.map((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
+                                items: _cities!.map((City city) {
+                                  return DropdownMenuItem<int>(
+                                    value: city.id,
+                                    child: Text(city.name),
                                   );
                                 }).toList(),
                                 onChanged: (newValue) {
                                   setState(() {
-                                    _selectedCity = newValue!;
+                                    _selectedCity = newValue;
                                   });
                                 },
                                 decoration: InputDecoration(
@@ -258,31 +258,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                   ),
                                 ),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) {
+                                  if (value == null) {
                                     return AppConstants.cityError;
                                   }
                                   return null;
                                 },
                               ),
-                            ],
-                            if ((_cities == null || _cities!.isEmpty) ||
-                                _selectedCity == 'Custom') ...[
-                              TextFormField(
-                                  controller: cityController,
-                                  decoration: const InputDecoration(
-                                      labelText: 'Custom City'),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return "Please enter a city name";
-                                    }
-                                    if (num.tryParse(value) is num) {
-                                      return "City names can't be numeric";
-                                    }
-                                    if (value.length > 25) {
-                                      return "City names can't be longer than 25 characters";
-                                    }
-                                    return null;
-                                  }),
                             ],
                             TextFormField(
                                 controller: addressController,
@@ -499,7 +480,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                   cityController.clear();
                   addressController.clear();
                   postalCodeController.clear();
-                  _selectedCity = _cities![0];
+                  _selectedCity = _cities![0].id;
                 });
                 Navigator.pop(context);
                 Navigator.pop(context);
@@ -548,14 +529,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     OrderInsertUpdate newOrder;
                     if (useProfileAddress) {
                       newOrder = OrderInsertUpdate(carPartsShopId,
-                          useProfileAddress, "", "", "", orderedItems);
+                          useProfileAddress, null, null, null, orderedItems);
                     } else {
                       newOrder = OrderInsertUpdate(
                           carPartsShopId,
                           useProfileAddress,
-                          _selectedCity == 'Custom'
-                              ? cityController.text
-                              : _selectedCity!,
+                          _selectedCity,
                           addressController.text,
                           postalCodeController.text,
                           orderedItems);
@@ -570,7 +549,7 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                           cityController.clear();
                           addressController.clear();
                           postalCodeController.clear();
-                          _selectedCity = _cities![0];
+                          _selectedCity = _cities![0].id;
                         });
                       }).then((_) {
                         Navigator.pop(context);

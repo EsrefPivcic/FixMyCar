@@ -1,8 +1,10 @@
+import 'package:fixmycar_car_repair_shop/constants.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 
 class ReportNotificationService {
   late HubConnection _connection;
-  final String _baseUrl = "http://localhost:5148/reportNotificationHub";
+  final String _baseUrl =
+      'http://${ApiHost.address}:${ApiHost.port}/reportNotificationHub';
   bool _initialized = false;
 
   Function(String notificationType, String message)? onNotificationReceived;

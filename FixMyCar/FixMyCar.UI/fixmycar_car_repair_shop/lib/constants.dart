@@ -1,3 +1,9 @@
+class ApiHost {
+  static const address =
+      String.fromEnvironment("API_HOST", defaultValue: "localhost");
+  static const port = String.fromEnvironment("API_PORT", defaultValue: "5148");
+}
+
 class AppConstants {
   static const String loginLabel = 'Login';
   static const String usernameLabel = 'Username (Repair Shop Name)';

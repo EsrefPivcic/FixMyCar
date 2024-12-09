@@ -9,7 +9,7 @@ namespace FixMyCar.Model.DTOs.Order
 {
     public class OrderUpdateDTO
     {
-        public string? ShippingCity { get; set; }
+        public int? CityId { get; set; }
         public string? ShippingAddress { get; set; }
         public string? ShippingPostalCode { get; set; }
     }

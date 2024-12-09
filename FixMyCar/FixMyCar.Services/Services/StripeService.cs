@@ -99,6 +99,7 @@ namespace FixMyCar.Services.Services
                 Amount = request.TotalAmount,
                 Currency = "eur",
                 PaymentMethodTypes = new List<string> { "card" },
+                CaptureMethod = "automatic",
                 Metadata = metadata
             };
 

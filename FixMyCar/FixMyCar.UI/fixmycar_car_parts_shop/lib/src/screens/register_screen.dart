@@ -1,3 +1,4 @@
+import 'package:fixmycar_car_parts_shop/src/models/city/city.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/car_parts_shop_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/city_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/login_screen.dart';
@@ -20,8 +21,8 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  List<String>? _cities;
-  String? _selectedCity;
+  List<City>? _cities;
+  int? _selectedCity;
 
   @override
   void initState() {
@@ -39,7 +40,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _customGenderController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _postalCodeController = TextEditingController();
-  final TextEditingController _cityController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordConfirmController =
       TextEditingController();
@@ -59,9 +59,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       var cityProvider = Provider.of<CityProvider>(context, listen: false);
       await cityProvider.getCities().then((_) {
         setState(() {
-          _cities = cityProvider.cities.map((city) => city.name).toList();
-          _cities!.add("Custom");
-          _selectedCity = _cities![0];
+          _cities = cityProvider.cities;
+          _selectedCity = _cities![0].id;
         });
       });
     }
@@ -107,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _passwordController.text,
           _passwordConfirmController.text,
           _convertImageToBase64(_selectedImagePath),
-          _selectedCity == 'Custom' ? _cityController.text : _selectedCity!,
+          _selectedCity != null ? _selectedCity! : 1,
           _selectedWorkDays,
           'PT${_openingTime.hour}H${_openingTime.minute}M',
           'PT${_closingTime.hour}H${_closingTime.minute}M',
@@ -292,17 +291,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             AppConstants.postalCodeError),
                         const SizedBox(height: 16.0),
                         if (_cities != null && _cities!.isNotEmpty) ...[
-                          DropdownButtonFormField<String>(
+                          DropdownButtonFormField<int>(
                             value: _selectedCity,
-                            items: _cities!.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
+                            items: _cities!.map((City city) {
+                              return DropdownMenuItem<int>(
+                                value: city.id,
+                                child: Text(city.name),
                               );
                             }).toList(),
                             onChanged: (newValue) {
                               setState(() {
-                                _selectedCity = newValue!;
+                                _selectedCity = newValue;
                               });
                             },
                             decoration: InputDecoration(
@@ -313,18 +312,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (value == null) {
                                 return AppConstants.cityError;
                               }
                               return null;
                             },
                           ),
-                        ],
-                        if (_selectedCity == 'Custom' ||
-                            (_cities == null || _cities!.isEmpty)) ...[
-                          const SizedBox(height: 16.0),
-                          _buildTextField(_cityController, 'Custom City',
-                              'Please enter your city'),
                         ],
                         const SizedBox(height: 24.0),
                         _buildSectionTitle(context, 'Work Details'),

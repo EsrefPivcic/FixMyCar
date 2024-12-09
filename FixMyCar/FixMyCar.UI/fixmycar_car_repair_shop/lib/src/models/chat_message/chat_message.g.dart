@@ -8,8 +8,8 @@ part of 'chat_message.dart';
 
 ChatMessage _$ChatMessageFromJson(Map<String, dynamic> json) => ChatMessage(
       (json['id'] as num).toInt(),
-      json['senderUserId'] as String,
-      json['recipientUserId'] as String,
+      (json['senderUserId'] as num).toInt(),
+      (json['recipientUserId'] as num).toInt(),
       json['message'] as String,
       json['sentAt'] as String,
     );

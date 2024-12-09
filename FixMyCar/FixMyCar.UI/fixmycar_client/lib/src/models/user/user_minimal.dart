@@ -4,12 +4,13 @@ part 'user_minimal.g.dart';
 
 @JsonSerializable()
 class UserMinimal {
+  int id;
   String username;
   String name;
   String surname;
   String? image;
 
-  UserMinimal(this.username, this.name, this.surname, this.image);
+  UserMinimal(this.id, this.username, this.name, this.surname, this.image);
 
   factory UserMinimal.fromJson(Map<String, dynamic> json) =>
       _$UserMinimalFromJson(json);

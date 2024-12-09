@@ -5,8 +5,8 @@ part 'chat_message.g.dart';
 @JsonSerializable()
 class ChatMessage {
   int id;
-  String senderUserId;
-  String recipientUserId;
+  int senderUserId;
+  int recipientUserId;
   String message;
   String sentAt;
 

@@ -1,9 +1,11 @@
 import 'package:fixmycar_client/constants.dart';
+import 'package:fixmycar_client/src/models/city/city.dart';
 import 'package:fixmycar_client/src/models/user/user_update.dart';
 import 'package:fixmycar_client/src/models/user/user_update_image.dart';
 import 'package:fixmycar_client/src/models/user/user_update_password.dart';
 import 'package:fixmycar_client/src/models/user/user_update_username.dart';
 import 'package:fixmycar_client/src/providers/auth_provider.dart';
+import 'package:fixmycar_client/src/providers/city_provider.dart';
 import 'package:fixmycar_client/src/providers/client_provider.dart';
 import 'package:fixmycar_client/src/screens/login_screen.dart';
 import 'package:fixmycar_client/src/utilities/phone_number_formatter.dart';
@@ -27,13 +29,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   UserUpdate? _userUpdate;
   String? _editingField;
   String? _editValue;
+  bool _isInitialized = false;
+
+  List<City>? _cities;
+  int? _selectedCity;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       Provider.of<ClientProvider>(context, listen: false).getByToken();
+      await _fetchCities();
     });
+  }
+
+  Future _fetchCities() async {
+    if (mounted) {
+      var cityProvider = Provider.of<CityProvider>(context, listen: false);
+      await cityProvider.getCities().then((_) {
+        _cities = cityProvider.cities;
+      });
+    }
   }
 
   void _toggleEdit(String field) {
@@ -67,7 +83,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _userUpdate!.postalCode = _editValue;
         break;
       case 'city':
-        _userUpdate!.city = _editValue;
+        _userUpdate!.cityId = _selectedCity;
         break;
       default:
         break;
@@ -223,8 +239,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         return _buildTextField(currentValue, error);
       case 'postalCode':
         return _buildPostalCodeTextField(currentValue, error);
-      case 'city':
-        return _buildTextField(currentValue, error);
       default:
         return _buildTextField(currentValue, error);
     }
@@ -317,6 +331,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           }),
                     ),
                   ]
+                ] else if (field == 'city') ...[
+                  Expanded(
+                    child: DropdownButtonFormField<int>(
+                      value: _selectedCity,
+                      items: _cities!.map((City city) {
+                        return DropdownMenuItem<int>(
+                          value: city.id,
+                          child: Text(city.name),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedCity = newValue;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.textFieldRadius),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null) {
+                          return AppConstants.cityError;
+                        }
+                        return null;
+                      },
+                    ),
+                  )
                 ] else ...[
                   Expanded(
                     child: _customTextFormField(
@@ -718,6 +761,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       child: Consumer<ClientProvider>(
         builder: (context, userProvider, child) {
           final user = userProvider.user;
+
+          if (user != null && !_isInitialized) {
+            _selectedCity = user.cityId;
+            _isInitialized = true;
+          }
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(

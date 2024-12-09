@@ -26,28 +26,6 @@ namespace FixMyCar.Services.StateMachineServices.OrderStateMachine
         {
             _mapper.Map(request, entity);
 
-            if (request.ShippingCity != null)
-            {
-                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.ShippingCity!.ToLower());
-
-                if (city != null)
-                {
-                    entity.CityId = city.Id;
-                }
-                else
-                {
-                    var citySet = _context.Set<City>();
-                    City newCity = new City
-                    {
-                        Name = request.ShippingCity!
-                    };
-                    await citySet.AddAsync(newCity);
-                    await _context.SaveChangesAsync();
-
-                    entity.CityId = newCity.Id;
-                }
-            }
-
             await _context.SaveChangesAsync();
 
             return _mapper.Map<OrderGetDTO>(entity);

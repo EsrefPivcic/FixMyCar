@@ -5,7 +5,8 @@ import 'notification_service.dart';
 
 class SignalRNotificationsService {
   late HubConnection connection;
-  final String _baseUrl = "http://${ApiHost.address}:5148/notificationHub";
+  final String _baseUrl =
+      "http://${ApiHost.address}:${ApiHost.port}/notificationHub";
   final NotificationService notificationService = NotificationService();
 
   Future<void> startConnection(String token) async {

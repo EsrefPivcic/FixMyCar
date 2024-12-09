@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fixmycar_admin/constants.dart';
 import 'package:fixmycar_admin/src/models/search_result.dart';
 import 'package:fixmycar_admin/src/utilities/custom_exception.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 abstract class BaseProvider<T, TInsertUpdate> with ChangeNotifier {
-  static const String baseUrl = 'http://localhost:5148';
+  static const String baseUrl = 'http://${ApiHost.address}:${ApiHost.port}';
   final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String endpoint;
 

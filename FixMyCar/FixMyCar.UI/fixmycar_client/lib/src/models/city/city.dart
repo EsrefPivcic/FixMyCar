@@ -4,9 +4,10 @@ part 'city.g.dart';
 
 @JsonSerializable()
 class City {
+  int id;
   String name;
 
-  City(this.name);
+  City(this.id, this.name);
 
   factory City.fromJson(Map<String, dynamic> json) => _$CityFromJson(json);
 

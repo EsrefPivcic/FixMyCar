@@ -7,14 +7,14 @@ part 'order_insert_update.g.dart';
 class OrderInsertUpdate {
   int? carPartsShopId;
   bool? userAddress;
-  String? shippingCity;
+  int? cityId;
   String? shippingAddress;
   String? shippingPostalCode;
   List<StoreItemOrder>? storeItems;
 
   OrderInsertUpdate.n();
 
-  OrderInsertUpdate(this.carPartsShopId, this.userAddress, this.shippingCity,
+  OrderInsertUpdate(this.carPartsShopId, this.userAddress, this.cityId,
       this.shippingAddress, this.shippingPostalCode, this.storeItems);
 
   factory OrderInsertUpdate.fromJson(Map<String, dynamic> json) =>

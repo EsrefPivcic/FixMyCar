@@ -1,17 +1,17 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'city.dart';
+part of 'city_insert_update.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-City _$CityFromJson(Map<String, dynamic> json) => City(
-      (json['id'] as num).toInt(),
+CityInsertUpdate _$CityInsertUpdateFromJson(Map<String, dynamic> json) =>
+    CityInsertUpdate(
       json['name'] as String,
     );
 
-Map<String, dynamic> _$CityToJson(City instance) => <String, dynamic>{
-      'id': instance.id,
+Map<String, dynamic> _$CityInsertUpdateToJson(CityInsertUpdate instance) =>
+    <String, dynamic>{
       'name': instance.name,
     };

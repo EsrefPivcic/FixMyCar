@@ -2,6 +2,7 @@ import 'package:fixmycar_client/constants.dart';
 import 'package:fixmycar_client/src/models/car_model/car_model.dart';
 import 'package:fixmycar_client/src/models/car_model/car_models_by_manufacturer.dart';
 import 'package:fixmycar_client/src/models/car_parts_shop_discount/car_parts_shop_discount.dart';
+import 'package:fixmycar_client/src/models/city/city.dart';
 import 'package:fixmycar_client/src/models/order/order_insert_update.dart';
 import 'package:fixmycar_client/src/models/store_item/store_item.dart';
 import 'package:fixmycar_client/src/models/store_item/store_item_order.dart';
@@ -37,9 +38,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   late int carPartsShopId;
   late List<StoreItem> loadedItems;
   late User carPartsShopDetails;
-  List<String>? _cities;
+  List<City>? _cities;
+  int? _selectedCity;
   int? _selectedManufacturerId;
-  String? _selectedCity;
   int _pageNumber = 1;
   final int _pageSize = 10;
   int _totalPages = 1;
@@ -78,7 +79,6 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
   List<StoreItemOrder> orderedItems = [];
   List<StoreItem> orderedItemsDetails = [];
   bool useProfileAddress = true;
-  TextEditingController cityController = TextEditingController();
   TextEditingController addressController = TextEditingController();
   TextEditingController postalCodeController = TextEditingController();
 
@@ -87,9 +87,8 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
       var cityProvider = Provider.of<CityProvider>(context, listen: false);
       await cityProvider.getCities().then((_) {
         setState(() {
-          _cities = cityProvider.cities.map((city) => city.name).toList();
-          _cities!.add("Custom");
-          _selectedCity = _cities![0];
+          _cities = cityProvider.cities;
+          _selectedCity = _cities![0].id;
         });
       });
     }
@@ -248,17 +247,17 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                         if (!useProfileAddress) ...[
                           if (_cities != null && _cities!.isNotEmpty) ...[
                             const SizedBox(height: 10.0),
-                            DropdownButtonFormField<String>(
+                            DropdownButtonFormField<int>(
                               value: _selectedCity,
-                              items: _cities!.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
+                              items: _cities!.map((City city) {
+                                return DropdownMenuItem<int>(
+                                  value: city.id,
+                                  child: Text(city.name),
                                 );
                               }).toList(),
                               onChanged: (newValue) {
                                 setState(() {
-                                  _selectedCity = newValue!;
+                                  _selectedCity = newValue;
                                 });
                               },
                               decoration: InputDecoration(
@@ -269,31 +268,12 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
+                                if (value == null) {
                                   return AppConstants.cityError;
                                 }
                                 return null;
                               },
                             ),
-                          ],
-                          if (_selectedCity == 'Custom' ||
-                              (_cities == null || _cities!.isEmpty)) ...[
-                            TextFormField(
-                                controller: cityController,
-                                decoration: const InputDecoration(
-                                    labelText: 'Custom City'),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return "Please enter a city name";
-                                  }
-                                  if (num.tryParse(value) is num) {
-                                    return "City names can't be numeric";
-                                  }
-                                  if (value.length > 25) {
-                                    return "City names can't be longer than 25 characters";
-                                  }
-                                  return null;
-                                }),
                           ],
                           TextFormField(
                               controller: addressController,
@@ -412,10 +392,9 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                 setState(() {
                   orderedItems.clear();
                   orderedItemsDetails.clear();
-                  cityController.clear();
                   addressController.clear();
                   postalCodeController.clear();
-                  _selectedCity = _cities![0];
+                  _selectedCity = _cities![0].id;
                 });
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -469,72 +448,47 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                     OrderInsertUpdate newOrder;
                     if (useProfileAddress) {
                       newOrder = OrderInsertUpdate(carPartsShopId,
-                          useProfileAddress, "", "", "", orderedItems);
+                          useProfileAddress, null, null, null, orderedItems);
                     } else {
                       newOrder = OrderInsertUpdate(
                           carPartsShopId,
                           useProfileAddress,
-                          useProfileAddress
-                              ? ""
-                              : _selectedCity == 'Custom'
-                                  ? cityController.text
-                                  : _selectedCity!,
+                          _selectedCity,
                           addressController.text,
                           postalCodeController.text,
                           orderedItems);
                     }
-                    bool validateCityInput =
-                        (cityController.text.trim().isNotEmpty &&
-                                _selectedCity == "Custom") ||
-                            (_selectedCity != null &&
-                                _selectedCity!.isNotEmpty &&
-                                _selectedCity != "Custom");
-                    bool validateInputs = validateCityInput &&
-                        addressController.text.trim().isNotEmpty &&
-                        postalCodeController.text.trim().isNotEmpty;
-                    if (useProfileAddress ||
-                        (!useProfileAddress && validateInputs)) {
-                      try {
-                        await Provider.of<OrderProvider>(context, listen: false)
-                            .insertOrder(newOrder)
-                            .then((_) {
-                          Navigator.pop(context);
-                          Navigator.pop(context);
-                          setState(() {
-                            orderedItems.clear();
-                            orderedItemsDetails.clear();
-                            cityController.clear();
-                            addressController.clear();
-                            postalCodeController.clear();
-                            _selectedCity = _cities![0];
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Order processed!"),
-                            ),
-                          );
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const OrderHistoryScreen(),
-                            ),
-                          );
+                    try {
+                      await Provider.of<OrderProvider>(context, listen: false)
+                          .insertOrder(newOrder)
+                          .then((_) {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                        setState(() {
+                          orderedItems.clear();
+                          orderedItemsDetails.clear();
+                          addressController.clear();
+                          postalCodeController.clear();
+                          _selectedCity = _cities![0].id;
                         });
-                      } catch (e) {
-                        Navigator.pop(context);
-                        Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(e.toString()),
+                          const SnackBar(
+                            content: Text("Order processed!"),
                           ),
                         );
-                      }
-                    } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const OrderHistoryScreen(),
+                          ),
+                        );
+                      });
+                    } catch (e) {
                       Navigator.pop(context);
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Please provide shipping details!"),
+                        SnackBar(
+                          content: Text(e.toString()),
                         ),
                       );
                     }

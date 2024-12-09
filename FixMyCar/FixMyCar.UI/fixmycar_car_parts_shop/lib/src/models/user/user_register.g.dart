@@ -18,7 +18,7 @@ UserRegister _$UserRegisterFromJson(Map<String, dynamic> json) => UserRegister(
       json['password'] as String,
       json['passwordConfirm'] as String,
       json['image'] as String?,
-      json['city'] as String,
+      (json['cityId'] as num).toInt(),
       (json['workDays'] as List<dynamic>)
           .map((e) => (e as num).toInt())
           .toList(),
@@ -39,7 +39,7 @@ Map<String, dynamic> _$UserRegisterToJson(UserRegister instance) =>
       'password': instance.password,
       'passwordConfirm': instance.passwordConfirm,
       'image': instance.image,
-      'city': instance.city,
+      'cityId': instance.cityId,
       'workDays': instance.workDays,
       'openingTime': instance.openingTime,
       'closingTime': instance.closingTime,

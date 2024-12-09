@@ -7,6 +7,7 @@ part of 'user_minimal.dart';
 // **************************************************************************
 
 UserMinimal _$UserMinimalFromJson(Map<String, dynamic> json) => UserMinimal(
+      (json['id'] as num).toInt(),
       json['username'] as String,
       json['name'] as String,
       json['surname'] as String,
@@ -15,6 +16,7 @@ UserMinimal _$UserMinimalFromJson(Map<String, dynamic> json) => UserMinimal(
 
 Map<String, dynamic> _$UserMinimalToJson(UserMinimal instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'username': instance.username,
       'name': instance.name,
       'surname': instance.surname,

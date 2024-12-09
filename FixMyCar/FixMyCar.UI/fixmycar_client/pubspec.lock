@@ -338,10 +338,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_stripe
-      sha256: "6285db61db37a7628feac64b8bf40d93a70bdef79628c0a152e2838674e53ed3"
+      sha256: "4f92660607b91310ec345948355c68843971d3f70673b529076707259b442513"
       url: "https://pub.dev"
     source: hosted
-    version: "8.0.0"
+    version: "9.6.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -817,26 +817,26 @@ packages:
     dependency: transitive
     description:
       name: stripe_android
-      sha256: "3cf43dfb70d8011ded0730c091e741b94cd4aaccaad22732a19f5941503072d6"
+      sha256: "1de36b35c50f33e538c8e4bd6173f0ab8d7d8e6b9e05388488775e439c29b7d2"
       url: "https://pub.dev"
     source: hosted
-    version: "8.0.0+1"
+    version: "9.6.0+2"
   stripe_ios:
     dependency: transitive
     description:
       name: stripe_ios
-      sha256: b3da653013be8aada352b158439024963a0d5dc0648524127d3ef4fd6b0a0cc7
+      sha256: "4b176f4ee7eaf229815b90c3ff78935da9e01765f4d3153b76fd0d3d64680294"
       url: "https://pub.dev"
     source: hosted
-    version: "8.0.0"
+    version: "9.6.0"
   stripe_platform_interface:
     dependency: transitive
     description:
       name: stripe_platform_interface
-      sha256: "28c409b0c0e98115c4ab38a9a34a883010811036e6d9fa8d495f67c3ba01c034"
+      sha256: ac3c6ac938a26674ae8ae691d689e0b949ab1a8d270489f08d35446dd8d5bea0
       url: "https://pub.dev"
     source: hosted
-    version: "8.0.0"
+    version: "9.6.0"
   table_calendar:
     dependency: "direct main"
     description:

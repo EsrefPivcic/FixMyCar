@@ -14,7 +14,7 @@ UserUpdate _$UserUpdateFromJson(Map<String, dynamic> json) => UserUpdate(
       json['gender'] as String?,
       json['address'] as String?,
       json['postalCode'] as String?,
-      json['city'] as String?,
+      (json['cityId'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$UserUpdateToJson(UserUpdate instance) =>
@@ -26,5 +26,5 @@ Map<String, dynamic> _$UserUpdateToJson(UserUpdate instance) =>
       'gender': instance.gender,
       'address': instance.address,
       'postalCode': instance.postalCode,
-      'city': instance.city,
+      'cityId': instance.cityId,
     };

@@ -18,6 +18,7 @@ namespace FixMyCar.Model.DTOs.Order
         public double TotalAmount { get; set; }
         public double ClientDiscountValue { get; set; }
         public string State { get; set; }
+        public int CityId { get; set; }
         public string ShippingCity { get; set; }
         public string ShippingAddress { get; set; }
         public string ShippingPostalCode { get; set; }

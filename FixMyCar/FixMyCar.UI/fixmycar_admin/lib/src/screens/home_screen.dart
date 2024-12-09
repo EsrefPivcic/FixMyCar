@@ -1,8 +1,12 @@
 import 'package:fixmycar_admin/constants.dart';
+import 'package:fixmycar_admin/src/models/city/city.dart';
+import 'package:fixmycar_admin/src/models/city/city_insert_update.dart';
 import 'package:fixmycar_admin/src/models/user/user.dart';
+import 'package:fixmycar_admin/src/models/user/user_minimal.dart';
 import 'package:fixmycar_admin/src/models/user/user_search_object.dart';
 import 'package:fixmycar_admin/src/models/user/user_update.dart';
 import 'package:fixmycar_admin/src/providers/admin_provider.dart';
+import 'package:fixmycar_admin/src/providers/city_provider.dart';
 import 'package:fixmycar_admin/src/providers/recommender_provider.dart';
 import 'package:fixmycar_admin/src/providers/user_provider.dart';
 import 'package:fixmycar_admin/src/screens/chat_screen.dart';
@@ -100,6 +104,43 @@ class _HomeScreenState extends State<HomeScreen> {
               } catch (e) {
                 ScaffoldMessenger.of(context)
                     .showSnackBar(SnackBar(content: Text(e.toString())));
+              }
+              Navigator.of(context).pop();
+            },
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteCity(City city) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Action'),
+        content: Text(
+            'Are you sure that you want to delete ${city.name} from the system?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                await Provider.of<CityProvider>(context, listen: false)
+                    .deleteCity(city.id)
+                    .then((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text("City deleted successfully")));
+                });
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text(
+                        "Can't delete a city that is currently in use (e.g., accounts, orders...)")));
               }
               Navigator.of(context).pop();
             },
@@ -439,6 +480,330 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _showInsertUpdateForm(City? city, bool edit) {
+    final formKey = GlobalKey<FormState>();
+
+    final cityController = TextEditingController();
+
+    cityController.text = edit ? city!.name : "";
+
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(edit ? "Edit City" : "Add City"),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: cityController,
+                    decoration: InputDecoration(
+                        labelText: edit ? "New Name" : "New City Name"),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter a city name";
+                      }
+                      if (num.tryParse(value) is num) {
+                        return "City names can't be numeric";
+                      }
+                      if (value.length > 25) {
+                        return "City name can't be longer than 25 characters";
+                      }
+                      return null;
+                    },
+                  )
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                cityController.clear();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (formKey.currentState?.validate() ?? false) {
+                  CityInsertUpdate newCity =
+                      CityInsertUpdate(cityController.text);
+                  if (edit) {
+                    try {
+                      await Provider.of<CityProvider>(context, listen: false)
+                          .updateCity(city!.id, newCity)
+                          .then((_) {
+                        cityController.clear();
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('City name changed successfully!'),
+                          ),
+                        );
+                      });
+                    } catch (e) {
+                      Navigator.of(context).pop();
+                      cityController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.toString()),
+                        ),
+                      );
+                    }
+                  } else {
+                    try {
+                      await Provider.of<CityProvider>(context, listen: false)
+                          .insertCity(newCity)
+                          .then((_) {
+                        cityController.clear();
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('City added successfully!'),
+                          ),
+                        );
+                      });
+                    } catch (e) {
+                      Navigator.of(context).pop();
+                      cityController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(e.toString()),
+                        ),
+                      );
+                    }
+                  }
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _manangeCities(BuildContext context) async {
+    var cityProvider = Provider.of<CityProvider>(context, listen: false);
+
+    List<City> cities = [];
+    int pageNumber = 1;
+    final int pageSize = 10;
+    int totalPages = 1;
+    int countOfCities = 0;
+
+    await cityProvider
+        .getCities(pageNumber: pageNumber, pageSize: pageSize)
+        .then((_) {
+      cities = cityProvider.cities;
+      countOfCities = cityProvider.countOfItems;
+      totalPages = (countOfCities / pageSize).ceil();
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.5,
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Manage Cities',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 16.0),
+                      cities.isEmpty
+                          ? const Center(
+                              child: Text("No cities found."),
+                            )
+                          : Expanded(
+                              child: SingleChildScrollView(
+                                child: Container(
+                                  width: double.infinity,
+                                  child: DataTable(
+                                    columns: const [
+                                      DataColumn(label: Text('Name')),
+                                      DataColumn(label: Text('Update')),
+                                      DataColumn(label: Text('Delete')),
+                                    ],
+                                    rows: cities.map<DataRow>((city) {
+                                      return DataRow(cells: [
+                                        DataCell(Text(city.name)),
+                                        DataCell(
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              await _showInsertUpdateForm(
+                                                      city, true)
+                                                  .then((_) async {
+                                                await cityProvider
+                                                    .getCities(
+                                                        pageNumber: pageNumber,
+                                                        pageSize: pageSize)
+                                                    .then((_) {
+                                                  setState(() {
+                                                    cities =
+                                                        cityProvider.cities;
+                                                    countOfCities = cityProvider
+                                                        .countOfItems;
+                                                    totalPages =
+                                                        (countOfCities /
+                                                                pageSize)
+                                                            .ceil();
+                                                  });
+                                                });
+                                              });
+                                            },
+                                            child: const Text('Update'),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              await _deleteCity(city)
+                                                  .then((_) async {
+                                                await cityProvider
+                                                    .getCities(
+                                                        pageNumber: pageNumber,
+                                                        pageSize: pageSize)
+                                                    .then((_) {
+                                                  setState(() {
+                                                    cities =
+                                                        cityProvider.cities;
+                                                    countOfCities = cityProvider
+                                                        .countOfItems;
+                                                    totalPages =
+                                                        (countOfCities /
+                                                                pageSize)
+                                                            .ceil();
+                                                  });
+                                                });
+                                              });
+                                            },
+                                            child: const Text('Delete'),
+                                          ),
+                                        ),
+                                      ]);
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                      if (countOfCities != 0) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              onPressed: pageNumber > 1
+                                  ? () async {
+                                      setState(() {
+                                        pageNumber = pageNumber - 1;
+                                      });
+                                      await cityProvider
+                                          .getCities(
+                                              pageNumber: pageNumber,
+                                              pageSize: pageSize)
+                                          .then((_) {
+                                        setState(() {
+                                          cities = cityProvider.cities;
+                                          countOfCities =
+                                              cityProvider.countOfItems;
+                                          totalPages =
+                                              (countOfCities / pageSize).ceil();
+                                        });
+                                      });
+                                    }
+                                  : null,
+                              icon:
+                                  const Icon(Icons.arrow_back_ios_new_rounded),
+                            ),
+                            Text('$pageNumber',
+                                style: Theme.of(context).textTheme.bodyLarge),
+                            IconButton(
+                              onPressed: pageNumber < totalPages
+                                  ? () async {
+                                      setState(() {
+                                        pageNumber = pageNumber + 1;
+                                      });
+                                      await cityProvider
+                                          .getCities(
+                                              pageNumber: pageNumber,
+                                              pageSize: pageSize)
+                                          .then((_) {
+                                        setState(() {
+                                          cities = cityProvider.cities;
+                                          countOfCities =
+                                              cityProvider.countOfItems;
+                                          totalPages =
+                                              (countOfCities / pageSize).ceil();
+                                        });
+                                      });
+                                    }
+                                  : null,
+                              icon: const Icon(Icons.arrow_forward_ios_rounded),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Close'),
+                            ),
+                            const SizedBox(width: 8.0),
+                            ElevatedButton.icon(
+                              onPressed: () async {
+                                await _showInsertUpdateForm(null, false)
+                                    .then((_) async {
+                                  await cityProvider
+                                      .getCities(
+                                          pageNumber: pageNumber,
+                                          pageSize: pageSize)
+                                      .then((_) {
+                                    setState(() {
+                                      cities = cityProvider.cities;
+                                      countOfCities = cityProvider.countOfItems;
+                                      totalPages =
+                                          (countOfCities / pageSize).ceil();
+                                    });
+                                  });
+                                });
+                              },
+                              icon: const Icon(Icons.location_city_rounded),
+                              label: const Text('Add a new city'),
+                            ),
+                          ],
+                        ),
+                      ]
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
@@ -536,6 +901,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       icon: const Icon(Icons.update),
                                       label: const Text(
                                           'Train reservations recommender'),
+                                    ),
+                                    const SizedBox(height: 8.0),
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        await _manangeCities(context);
+                                      },
+                                      icon: const Icon(Icons.update),
+                                      label: const Text('Manage Cities'),
                                     ),
                                   ] else ...[
                                     const Card(
@@ -711,13 +1084,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 DataCell(
                   ElevatedButton(
                     onPressed: () {
+                      UserMinimal userMinimal = UserMinimal(user.id,
+                          user.username, user.name, user.surname, user.image);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ChatScreen(
-                            recipientUserId: user.username,
-                            recipientImage: user.image!,
-                          ),
+                          builder: (context) =>
+                              ChatScreen(recipient: userMinimal),
                         ),
                       );
                     },

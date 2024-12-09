@@ -12,6 +12,7 @@ class Order {
   double totalAmount;
   double clientDiscountValue;
   String state;
+  int cityId;
   String shippingCity;
   String shippingAddress;
   String shippingPostalCode;
@@ -25,6 +26,7 @@ class Order {
       this.totalAmount,
       this.clientDiscountValue,
       this.state,
+      this.cityId,
       this.shippingCity,
       this.shippingAddress,
       this.shippingPostalCode);

@@ -123,10 +123,8 @@ class MasterScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                    recipientUserId: userExists.username,
-                                    recipientImage: userExists.image!,
-                                  )),
+                              builder: (context) =>
+                                  ChatScreen(recipient: userExists)),
                         ).then((_) {
                           _usernameController.text = "";
                         });
@@ -160,10 +158,8 @@ class MasterScreen extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ChatScreen(
-                                        recipientUserId: user.username,
-                                        recipientImage: user.image!,
-                                      ),
+                                      builder: (context) =>
+                                          ChatScreen(recipient: user),
                                     ),
                                   ).then((_) {
                                     _usernameController.text = "";
@@ -200,23 +196,7 @@ class MasterScreen extends StatelessWidget {
                 Navigator.of(context).pop();
               },
               child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ChatScreen(
-                            recipientUserId: "admin",
-                            recipientImage: "",
-                          )),
-                ).then((_) {
-                  _usernameController.text = "";
-                });
-              },
-              child: const Text('Contact the admin'),
-            ),
+            )
           ],
         );
       },

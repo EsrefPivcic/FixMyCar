@@ -13,7 +13,6 @@ namespace FixMyCar.Services.Mapping
     {
         public OrderProfile() {
             CreateMap<OrderUpdateDTO, Order>()
-                .ForMember(dest => dest.CityId, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<Order, OrderGetDTO>()
                 .ForMember(dest => dest.Username, opt => opt.MapFrom(src => src.Client != null ? src.Client.Username : src.CarRepairShop != null ? src.CarRepairShop.Username : "Unknown"))

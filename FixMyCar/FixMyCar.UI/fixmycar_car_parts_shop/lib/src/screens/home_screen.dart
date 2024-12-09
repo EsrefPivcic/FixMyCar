@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 import 'package:fixmycar_car_parts_shop/constants.dart';
+import 'package:fixmycar_car_parts_shop/src/models/city/city.dart';
 import 'package:fixmycar_car_parts_shop/src/models/report_filter/report_filter.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update.dart';
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_image.dart';
@@ -8,6 +9,7 @@ import 'package:fixmycar_car_parts_shop/src/models/user/user_update_username.dar
 import 'package:fixmycar_car_parts_shop/src/models/user/user_update_work_details.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/auth_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/providers/car_parts_shop_provider.dart';
+import 'package:fixmycar_car_parts_shop/src/providers/city_provider.dart';
 import 'package:fixmycar_car_parts_shop/src/screens/login_screen.dart';
 import 'package:fixmycar_car_parts_shop/src/services/report_notification_service.dart';
 import 'package:fixmycar_car_parts_shop/src/utilities/phone_number_formatter.dart';
@@ -43,6 +45,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ReportNotificationService();
   String _selectedChartType = 'Revenue per customer type';
 
+  List<City>? _cities;
+  int? _selectedCity;
+
   @override
   void initState() {
     super.initState();
@@ -52,8 +57,18 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         _fetchReport();
         _initializeNotifications(context);
+        await _fetchCities();
       }
     });
+  }
+
+  Future _fetchCities() async {
+    if (mounted) {
+      var cityProvider = Provider.of<CityProvider>(context, listen: false);
+      await cityProvider.getCities().then((_) {
+        _cities = cityProvider.cities;
+      });
+    }
   }
 
   void _initializeNotifications(BuildContext context) async {
@@ -112,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _userUpdate!.postalCode = _editValue;
         break;
       case 'city':
-        _userUpdate!.city = _editValue;
+        _userUpdate!.cityId = _selectedCity;
         break;
       default:
         break;
@@ -268,8 +283,6 @@ class _HomeScreenState extends State<HomeScreen> {
         return _buildTextField(currentValue, error);
       case 'postalCode':
         return _buildPostalCodeTextField(currentValue, error);
-      case 'city':
-        return _buildTextField(currentValue, error);
       default:
         return _buildTextField(currentValue, error);
     }
@@ -363,6 +376,35 @@ class _HomeScreenState extends State<HomeScreen> {
                           }),
                     ),
                   ]
+                ] else if (field == 'city') ...[
+                  Expanded(
+                    child: DropdownButtonFormField<int>(
+                      value: _selectedCity,
+                      items: _cities!.map((City city) {
+                        return DropdownMenuItem<int>(
+                          value: city.id,
+                          child: Text(city.name),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedCity = newValue;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.textFieldRadius),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null) {
+                          return AppConstants.cityError;
+                        }
+                        return null;
+                      },
+                    ),
+                  )
                 ] else ...[
                   Expanded(
                     child: _customTextFormField(
@@ -1164,6 +1206,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedWorkDays = parseWorkDays(user.workDays);
             _openingTime = parseTimeOfDay(user.openingTime);
             _closingTime = parseTimeOfDay(user.closingTime);
+            _selectedCity = user.cityId;
             _isInitialized = true;
           }
 

@@ -16,6 +16,7 @@ class User {
   String postalCode;
   String? image;
   String role;
+  int cityId;
   String city;
   bool active;
   List<String>? workDays;
@@ -37,6 +38,7 @@ class User {
       this.postalCode,
       this.image,
       this.role,
+      this.cityId,
       this.city,
       this.active,
       this.workDays,

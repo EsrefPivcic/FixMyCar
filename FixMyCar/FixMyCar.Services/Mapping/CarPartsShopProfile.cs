@@ -17,14 +17,11 @@ namespace FixMyCar.Services.Mapping
             CreateMap<CarPartsShopInsertDTO, CarPartsShop>()
                 .ForMember(dest => dest.WorkDays, opt => opt.MapFrom(src => src.WorkDays))
                  .ForMember(dest => dest.WorkDaysAsString, opt => opt.Ignore())
-                 .ForMember(dest => dest.CityId, opt => opt.Ignore())
-                .ForMember(dest => dest.City, opt => opt.Ignore())
                 .ForMember(dest => dest.Image, opt => opt.Ignore())
                 .ForMember(dest => dest.OpeningTime, opt => opt.MapFrom(src => src.OpeningTime != null ? XmlConvert.ToTimeSpan(src.OpeningTime) : TimeSpan.Zero))
                 .ForMember(dest => dest.ClosingTime, opt => opt.MapFrom(src => src.ClosingTime != null ? XmlConvert.ToTimeSpan(src.ClosingTime) : TimeSpan.Zero));
             CreateMap<CarPartsShopUpdateDTO, CarPartsShop>()
                 .ForMember(dest => dest.Username, opt => opt.Ignore())
-                .ForMember(dest => dest.City, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
             CreateMap<CarPartsShop, CarPartsShopInsertDTO>();
             CreateMap<CarPartsShop, CarPartsShopUpdateDTO>();

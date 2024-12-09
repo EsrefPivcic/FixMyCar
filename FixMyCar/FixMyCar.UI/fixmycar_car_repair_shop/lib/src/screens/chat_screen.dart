@@ -1,6 +1,6 @@
 import 'dart:convert';
-
 import 'package:fixmycar_car_repair_shop/src/models/chat_message/chat_message.dart';
+import 'package:fixmycar_car_repair_shop/src/models/user/user_minimal.dart';
 import 'package:fixmycar_car_repair_shop/src/providers/chat_history_provider.dart';
 import 'package:fixmycar_car_repair_shop/src/services/chat_service.dart';
 import 'package:flutter/material.dart';
@@ -8,10 +8,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String recipientUserId;
-  final String recipientImage;
+  final UserMinimal recipient;
 
-  ChatScreen({required this.recipientUserId, required this.recipientImage});
+  ChatScreen({required this.recipient});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -37,14 +36,14 @@ class _ChatScreenState extends State<ChatScreen> {
         Provider.of<ChatHistoryProvider>(context, listen: false);
 
     List<ChatMessage> history = await chatHistoryProvider.getChatHistory(
-        recipientUserId: widget.recipientUserId);
+        recipientUserId: widget.recipient.id);
 
     if (history.isNotEmpty) {
       setState(() {
         _messages.addAll(history
             .map((message) => {
-                  "sender": message.senderUserId == widget.recipientUserId
-                      ? message.senderUserId
+                  "sender": message.senderUserId == widget.recipient.id
+                      ? widget.recipient.username
                       : "Me",
                   "message": message.message
                 })
@@ -52,10 +51,11 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     }
 
-    _chatService.onMessageReceived = (String senderUserId, String message) {
-      if (senderUserId == widget.recipientUserId) {
+    _chatService.onMessageReceived = (int senderUserId, String message) {
+      if (senderUserId == widget.recipient.id) {
         setState(() {
-          _messages.add({"sender": senderUserId, "message": message});
+          _messages
+              .add({"sender": widget.recipient.username, "message": message});
         });
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _maybeScrollToBottom();
@@ -74,7 +74,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage() async {
     if (_controller.text.isNotEmpty) {
       String message = _controller.text.trim();
-      await _chatService.sendMessage(widget.recipientUserId, message);
+      await _chatService.sendMessage(widget.recipient.id, message);
       setState(() {
         _messages.add({"sender": "Me", "message": message});
       });
@@ -152,10 +152,11 @@ class _ChatScreenState extends State<ChatScreen> {
         appBar: AppBar(
           title: Row(
             children: [
-              if (widget.recipientImage.isNotEmpty) ...[
+              if (widget.recipient.image != null &&
+                  widget.recipient.image!.isNotEmpty) ...[
                 CircleAvatar(
                   backgroundImage:
-                      MemoryImage(base64Decode(widget.recipientImage)),
+                      MemoryImage(base64Decode(widget.recipient.image!)),
                 )
               ] else ...[
                 const CircleAvatar(
@@ -163,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 )
               ],
               const SizedBox(width: 8),
-              Text("Chat with ${widget.recipientUserId}"),
+              Text("Chat with ${widget.recipient.username}"),
             ],
           ),
         ),

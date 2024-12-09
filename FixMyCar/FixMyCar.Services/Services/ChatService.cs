@@ -21,40 +21,59 @@ namespace FixMyCar.Services.Services
             _context = context;
         }
 
-        public async Task<List<ChatMessage>> GetChatHistory(string senderUserId, string recipientUserId)
+        public async Task<List<ChatMessage>> GetChatHistory(string senderUser, int recipientUserId)
         {
-            var chatHistory = await _context.ChatMessages
-                .Where(cm => (cm.SenderUserId == senderUserId && cm.RecipientUserId == recipientUserId) ||
-                (cm.SenderUserId == recipientUserId && cm.RecipientUserId == senderUserId))
+            var sender = await _context.Users.FirstOrDefaultAsync(u => u.Username == senderUser);
+
+            if (sender != null)
+            {
+                var chatHistory = await _context.ChatMessages
+                .Where(cm => (cm.SenderUserId == sender.Id && cm.RecipientUserId == recipientUserId) ||
+                    (cm.SenderUserId == recipientUserId && cm.RecipientUserId == sender.Id))
                 .OrderBy(cm => cm.SentAt)
                 .ToListAsync();
 
-            return chatHistory;
+                return chatHistory;
+            }
+            else
+            {
+                throw new UserException("This user doesn't exist");
+            }
         }
 
         public async Task<PagedResult<UserMinimalGetDTO>> GetChats(string username)
         {
-            var participants = await _context.ChatMessages
-                .Where(cm => (cm.SenderUserId == username || cm.RecipientUserId == username))
-                .Select(cm => cm.SenderUserId == username ? cm.RecipientUserId : cm.SenderUserId)
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user != null)
+            {
+                var participants = await _context.ChatMessages
+                .Where(cm => (cm.SenderUserId == user.Id || cm.RecipientUserId == user.Id))
+                .Select(cm => cm.SenderUserId == user.Id ? cm.RecipientUserId : cm.SenderUserId)
                 .Distinct()
                 .ToListAsync();
 
-            var users = await _context.Users
-                .Where(u => participants.Contains(u.Username))
-                .Select(u => new UserMinimalGetDTO
-                {
-                    Username = u.Username,
-                    Name = u.Name,
-                    Surname = u.Surname,
-                    Image = u.Image != null ? Convert.ToBase64String(u.Image) : ""
-                })
-                .ToListAsync();
+                var users = await _context.Users
+                    .Where(u => participants.Contains(u.Id))
+                    .Select(u => new UserMinimalGetDTO
+                    {
+                        Id = u.Id,
+                        Username = u.Username,
+                        Name = u.Name,
+                        Surname = u.Surname,
+                        Image = u.Image != null ? Convert.ToBase64String(u.Image) : ""
+                    })
+                    .ToListAsync();
 
-            PagedResult<UserMinimalGetDTO> pagedResult = new PagedResult<UserMinimalGetDTO>();
-            pagedResult.Result = users;
-            pagedResult.Count = users.Count;
-            return pagedResult;
+                PagedResult<UserMinimalGetDTO> pagedResult = new PagedResult<UserMinimalGetDTO>();
+                pagedResult.Result = users;
+                pagedResult.Count = users.Count;
+                return pagedResult;
+            }
+            else
+            {
+                throw new UserException("This user doesn't exist");
+            }
         }
     }
 }

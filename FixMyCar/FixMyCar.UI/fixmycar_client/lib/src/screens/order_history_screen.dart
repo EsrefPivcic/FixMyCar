@@ -1,11 +1,13 @@
+import 'package:fixmycar_client/constants.dart';
+import 'package:fixmycar_client/src/models/city/city.dart';
 import 'package:fixmycar_client/src/models/order/order_insert_update.dart';
 import 'package:fixmycar_client/src/models/order/order_search_object.dart';
+import 'package:fixmycar_client/src/providers/city_provider.dart';
 import 'package:fixmycar_client/src/providers/order_detail_provider.dart';
 import 'package:fixmycar_client/src/providers/order_provider.dart';
 import 'package:fixmycar_client/src/models/order/order.dart';
 import 'package:fixmycar_client/src/screens/car_parts_shops_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
 import 'package:intl/intl.dart';
@@ -23,6 +25,9 @@ int _pageNumber = 1;
 final int _pageSize = 10;
 int _totalPages = 1;
 
+List<City>? _cities;
+int? _selectedCity;
+
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   @override
   void initState() {
@@ -32,7 +37,20 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           orderSearch: filterCriteria,
           pageNumber: _pageNumber,
           pageSize: _pageSize);
+      await _fetchCities();
     });
+  }
+
+  Future _fetchCities() async {
+    if (mounted) {
+      var cityProvider = Provider.of<CityProvider>(context, listen: false);
+      await cityProvider.getCities().then((_) {
+        setState(() {
+          _cities = cityProvider.cities;
+          _selectedCity = _cities![0].id;
+        });
+      });
+    }
   }
 
   String _formatDate(String dateTimeString) {
@@ -153,12 +171,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     );
   }
 
-  final _cityController = TextEditingController();
   final _addressController = TextEditingController();
   final _postalCodeController = TextEditingController();
 
   Future showUpdateForm(Order order) async {
-    _cityController.text = order.shippingCity;
+    setState(() {
+      _selectedCity = order.cityId;
+    });
     _addressController.text = order.shippingAddress;
     _postalCodeController.text = order.shippingPostalCode;
     final formKey = GlobalKey<FormState>();
@@ -174,22 +193,33 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextFormField(
-                        controller: _cityController,
-                        decoration:
-                            const InputDecoration(labelText: 'Shipping City'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Please enter a city name";
-                          }
-                          if (num.tryParse(value) is num) {
-                            return "City names can't be numeric";
-                          }
-                          if (value.length > 25) {
-                            return "City names can't be longer than 25 characters";
-                          }
-                          return null;
-                        }),
+                    DropdownButtonFormField<int>(
+                      value: _selectedCity,
+                      items: _cities!.map((City city) {
+                        return DropdownMenuItem<int>(
+                          value: city.id,
+                          child: Text(city.name),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedCity = newValue;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: AppConstants.cityLabel,
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppRadius.textFieldRadius),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null) {
+                          return AppConstants.cityError;
+                        }
+                        return null;
+                      },
+                    ),
                     TextFormField(
                         controller: _addressController,
                         decoration: const InputDecoration(
@@ -229,7 +259,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                _cityController.clear();
                 _addressController.clear();
                 _postalCodeController.clear();
                 Navigator.of(context).pop();
@@ -240,7 +269,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               onPressed: () async {
                 if (formKey.currentState?.validate() ?? false) {
                   OrderInsertUpdate updateOrder = OrderInsertUpdate.n();
-                  updateOrder.shippingCity = _cityController.text;
+                  updateOrder.cityId = _selectedCity;
                   updateOrder.shippingAddress = _addressController.text;
                   updateOrder.shippingPostalCode = _postalCodeController.text;
                   try {
@@ -253,7 +282,6 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               pageNumber: _pageNumber,
                               pageSize: _pageSize);
                     });
-                    _cityController.clear();
                     _addressController.clear();
                     _postalCodeController.clear();
                     ScaffoldMessenger.of(context).showSnackBar(

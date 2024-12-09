@@ -1,6 +1,7 @@
 class ApiHost {
   static const address =
       String.fromEnvironment("API_HOST", defaultValue: "10.0.2.2");
+  static const port = String.fromEnvironment("API_PORT", defaultValue: "5148");
 }
 
 class AppConstants {

@@ -11,7 +11,7 @@ namespace FixMyCar.Services.Interfaces
 {
     public interface IChatService
     {
-        Task<List<ChatMessage>> GetChatHistory(string senderUserId, string recipientUserId);
+        Task<List<ChatMessage>> GetChatHistory(string senderUserId, int recipientUserId);
         Task<PagedResult<UserMinimalGetDTO>> GetChats(string username);
     }
 }

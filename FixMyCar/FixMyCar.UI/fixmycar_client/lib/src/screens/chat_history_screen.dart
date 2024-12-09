@@ -4,6 +4,7 @@ import 'package:fixmycar_client/src/models/user/user_minimal.dart';
 import 'package:fixmycar_client/src/providers/chat_history_provider.dart';
 import 'package:fixmycar_client/src/providers/user_provider.dart';
 import 'package:fixmycar_client/src/screens/chat_screen.dart';
+import 'package:fixmycar_client/src/utilities/custom_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'master_screen.dart';
@@ -79,10 +80,8 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
-                                        recipientUserId: userExists.username,
-                                        recipientImage: userExists.image!,
-                                      )),
+                                  builder: (context) =>
+                                      ChatScreen(recipient: userExists)),
                             ).then((_) {
                               _usernameController.text = "";
                             });
@@ -113,10 +112,8 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChatScreen(
-                                          recipientUserId: user.username,
-                                          recipientImage: user.image!,
-                                        ),
+                                        builder: (context) =>
+                                            ChatScreen(recipient: user),
                                       ),
                                     ).then((_) {
                                       _usernameController.text = "";
@@ -148,16 +145,24 @@ class _ChatHistoryScreenState extends State<ChatHistoryScreen> {
                     ],
                     TextButton(
                       onPressed: () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                    recipientUserId: "admin",
-                                    recipientImage: "",
-                                  )),
-                        ).then((_) {
-                          _usernameController.text = "";
-                        });
+                        var userProvider =
+                            Provider.of<UserProvider>(context, listen: false);
+                        try {
+                          UserMinimal userExists =
+                              await userProvider.exists(username: "admin");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ChatScreen(recipient: userExists)),
+                          );
+                        } on CustomException catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString()),
+                            ),
+                          );
+                        }
                       },
                       child: const Text('Contact the admin'),
                     ),

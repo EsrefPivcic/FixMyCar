@@ -21,11 +21,11 @@ namespace FixMyCar.API.Controllers
         }
 
         [HttpGet("GetChatHistory/{recipientUserId}")]
-        public async Task<List<ChatMessage>> GetChatHistory(string recipientUserId)
+        public async Task<List<ChatMessage>> GetChatHistory(int recipientUserId)
         {
-            var senderUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var senderUser = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            return await _chatService.GetChatHistory(senderUserId!, recipientUserId);
+            return await _chatService.GetChatHistory(senderUser!, recipientUserId);
         }
 
         [HttpGet("GetChats")]

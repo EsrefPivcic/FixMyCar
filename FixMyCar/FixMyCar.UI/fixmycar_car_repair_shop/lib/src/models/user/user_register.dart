@@ -15,7 +15,7 @@ class UserRegister {
   String password;
   String passwordConfirm;
   String? image;
-  String city;
+  int cityId;
   List<int> workDays;
   String openingTime;
   String closingTime;
@@ -33,7 +33,7 @@ class UserRegister {
       this.password,
       this.passwordConfirm,
       this.image,
-      this.city,
+      this.cityId,
       this.workDays,
       this.openingTime,
       this.closingTime,

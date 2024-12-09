@@ -1,10 +1,11 @@
+import 'package:fixmycar_admin/constants.dart';
 import 'package:signalr_netcore/signalr_client.dart';
 
 class ChatService {
   late HubConnection _connection;
-  String _baseUrl = "http://localhost:5148/chatHub";
+  final String _baseUrl = 'http://${ApiHost.address}:${ApiHost.port}/chatHub';
 
-  Function(String senderUserId, String message)? onMessageReceived;
+  Function(int senderUserId, String message)? onMessageReceived;
 
   Future<void> initConnection(String token) async {
     _connection = HubConnectionBuilder()
@@ -24,7 +25,7 @@ class ChatService {
 
   void _onReceiveMessage(List<Object?>? arguments) {
     if (arguments != null && arguments.length >= 2) {
-      String senderUserId = arguments[0] as String;
+      int senderUserId = arguments[0] as int;
       String message = arguments[1] as String;
 
       if (onMessageReceived != null) {
@@ -33,7 +34,7 @@ class ChatService {
     }
   }
 
-  Future<void> sendMessage(String recipientUserId, String message) async {
+  Future<void> sendMessage(int recipientUserId, String message) async {
     await _connection
         .invoke("SendMessageToUser", args: <Object>[recipientUserId, message]);
   }

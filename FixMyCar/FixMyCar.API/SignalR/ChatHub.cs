@@ -1,8 +1,10 @@
 ﻿using FixMyCar.Model.Entities;
+using FixMyCar.Model.Utilities;
 using FixMyCar.Services.Database;
 using FixMyCar.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace FixMyCar.API.SignalR
 {
@@ -16,23 +18,34 @@ namespace FixMyCar.API.SignalR
             _context = context;
         }   
 
-        public async Task SendMessageToUser(string recipientUserId, string message)
+        public async Task SendMessageToUser(int recipientUserId, string message)
         {
-            var senderUserId = Context.UserIdentifier;
+            var recipient = await _context.Users.FindAsync(recipientUserId);
 
-            var chatMessage = new ChatMessage
+            if (recipient != null)
             {
-                SenderUserId = senderUserId!,
-                RecipientUserId = recipientUserId,
-                Message = message,
-                SentAt = DateTime.UtcNow
-            };
+                var senderUsername = Context.UserIdentifier;
 
-            _context.ChatMessages.Add(chatMessage);
+                var senderUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == senderUsername);
 
-            await _context.SaveChangesAsync();
+                var chatMessage = new ChatMessage
+                {
+                    SenderUserId = senderUser!.Id,
+                    RecipientUserId = recipientUserId,
+                    Message = message,
+                    SentAt = DateTime.UtcNow
+                };
 
-            await Clients.User(recipientUserId).SendAsync("ReceiveMessage", senderUserId, message);
+                _context.ChatMessages.Add(chatMessage);
+
+                await _context.SaveChangesAsync();
+
+                await Clients.User(recipient.Username).SendAsync("ReceiveMessage", senderUser!.Id, message);
+            }
+            else 
+            {
+                throw new UserException("User doesn't exist");
+            }
         }
     }
 }

@@ -162,10 +162,8 @@ class MasterScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                    recipientUserId: userExists.username,
-                                    recipientImage: userExists.image!,
-                                  )),
+                              builder: (context) =>
+                                  ChatScreen(recipient: userExists)),
                         ).then((_) {
                           _usernameController.text = "";
                         });
@@ -199,10 +197,8 @@ class MasterScreen extends StatelessWidget {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ChatScreen(
-                                        recipientUserId: user.username,
-                                        recipientImage: user.image!,
-                                      ),
+                                      builder: (context) =>
+                                          ChatScreen(recipient: user),
                                     ),
                                   ).then((_) {
                                     _usernameController.text = "";
@@ -242,17 +238,26 @@ class MasterScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () async {
-                Navigator.of(context).pop();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ChatScreen(
-                            recipientUserId: "admin",
-                            recipientImage: "",
-                          )),
-                ).then((_) {
-                  _usernameController.text = "";
-                });
+                var userProvider =
+                    Provider.of<UserProvider>(context, listen: false);
+                try {
+                  UserMinimal userExists =
+                      await userProvider.exists(username: "admin");
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            ChatScreen(recipient: userExists)),
+                  );
+                } on CustomException catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString()),
+                    ),
+                  );
+                  Navigator.of(context).pop();
+                }
               },
               child: const Text('Contact the admin'),
             ),

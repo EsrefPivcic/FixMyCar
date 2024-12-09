@@ -221,27 +221,6 @@ namespace FixMyCar.Services.Services
             {
                 _mapper.Map(request, entity);
 
-                if (!string.IsNullOrEmpty(request.City))
-                {
-                    City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
-
-                    if (city != null)
-                    {
-                        entity.CityId = city.Id;
-                    }
-                    else
-                    {
-                        var citySet = _context.Set<City>();
-                        City newCity = new City
-                        {
-                            Name = request.City
-                        };
-                        await citySet.AddAsync(newCity);
-                        await _context.SaveChangesAsync();
-
-                        entity.CityId = newCity.Id;
-                    }
-                }
                 await _context.SaveChangesAsync();
 
                 return _mapper.Map<UserGetDTO>(entity);
@@ -266,25 +245,6 @@ namespace FixMyCar.Services.Services
                 entity.PasswordSalt = Hashing.GenerateSalt();
                 entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
                 entity.Created = DateTime.Now.Date;
-
-                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
-
-                if (city != null)
-                {
-                    entity.CityId = city.Id;
-                }
-                else
-                {
-                    var citySet = _context.Set<City>();
-                    City newCity = new City
-                    {
-                        Name = request.City
-                    };
-                    await citySet.AddAsync(newCity);
-                    await _context.SaveChangesAsync();
-
-                    entity.CityId = newCity.Id;
-                }
 
                 if (request.Image != null)
                 {

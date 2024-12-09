@@ -187,25 +187,6 @@ namespace FixMyCar.Services.Services
                 entity.PasswordHash = Hashing.GenerateHash(entity.PasswordSalt, request.Password);
                 entity.Created = DateTime.Now.Date;
 
-                City? city = await _context.Cities.FirstOrDefaultAsync(c => c.Name.ToLower() == request.City.ToLower());
-
-                if (city != null)
-                {
-                    entity.CityId = city.Id;
-                }
-                else
-                {
-                    var citySet = _context.Set<City>();
-                    City newCity = new City
-                    {
-                        Name = request.City
-                    };
-                    await citySet.AddAsync(newCity);
-                    await _context.SaveChangesAsync();
-
-                    entity.CityId = newCity.Id;
-                }
-
                 if (request.Image != null)
                 {
                     byte[] newImage = Convert.FromBase64String(request.Image);

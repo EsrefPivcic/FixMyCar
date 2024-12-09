@@ -27,7 +27,7 @@ class ChatHistoryProvider extends BaseProvider<UserMinimal, ChatMessage> {
   }
 
   Future<List<ChatMessage>> getChatHistory(
-      {required String recipientUserId}) async {
+      {required int recipientUserId}) async {
     notifyListeners();
 
     try {

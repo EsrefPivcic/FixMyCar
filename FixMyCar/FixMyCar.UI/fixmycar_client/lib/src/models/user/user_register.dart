@@ -15,7 +15,7 @@ class UserRegister {
   String password;
   String passwordConfirm;
   String? image;
-  String city;
+  int cityId;
 
   UserRegister(
       this.name,
@@ -29,7 +29,7 @@ class UserRegister {
       this.password,
       this.passwordConfirm,
       this.image,
-      this.city);
+      this.cityId);
 
   factory UserRegister.fromJson(Map<String, dynamic> json) =>
       _$UserRegisterFromJson(json);
