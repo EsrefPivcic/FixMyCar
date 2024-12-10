@@ -860,23 +860,21 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                             children: [
                               Expanded(
                                 child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 8.0, top: 5.0),
+                                    child: Container(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  height: 150,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8.0),
                                     child: item.imageData != ""
                                         ? Image.memory(
                                             base64Decode(item.imageData!),
-                                            fit: BoxFit.contain,
-                                            width: 200,
-                                            height: 200,
+                                            fit: BoxFit.cover,
                                           )
                                         : const SizedBox(
-                                            width: 200,
-                                            height: 200,
                                             child: Icon(Icons.image, size: 120),
                                           ),
                                   ),
-                                ),
+                                )),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(5.0),

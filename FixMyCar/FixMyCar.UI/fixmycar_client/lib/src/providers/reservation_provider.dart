@@ -124,6 +124,9 @@ class ReservationProvider
       paymentIntentClientSecret: clientSecret,
       data: const PaymentMethodParams.card(
           paymentMethodData: PaymentMethodData()),
+      options: const PaymentMethodOptions(
+        setupFutureUsage: PaymentIntentsFutureUsage.OffSession,
+      ),
     );
   }
 

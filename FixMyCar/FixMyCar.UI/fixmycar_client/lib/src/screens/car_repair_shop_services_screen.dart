@@ -249,7 +249,7 @@ class _CarRepairShopServicesScreenState
                   calendarFormat: _calendarFormat,
                   focusedDay: _focusedDay,
                   firstDay: DateTime.now(),
-                  lastDay: DateTime(DateTime.now().year + 1),
+                  lastDay: DateTime(DateTime.now().year + 2),
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   onDaySelected: (selectedDay, focusedDay) {
                     if (_isDayEnabled(selectedDay)) {
@@ -994,22 +994,23 @@ class _CarRepairShopServicesScreenState
                                 children: [
                                   Expanded(
                                     child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: service.imageData != ""
-                                            ? Image.memory(
-                                                base64Decode(
-                                                    service.imageData!),
-                                                fit: BoxFit.contain,
-                                                width: 125,
-                                                height: 125,
-                                              )
-                                            : const SizedBox(
-                                                width: 150,
-                                                height: 150,
-                                                child: Icon(Icons.image,
-                                                    size: 100),
-                                              ),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        height: 150,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          child: service.imageData != ""
+                                              ? Image.memory(
+                                                  base64Decode(
+                                                      service.imageData!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : const SizedBox(
+                                                  child: Icon(Icons.image,
+                                                      size: 120),
+                                                ),
+                                        ),
                                       ),
                                     ),
                                   ),

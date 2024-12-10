@@ -698,21 +698,21 @@ class _ServicesScreenState extends State<ServicesScreen> {
                             children: [
                               Expanded(
                                 child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 8.0, top: 5.0),
-                                    child: service.imageData != ""
-                                        ? Image.memory(
-                                            base64Decode(service.imageData!),
-                                            fit: BoxFit.contain,
-                                            width: 200,
-                                            height: 200,
-                                          )
-                                        : const SizedBox(
-                                            width: 200,
-                                            height: 200,
-                                            child: Icon(Icons.image, size: 120),
-                                          ),
+                                  child: Container(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    height: 150,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      child: service.imageData != ""
+                                          ? Image.memory(
+                                              base64Decode(service.imageData!),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : const SizedBox(
+                                              child:
+                                                  Icon(Icons.image, size: 120),
+                                            ),
+                                    ),
                                   ),
                                 ),
                               ),

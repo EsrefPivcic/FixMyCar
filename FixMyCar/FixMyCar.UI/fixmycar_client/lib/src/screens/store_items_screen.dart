@@ -781,21 +781,22 @@ class _StoreItemsScreenState extends State<StoreItemsScreen> {
                                 children: [
                                   Expanded(
                                     child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(5.0),
-                                        child: item.imageData != ""
-                                            ? Image.memory(
-                                                base64Decode(item.imageData!),
-                                                fit: BoxFit.contain,
-                                                width: 400,
-                                                height: 400,
-                                              )
-                                            : const SizedBox(
-                                                width: 150,
-                                                height: 150,
-                                                child:
-                                                    Icon(Icons.image, size: 90),
-                                              ),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        height: 150,
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          child: item.imageData != ""
+                                              ? Image.memory(
+                                                  base64Decode(item.imageData!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : const SizedBox(
+                                                  child: Icon(Icons.image,
+                                                      size: 120),
+                                                ),
+                                        ),
                                       ),
                                     ),
                                   ),
