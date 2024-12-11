@@ -365,17 +365,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState?.validate() ?? false) {
-                      _updateUser(field);
-                      await Provider.of<UserProvider>(context, listen: false)
-                          .updateByToken(user: _userUpdate!)
-                          .then((_) {
-                        Provider.of<AdminProvider>(context, listen: false)
-                            .getByToken();
-                        setState(() {
-                          _editValue = null;
+                      try {
+                        _updateUser(field);
+                        await Provider.of<UserProvider>(context, listen: false)
+                            .updateByToken(user: _userUpdate!)
+                            .then((_) {
+                          Provider.of<AdminProvider>(context, listen: false)
+                              .getByToken();
+                          setState(() {
+                            _editValue = null;
+                          });
+                          _toggleEdit(field);
                         });
-                        _toggleEdit(field);
-                      });
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString()),
+                          ),
+                        );
+                      }
                     }
                   },
                   child: const Text('Apply'),
@@ -1065,20 +1073,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
             rows: _users.map<DataRow>((user) {
               return DataRow(cells: [
+                DataCell(Text('${user.username} (${user.name} ${user.surname})',
+                    style: TextStyle(fontSize: 12))),
+                DataCell(Text(user.email, style: TextStyle(fontSize: 12))),
                 DataCell(
-                    Text('${user.username} (${user.name} ${user.surname})')),
-                DataCell(Text(user.email)),
-                DataCell(Text(user.role == "carrepairshop"
-                    ? "Car Repair Shop"
-                    : user.role == "carpartsshop"
-                        ? "Car Parts Shop"
-                        : "Client")),
-                DataCell(Text(user.active ? 'Yes' : 'No')),
+                  Text(
+                      user.role == "carrepairshop"
+                          ? "Car Repair Shop"
+                          : user.role == "carpartsshop"
+                              ? "Car Parts Shop"
+                              : "Client",
+                      style: TextStyle(fontSize: 12)),
+                ),
+                DataCell(Text(user.active ? 'Yes' : 'No',
+                    style: TextStyle(fontSize: 12))),
                 DataCell(
                   ElevatedButton(
                     onPressed: () =>
                         _changeActiveStatus(user.id, user.username),
-                    child: Text(user.active ? 'Deactivate' : 'Activate'),
+                    child: Text(user.active ? 'Deactivate' : 'Activate',
+                        style: TextStyle(fontSize: 12)),
                   ),
                 ),
                 DataCell(
@@ -1094,7 +1108,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       );
                     },
-                    child: const Text('Message'),
+                    child:
+                        const Text('Message', style: TextStyle(fontSize: 12)),
                   ),
                 ),
               ]);

@@ -152,6 +152,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          backgroundColor: Color.fromARGB(255, 44, 41, 51),
           title: Row(
             children: [
               IconButton(

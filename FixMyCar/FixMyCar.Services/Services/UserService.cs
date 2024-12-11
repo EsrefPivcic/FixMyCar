@@ -221,6 +221,11 @@ namespace FixMyCar.Services.Services
             {
                 _mapper.Map(request, entity);
 
+                if (request.CityId != null)
+                {
+                    entity.CityId = request.CityId.Value;
+                }
+
                 await _context.SaveChangesAsync();
 
                 return _mapper.Map<UserGetDTO>(entity);

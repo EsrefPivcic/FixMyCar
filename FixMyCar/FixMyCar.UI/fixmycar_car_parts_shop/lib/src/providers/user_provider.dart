@@ -45,6 +45,7 @@ class UserProvider extends BaseProvider<User, UserRegister> {
   }
 
   Future<void> updateByToken({required UserUpdate user}) async {
+    print("im here");
     toJson(UserUpdate user) => user.toJson();
     try {
       final response = await http.put(

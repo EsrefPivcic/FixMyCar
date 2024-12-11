@@ -380,18 +380,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState?.validate() ?? false) {
-                      _updateUser(field);
-                      await Provider.of<UserProvider>(context, listen: false)
-                          .updateByToken(user: _userUpdate!)
-                          .then((_) {
-                        Provider.of<ClientProvider>(context, listen: false)
-                            .getByToken();
-                        setState(() {
-                          _editValue = null;
-                          _dropdownValue = null;
+                      try {
+                        _updateUser(field);
+                        await Provider.of<UserProvider>(context, listen: false)
+                            .updateByToken(user: _userUpdate!)
+                            .then((_) {
+                          Provider.of<ClientProvider>(context, listen: false)
+                              .getByToken();
+                          setState(() {
+                            _editValue = null;
+                            _dropdownValue = null;
+                          });
+                          _toggleEdit(field);
                         });
-                        _toggleEdit(field);
-                      });
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(e.toString()),
+                          ),
+                        );
+                      }
                     }
                   },
                   child: const Text('Apply'),

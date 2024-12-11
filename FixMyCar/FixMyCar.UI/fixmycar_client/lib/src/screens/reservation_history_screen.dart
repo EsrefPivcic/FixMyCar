@@ -163,7 +163,7 @@ class _ReservationHistoryScreenState extends State<ReservationHistoryScreen> {
                   calendarFormat: _calendarFormat,
                   focusedDay: orderDate ?? _focusedDay,
                   firstDay: orderDate ?? DateTime.now(),
-                  lastDay: DateTime(DateTime.now().year + 1),
+                  lastDay: DateTime(DateTime.now().year + 2),
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   onDaySelected: (selectedDay, focusedDay) {
                     if (_isDayEnabled(selectedDay)) {
